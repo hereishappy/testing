@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,298 +11,295 @@
             box-sizing: border-box;
         }
 
-```
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 10px;
-    }
-
-    .container {
-        max-width: 400px;
-        margin: 0 auto;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        overflow: hidden;
-        min-height: calc(100vh - 20px);
-    }
-
-    .header {
-        background: linear-gradient(135deg, #2196F3, #21CBF3);
-        color: white;
-        padding: 20px;
-        text-align: center;
-    }
-
-    .header h1 {
-        font-size: 1.5em;
-        margin-bottom: 5px;
-    }
-
-    .header p {
-        opacity: 0.9;
-        font-size: 0.9em;
-    }
-
-    .content {
-        padding: 20px;
-    }
-
-    .auth-screen {
-        text-align: center;
-        padding: 40px 20px;
-    }
-
-    .auth-screen h2 {
-        color: #333;
-        margin-bottom: 30px;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-        text-align: left;
-    }
-
-    label {
-        display: block;
-        margin-bottom: 8px;
-        color: #555;
-        font-weight: 500;
-    }
-
-    input, select, textarea {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e1e1e1;
-        border-radius: 10px;
-        font-size: 16px;
-        transition: all 0.3s ease;
-    }
-
-    input:focus, select:focus, textarea:focus {
-        outline: none;
-        border-color: #2196F3;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2);
-    }
-
-    .btn {
-        width: 100%;
-        padding: 15px;
-        background: linear-gradient(135deg, #2196F3, #21CBF3);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin-top: 10px;
-    }
-
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(33, 150, 243, 0.3);
-    }
-
-    .btn:active {
-        transform: translateY(0);
-    }
-
-    .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .btn-secondary {
-        background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-    }
-
-    .card {
-        background: #f8f9ff;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 20px;
-        border-left: 4px solid #2196F3;
-    }
-
-    .card h3 {
-        color: #333;
-        margin-bottom: 15px;
-        font-size: 1.2em;
-    }
-
-    .entry-item {
-        background: white;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-radius: 10px;
-        border: 1px solid #e1e1e1;
-        position: relative;
-    }
-
-    .entry-item h4 {
-        color: #2196F3;
-        margin-bottom: 10px;
-        font-size: 1em;
-    }
-
-    .remove-btn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: #ff4757;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 25px;
-        height: 25px;
-        cursor: pointer;
-        font-size: 12px;
-    }
-
-    .calc-display {
-        background: #e8f5e8;
-        padding: 10px;
-        border-radius: 8px;
-        margin-top: 10px;
-        font-weight: 500;
-        color: #2e7d2e;
-    }
-
-    .worker-list {
-        max-height: 300px;
-        overflow-y: auto;
-        border: 1px solid #e1e1e1;
-        border-radius: 8px;
-        background: white;
-    }
-
-    .worker-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 15px;
-        border-bottom: 1px solid #f0f0f0;
-    }
-
-    .worker-item:last-child {
-        border-bottom: none;
-    }
-
-    .worker-name {
-        flex-grow: 1;
-        color: #333;
-        font-weight: 500;
-        font-size: 14px;
-    }
-
-    .worker-input {
-        width: 70px;
-        padding: 8px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        text-align: center;
-        font-size: 14px;
-    }
-
-    .navigation {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 20px;
-    }
-
-    .nav-btn {
-        flex: 1;
-        margin: 0 5px;
-        padding: 12px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: 500;
-    }
-
-    .nav-btn.active {
-        background: linear-gradient(135deg, #2196F3, #21CBF3);
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    .report-preview {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 15px 0;
-        font-family: monospace;
-        white-space: pre-line;
-        font-size: 14px;
-        border: 1px solid #dee2e6;
-    }
-
-    .step-indicator {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 20px;
-    }
-
-    .step {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: #e1e1e1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 5px;
-        font-weight: bold;
-        color: #999;
-    }
-
-    .step.active {
-        background: #2196F3;
-        color: white;
-    }
-
-    .step.completed {
-        background: #4CAF50;
-        color: white;
-    }
-
-    .version {
-        position: absolute;
-        top: 5px;
-        right: 10px;
-        font-size: 0.7em;
-        opacity: 0.8;
-    }
-
-    .loading {
-        text-align: center;
-        padding: 20px;
-        color: #666;
-    }
-
-    @media (max-width: 480px) {
-        .container {
-            margin: 0;
-            border-radius: 0;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding: 10px;
         }
-        
-        .content {
-            padding: 15px;
-        }
-    }
-</style>
-```
 
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            min-height: calc(100vh - 20px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .auth-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .auth-screen h2 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2196F3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(33, 150, 243, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+        }
+
+        .card {
+            background: #f8f9ff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .entry-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 1px solid #e1e1e1;
+            position: relative;
+        }
+
+        .entry-item h4 {
+            color: #2196F3;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .calc-display {
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 500;
+            color: #2e7d2e;
+        }
+
+        .worker-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .worker-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .worker-item:last-child {
+            border-bottom: none;
+        }
+
+        .worker-name {
+            flex-grow: 1;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .worker-input {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            margin: 0 5px;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #2196F3, #21CBF3);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .report-preview {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: monospace;
+            white-space: pre-line;
+            font-size: 14px;
+            border: 1px solid #dee2e6;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e1e1e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 5px;
+            font-weight: bold;
+            color: #999;
+        }
+
+        .step.active {
+            background: #2196F3;
+            color: white;
+        }
+
+        .step.completed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .version {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 0.7em;
+            opacity: 0.8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -313,572 +309,569 @@
             <p>Daily Work & Attendance Management</p>
         </div>
 
-```
-    <!-- Authentication Screen -->
-    <div id="authScreen" class="content">
-        <div class="auth-screen">
-            <h2>Supervisor Login</h2>
-            <div class="form-group">
-                <label for="supervisorSelect">Select Supervisor:</label>
-                <select id="supervisorSelect">
-                    <option value="">Choose Supervisor</option>
-                    <option value="MAHENDRA KUMAR">MAHENDRA KUMAR</option>
-                    <option value="PINTU SAH">PINTU SAH</option>
-                    <option value="HARKIRAT SINGH">HARKIRAT SINGH</option>
-                    <option value="SUNIL CHAUHAN">SUNIL CHAUHAN</option>
-                    <option value="NSUP1">NSUP1</option>
-                    <option value="NSUP2">NSUP2</option>
-                    <option value="NSUP3">NSUP3</option>
-                    <option value="NSUP4">NSUP4</option>
-                </select>
+        <!-- Authentication Screen -->
+        <div id="authScreen" class="content">
+            <div class="auth-screen">
+                <h2>Supervisor Login</h2>
+                <div class="form-group">
+                    <label for="supervisorSelect">Select Supervisor:</label>
+                    <select id="supervisorSelect">
+                        <option value="">Choose Supervisor</option>
+                        <option value="MAHENDRA KUMAR">MAHENDRA KUMAR</option>
+                        <option value="PINTU SAH">PINTU SAH</option>
+                        <option value="HARKIRAT SINGH">HARKIRAT SINGH</option>
+                        <option value="SUNIL CHAUHAN">SUNIL CHAUHAN</option>
+                        <option value="NSUP1">NSUP1</option>
+                        <option value="NSUP2">NSUP2</option>
+                        <option value="NSUP3">NSUP3</option>
+                        <option value="NSUP4">NSUP4</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="pinInput">Enter PIN:</label>
+                    <input type="password" id="pinInput" placeholder="4-digit PIN" maxlength="4">
+                </div>
+                <button class="btn" onclick="login()">Login</button>
             </div>
-            <div class="form-group">
-                <label for="pinInput">Enter PIN:</label>
-                <input type="password" id="pinInput" placeholder="4-digit PIN" maxlength="4">
+        </div>
+
+        <!-- Main App Screen -->
+        <div id="mainScreen" class="content hidden">
+            <div class="step-indicator">
+                <div class="step active" id="step1">1</div>
+                <div class="step" id="step2">2</div>
             </div>
-            <button class="btn" onclick="login()">Login</button>
+
+            <div class="navigation">
+                <button class="nav-btn active" id="workBtn" onclick="showCard('work')">Work Entries</button>
+                <button class="nav-btn" id="attendanceBtn" onclick="showCard('attendance')">Attendance</button>
+            </div>
+
+            <!-- Work Entry Card -->
+            <div id="workCard" class="card">
+                <h3>End Shift - <span id="workDate"></span></h3>
+                <div class="form-group">
+                    <label for="workDateInput">Date:</label>
+                    <input type="date" id="workDateInput" onchange="updateWorkDate()">
+                </div>
+                
+                <div class="form-group">
+                    <label for="workType">Work Type:</label>
+                    <select id="workType" onchange="updateCalculations()">
+                        <option value="">Select Work Type</option>
+                        <option value="ERECTION">ERECTION</option>
+                        <option value="DISMANTLING">DISMANTLING</option>
+                        <option value="DESCRIPTION">DESCRIPTION</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <input type="text" id="description" placeholder="Work description">
+                </div>
+
+                <div class="form-group">
+                    <label for="length">Length (L):</label>
+                    <input type="number" id="length" step="0.01" placeholder="0" oninput="updateCalculations()">
+                </div>
+
+                <div class="form-group">
+                    <label for="width">Width (W):</label>
+                    <input type="number" id="width" step="0.01" placeholder="0" oninput="updateCalculations()">
+                </div>
+
+                <div class="form-group">
+                    <label for="height">Height (H):</label>
+                    <input type="number" id="height" step="0.01" placeholder="0" oninput="updateCalculations()">
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" step="1" placeholder="0" oninput="updateCalculations()">
+                </div>
+
+                <div class="calc-display" id="calculationDisplay">
+                    Volume: 0 | Erection: 0 | Dismantling: 0
+                </div>
+
+                <button class="btn" onclick="addWorkEntry()">Add Entry</button>
+
+                <div id="workEntries"></div>
+                <button class="btn btn-secondary" onclick="proceedToAttendance()" id="proceedBtn" style="display: none;">Proceed to Attendance</button>
+            </div>
+
+            <!-- Attendance Card -->
+            <div id="attendanceCard" class="card hidden">
+                <h3>End Shift Productivity</h3>
+                
+                <div class="form-group">
+                    <label for="workerCount">Number of Workers:</label>
+                    <input type="number" id="workerCount" min="1" value="2" oninput="updateAttendanceCalc()">
+                </div>
+
+                <h4>Workers Overtime (Hours):</h4>
+                <div class="loading" id="workersLoading">Loading workers from MANPOWER sheet...</div>
+                <div class="worker-list hidden" id="workerList"></div>
+
+                <div class="calc-display" id="attendanceCalc">
+                    Total Manhours: 16
+                </div>
+
+                <div class="report-preview" id="reportPreview"></div>
+
+                <button class="btn" onclick="submitAndShare()" id="submitBtn">Submit & Share Report</button>
+                <button class="btn btn-secondary" onclick="goBackToWork()">Back to Work Entries</button>
+            </div>
         </div>
     </div>
 
-    <!-- Main App Screen -->
-    <div id="mainScreen" class="content hidden">
-        <div class="step-indicator">
-            <div class="step active" id="step1">1</div>
-            <div class="step" id="step2">2</div>
-        </div>
-
-        <div class="navigation">
-            <button class="nav-btn active" id="workBtn" onclick="showCard('work')">Work Entries</button>
-            <button class="nav-btn" id="attendanceBtn" onclick="showCard('attendance')">Attendance</button>
-        </div>
-
-        <!-- Work Entry Card -->
-        <div id="workCard" class="card">
-            <h3>End Shift - <span id="workDate"></span></h3>
-            <div class="form-group">
-                <label for="workDateInput">Date:</label>
-                <input type="date" id="workDateInput" onchange="updateWorkDate()">
-            </div>
-            
-            <div class="form-group">
-                <label for="workType">Work Type:</label>
-                <select id="workType" onchange="updateCalculations()">
-                    <option value="">Select Work Type</option>
-                    <option value="ERECTION">ERECTION</option>
-                    <option value="DISMANTLING">DISMANTLING</option>
-                    <option value="DESCRIPTION">DESCRIPTION</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="description">Description:</label>
-                <input type="text" id="description" placeholder="Work description">
-            </div>
-
-            <div class="form-group">
-                <label for="length">Length (L):</label>
-                <input type="number" id="length" step="0.01" placeholder="0" oninput="updateCalculations()">
-            </div>
-
-            <div class="form-group">
-                <label for="width">Width (W):</label>
-                <input type="number" id="width" step="0.01" placeholder="0" oninput="updateCalculations()">
-            </div>
-
-            <div class="form-group">
-                <label for="height">Height (H):</label>
-                <input type="number" id="height" step="0.01" placeholder="0" oninput="updateCalculations()">
-            </div>
-
-            <div class="form-group">
-                <label for="quantity">Quantity:</label>
-                <input type="number" id="quantity" step="1" placeholder="0" oninput="updateCalculations()">
-            </div>
-
-            <div class="calc-display" id="calculationDisplay">
-                Volume: 0 | Erection: 0 | Dismantling: 0
-            </div>
-
-            <button class="btn" onclick="addWorkEntry()">Add Entry</button>
-
-            <div id="workEntries"></div>
-            <button class="btn btn-secondary" onclick="proceedToAttendance()" id="proceedBtn" style="display: none;">Proceed to Attendance</button>
-        </div>
-
-        <!-- Attendance Card -->
-        <div id="attendanceCard" class="card hidden">
-            <h3>End Shift Productivity</h3>
-            
-            <div class="form-group">
-                <label for="workerCount">Number of Workers:</label>
-                <input type="number" id="workerCount" min="1" value="2" oninput="updateAttendanceCalc()">
-            </div>
-
-            <h4>Workers Overtime (Hours):</h4>
-            <div class="loading" id="workersLoading">Loading workers from MANPOWER sheet...</div>
-            <div class="worker-list hidden" id="workerList"></div>
-
-            <div class="calc-display" id="attendanceCalc">
-                Total Manhours: 16
-            </div>
-
-            <div class="report-preview" id="reportPreview"></div>
-
-            <button class="btn" onclick="submitAndShare()" id="submitBtn">Submit & Share Report</button>
-            <button class="btn btn-secondary" onclick="goBackToWork()">Back to Work Entries</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    var supervisorPins = {
-        'MAHENDRA KUMAR': '1122',
-        'PINTU SAH': '3344',
-        'HARKIRAT SINGH': '5566',
-        'SUNIL CHAUHAN': '7788',
-        'NSUP1': '9012',
-        'NSUP2': '2345',
-        'NSUP3': '6789',
-        'NSUP4': '1010'
-    };
-
-    var workers = [];
-    var currentSupervisor = '';
-    var workEntries = [];
-    var currentCard = 'work';
-    var workersLoaded = false;
-
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Work Tracker App v6.0 Initialized');
-        var today = new Date().toISOString().split('T')[0];
-        document.getElementById('workDateInput').value = today;
-        updateWorkDate();
-        loadWorkersFromSheet();
-    });
-
-    function loadWorkersFromSheet() {
-        console.log('Loading workers from MANPOWER sheet...');
-        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbynrcB8nexhmAf1N-CxBHGOcSn_3kPrT6r7DxT6Jpvtpb_3qYJ37Cdz3m0586kzrGhHaQ/exec';
-        
-        // Create script element for JSONP-like request
-        var script = document.createElement('script');
-        script.src = appsScriptUrl + '?action=getWorkers&callback=handleWorkersResponse';
-        script.onerror = function() {
-            console.log('Failed to load workers script, using fallback');
-            setupFallbackWorkers();
+    <script>
+        var supervisorPins = {
+            'MAHENDRA KUMAR': '1122',
+            'PINTU SAH': '3344',
+            'HARKIRAT SINGH': '5566',
+            'SUNIL CHAUHAN': '7788',
+            'NSUP1': '9012',
+            'NSUP2': '2345',
+            'NSUP3': '6789',
+            'NSUP4': '1010'
         };
-        
-        document.head.appendChild(script);
-        
-        // Fallback timeout
-        setTimeout(function() {
-            if (!workersLoaded) {
-                console.log('Workers loading timeout, using fallback');
+
+        var workers = [];
+        var currentSupervisor = '';
+        var workEntries = [];
+        var currentCard = 'work';
+        var workersLoaded = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Work Tracker App v6.0 Initialized');
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementById('workDateInput').value = today;
+            updateWorkDate();
+            loadWorkersFromSheet();
+        });
+
+        function loadWorkersFromSheet() {
+            console.log('Loading workers from MANPOWER sheet...');
+            var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzU_b7mBsiW6tpqTT-6RvJuqBhEK9I_uyWLw7sc60QKnIoUMPxf8xlnTVUz0L_lAXBP/exec';
+            
+            // Create script element for JSONP-like request
+            var script = document.createElement('script');
+            script.src = appsScriptUrl + '?action=getWorkers&callback=handleWorkersResponse';
+            script.onerror = function() {
+                console.log('Failed to load workers script, using fallback');
                 setupFallbackWorkers();
-            }
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
-            }
-        }, 8000);
-    }
-
-    function handleWorkersResponse() {
-        // This function will be called by the Apps Script response
-        console.log('Workers response received');
-    }
-
-    function setupFallbackWorkers() {
-        workers = [
-            'HARKIRAT', 'MAHENDRA KUMAR', 'SUNIL CHAUHAN', 'PINTU KUMAR SAH',
-            'AMAN KUMAR', 'ATUL MAHADEO', 'CHANDAN KUMAR', 'DEEPAK DAS',
-            'DEEPAK KUMAR', 'DHIRAJ KUMAR MANJI', 'DAULAT YADAV', 'FOOL SINGH',
-            'KIRAN PASWAN', 'KUNDAN KUMAR', 'MITLESH KUMAR', 'NIRAJ KUMAR',
-            'NANDAN KUMAR', 'NARESH KUMAR', 'OM PRAKASH', 'PANDURANG',
-            'RAJU KUMAR', 'ROSHAN CHAUHAN', 'RAM BABU', 'RAM KISHOR DAS',
-            'RAHUL KUMAR', 'SANDIP MADHUKAR', 'SAHAB CHAUHAN', 'SARVESH KUMAR',
-            'SANJITH YADAV', 'SHIVAM KUMAR', 'SUDISH SAH', 'VISHAL PRUTHVIRAJ'
-        ];
-        workersLoaded = true;
-        updateWorkerList();
-        console.log('Fallback workers loaded:', workers.length);
-    }
-
-    function setWorkers(workerList) {
-        workers = workerList || [];
-        workersLoaded = true;
-        updateWorkerList();
-        console.log('Workers loaded from sheet:', workers.length);
-    }
-
-    function login() {
-        var supervisor = document.getElementById('supervisorSelect').value;
-        var pin = document.getElementById('pinInput').value;
-
-        if (!supervisor) {
-            alert('Please select a supervisor');
-            return;
+            };
+            
+            document.head.appendChild(script);
+            
+            // Fallback timeout
+            setTimeout(function() {
+                if (!workersLoaded) {
+                    console.log('Workers loading timeout, using fallback');
+                    setupFallbackWorkers();
+                }
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+            }, 8000);
         }
 
-        if (!pin || pin.length !== 4) {
-            alert('Please enter a 4-digit PIN');
-            return;
+        function handleWorkersResponse() {
+            // This function will be called by the Apps Script response
+            console.log('Workers response received');
         }
 
-        if (supervisorPins[supervisor] === pin) {
-            currentSupervisor = supervisor;
-            console.log('Login successful: ' + supervisor);
-            document.getElementById('authScreen').classList.add('hidden');
-            document.getElementById('mainScreen').classList.remove('hidden');
-            if (!workersLoaded) {
-                loadWorkersFromSheet();
+        function setupFallbackWorkers() {
+            workers = [
+                'HARKIRAT', 'MAHENDRA KUMAR', 'SUNIL CHAUHAN', 'PINTU KUMAR SAH',
+                'AMAN KUMAR', 'ATUL MAHADEO', 'CHANDAN KUMAR', 'DEEPAK DAS',
+                'DEEPAK KUMAR', 'DHIRAJ KUMAR MANJI', 'DAULAT YADAV', 'FOOL SINGH',
+                'KIRAN PASWAN', 'KUNDAN KUMAR', 'MITLESH KUMAR', 'NIRAJ KUMAR',
+                'NANDAN KUMAR', 'NARESH KUMAR', 'OM PRAKASH', 'PANDURANG',
+                'RAJU KUMAR', 'ROSHAN CHAUHAN', 'RAM BABU', 'RAM KISHOR DAS',
+                'RAHUL KUMAR', 'SANDIP MADHUKAR', 'SAHAB CHAUHAN', 'SARVESH KUMAR',
+                'SANJITH YADAV', 'SHIVAM KUMAR', 'SUDISH SAH', 'VISHAL PRUTHVIRAJ'
+            ];
+            workersLoaded = true;
+            updateWorkerList();
+            console.log('Fallback workers loaded:', workers.length);
+        }
+
+        function setWorkers(workerList) {
+            workers = workerList || [];
+            workersLoaded = true;
+            updateWorkerList();
+            console.log('Workers loaded from sheet:', workers.length);
+        }
+
+        function login() {
+            var supervisor = document.getElementById('supervisorSelect').value;
+            var pin = document.getElementById('pinInput').value;
+
+            if (!supervisor) {
+                alert('Please select a supervisor');
+                return;
             }
+
+            if (!pin || pin.length !== 4) {
+                alert('Please enter a 4-digit PIN');
+                return;
+            }
+
+            if (supervisorPins[supervisor] === pin) {
+                currentSupervisor = supervisor;
+                console.log('Login successful: ' + supervisor);
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('mainScreen').classList.remove('hidden');
+                if (!workersLoaded) {
+                    loadWorkersFromSheet();
+                }
+                updateReportPreview();
+            } else {
+                alert('Invalid PIN. Please try again.');
+                document.getElementById('pinInput').value = '';
+            }
+        }
+
+        function updateWorkDate() {
+            var date = document.getElementById('workDateInput').value;
+            var formattedDate = new Date(date).toLocaleDateString('en-GB');
+            document.getElementById('workDate').textContent = formattedDate;
             updateReportPreview();
-        } else {
-            alert('Invalid PIN. Please try again.');
-            document.getElementById('pinInput').value = '';
-        }
-    }
-
-    function updateWorkDate() {
-        var date = document.getElementById('workDateInput').value;
-        var formattedDate = new Date(date).toLocaleDateString('en-GB');
-        document.getElementById('workDate').textContent = formattedDate;
-        updateReportPreview();
-    }
-
-    function updateCalculations() {
-        var workType = document.getElementById('workType').value;
-        var length = parseFloat(document.getElementById('length').value) || 0;
-        var width = parseFloat(document.getElementById('width').value) || 0;
-        var height = parseFloat(document.getElementById('height').value) || 0;
-        var quantity = parseInt(document.getElementById('quantity').value) || 0;
-
-        var volume = length * width * height * quantity;
-        var erection = 0;
-        var dismantling = 0;
-
-        if (workType === 'ERECTION') {
-            erection = volume;
-        } else if (workType === 'DISMANTLING') {
-            dismantling = volume / 2;
         }
 
-        document.getElementById('calculationDisplay').textContent = 
-            'Volume: ' + volume.toFixed(2) + ' | Erection: ' + erection.toFixed(2) + ' | Dismantling: ' + dismantling.toFixed(2);
-    }
+        function updateCalculations() {
+            var workType = document.getElementById('workType').value;
+            var length = parseFloat(document.getElementById('length').value) || 0;
+            var width = parseFloat(document.getElementById('width').value) || 0;
+            var height = parseFloat(document.getElementById('height').value) || 0;
+            var quantity = parseInt(document.getElementById('quantity').value) || 0;
 
-    function addWorkEntry() {
-        var workType = document.getElementById('workType').value;
-        var description = document.getElementById('description').value;
-        var length = parseFloat(document.getElementById('length').value) || 0;
-        var width = parseFloat(document.getElementById('width').value) || 0;
-        var height = parseFloat(document.getElementById('height').value) || 0;
-        var quantity = parseInt(document.getElementById('quantity').value) || 0;
+            var volume = length * width * height * quantity;
+            var erection = 0;
+            var dismantling = 0;
 
-        if (!workType || !description) {
-            alert('Please fill in work type and description');
-            return;
+            if (workType === 'ERECTION') {
+                erection = volume;
+            } else if (workType === 'DISMANTLING') {
+                dismantling = volume / 2;
+            }
+
+            document.getElementById('calculationDisplay').textContent = 
+                'Volume: ' + volume.toFixed(2) + ' | Erection: ' + erection.toFixed(2) + ' | Dismantling: ' + dismantling.toFixed(2);
         }
 
-        var volume = length * width * height * quantity;
-        var erection = 0;
-        var dismantling = 0;
+        function addWorkEntry() {
+            var workType = document.getElementById('workType').value;
+            var description = document.getElementById('description').value;
+            var length = parseFloat(document.getElementById('length').value) || 0;
+            var width = parseFloat(document.getElementById('width').value) || 0;
+            var height = parseFloat(document.getElementById('height').value) || 0;
+            var quantity = parseInt(document.getElementById('quantity').value) || 0;
 
-        if (workType === 'ERECTION') {
-            erection = volume;
-        } else if (workType === 'DISMANTLING') {
-            dismantling = volume / 2;
-        }
+            if (!workType || !description) {
+                alert('Please fill in work type and description');
+                return;
+            }
 
-        var entry = {
-            workType: workType,
-            description: description,
-            length: length,
-            width: width,
-            height: height,
-            quantity: quantity,
-            volume: volume,
-            erection: erection,
-            dismantling: dismantling
-        };
+            var volume = length * width * height * quantity;
+            var erection = 0;
+            var dismantling = 0;
 
-        workEntries.push(entry);
-        console.log('Work entry added');
-        displayWorkEntries();
-        clearWorkForm();
-        
-        if (workEntries.length > 0) {
-            document.getElementById('proceedBtn').style.display = 'block';
-        }
+            if (workType === 'ERECTION') {
+                erection = volume;
+            } else if (workType === 'DISMANTLING') {
+                dismantling = volume / 2;
+            }
 
-        updateReportPreview();
-    }
+            var entry = {
+                workType: workType,
+                description: description,
+                length: length,
+                width: width,
+                height: height,
+                quantity: quantity,
+                volume: volume,
+                erection: erection,
+                dismantling: dismantling
+            };
 
-    function displayWorkEntries() {
-        var container = document.getElementById('workEntries');
-        container.innerHTML = '';
-
-        for (var i = 0; i < workEntries.length; i++) {
-            var entry = workEntries[i];
-            var entryDiv = document.createElement('div');
-            entryDiv.className = 'entry-item';
-            entryDiv.innerHTML = '<button class="remove-btn" onclick="removeWorkEntry(' + i + ')">×</button>' +
-                '<h4>' + entry.workType + ' - ' + entry.description + '</h4>' +
-                '<p>Dimensions: ' + entry.length + ' × ' + entry.width + ' × ' + entry.height + ' × ' + entry.quantity + '</p>' +
-                '<p>Volume: ' + entry.volume.toFixed(2) + ' | Erection: ' + entry.erection.toFixed(2) + ' | Dismantling: ' + entry.dismantling.toFixed(2) + '</p>';
-            container.appendChild(entryDiv);
-        }
-    }
-
-    function removeWorkEntry(index) {
-        workEntries.splice(index, 1);
-        console.log('Work entry removed');
-        displayWorkEntries();
-        updateReportPreview();
-        
-        if (workEntries.length === 0) {
-            document.getElementById('proceedBtn').style.display = 'none';
-        }
-    }
-
-    function clearWorkForm() {
-        document.getElementById('workType').value = '';
-        document.getElementById('description').value = '';
-        document.getElementById('length').value = '';
-        document.getElementById('width').value = '';
-        document.getElementById('height').value = '';
-        document.getElementById('quantity').value = '';
-        updateCalculations();
-    }
-
-    function updateWorkerList() {
-        var container = document.getElementById('workerList');
-        var loading = document.getElementById('workersLoading');
-        
-        if (workers.length === 0) {
-            return;
-        }
-
-        container.innerHTML = '';
-
-        for (var i = 0; i < workers.length; i++) {
-            var worker = workers[i];
-            var workerDiv = document.createElement('div');
-            workerDiv.className = 'worker-item';
-            workerDiv.innerHTML = '<span class="worker-name">' + worker + '</span>' +
-                '<input type="number" class="worker-input" min="0" max="12" step="0.5" value="0" onchange="updateAttendanceCalc()">';
-            container.appendChild(workerDiv);
-        }
-
-        loading.classList.add('hidden');
-        container.classList.remove('hidden');
-        updateAttendanceCalc();
-        console.log('Worker list updated with ' + workers.length + ' workers');
-    }
-
-    function updateAttendanceCalc() {
-        var workerCount = parseInt(document.getElementById('workerCount').value) || 2;
-        var workerInputs = document.querySelectorAll('.worker-input');
-        var totalOT = 0;
-        
-        for (var i = 0; i < workerInputs.length; i++) {
-            var input = workerInputs[i];
-            var otValue = parseFloat(input.value) || 0;
-            if (otValue < 0) input.value = 0;
-            if (otValue > 12) input.value = 12;
-            totalOT += parseFloat(input.value) || 0;
-        }
-
-        var totalManHours = (workerCount * 8) + totalOT;
-        document.getElementById('attendanceCalc').textContent = 'Total Manhours: ' + totalManHours;
-        
-        updateReportPreview();
-    }
-
-    function showCard(cardType) {
-        if (cardType === 'work') {
-            document.getElementById('workCard').classList.remove('hidden');
-            document.getElementById('attendanceCard').classList.add('hidden');
-            document.getElementById('workBtn').classList.add('active');
-            document.getElementById('attendanceBtn').classList.remove('active');
-            document.getElementById('step1').classList.add('active');
-            document.getElementById('step2').classList.remove('active');
-            currentCard = 'work';
-        } else {
-            document.getElementById('workCard').classList.add('hidden');
-            document.getElementById('attendanceCard').classList.remove('hidden');
-            document.getElementById('workBtn').classList.remove('active');
-            document.getElementById('attendanceBtn').classList.add('active');
-            document.getElementById('step1').classList.add('completed');
-            document.getElementById('step1').classList.remove('active');
-            document.getElementById('step2').classList.add('active');
-            currentCard = 'attendance';
+            workEntries.push(entry);
+            console.log('Work entry added');
+            displayWorkEntries();
+            clearWorkForm();
             
-            if (!workersLoaded) {
-                loadWorkersFromSheet();
+            if (workEntries.length > 0) {
+                document.getElementById('proceedBtn').style.display = 'block';
+            }
+
+            updateReportPreview();
+        }
+
+        function displayWorkEntries() {
+            var container = document.getElementById('workEntries');
+            container.innerHTML = '';
+
+            for (var i = 0; i < workEntries.length; i++) {
+                var entry = workEntries[i];
+                var entryDiv = document.createElement('div');
+                entryDiv.className = 'entry-item';
+                entryDiv.innerHTML = '<button class="remove-btn" onclick="removeWorkEntry(' + i + ')">×</button>' +
+                    '<h4>' + entry.workType + ' - ' + entry.description + '</h4>' +
+                    '<p>Dimensions: ' + entry.length + ' × ' + entry.width + ' × ' + entry.height + ' × ' + entry.quantity + '</p>' +
+                    '<p>Volume: ' + entry.volume.toFixed(2) + ' | Erection: ' + entry.erection.toFixed(2) + ' | Dismantling: ' + entry.dismantling.toFixed(2) + '</p>';
+                container.appendChild(entryDiv);
             }
         }
-        console.log('Switched to card: ' + cardType);
-    }
 
-    function proceedToAttendance() {
-        if (workEntries.length === 0) {
-            alert('Please add at least one work entry');
-            return;
-        }
-        console.log('Proceeding to attendance');
-        showCard('attendance');
-    }
-
-    function goBackToWork() {
-        showCard('work');
-    }
-
-    function updateReportPreview() {
-        var date = document.getElementById('workDateInput').value;
-        var formattedDate = new Date(date).toLocaleDateString('en-GB');
-        
-        var totalErection = 0;
-        var totalDismantling = 0;
-        
-        for (var i = 0; i < workEntries.length; i++) {
-            totalErection += workEntries[i].erection;
-            totalDismantling += workEntries[i].dismantling;
-        }
-
-        var workerCount = parseInt(document.getElementById('workerCount').value) || 2;
-        var workerInputs = document.querySelectorAll('.worker-input');
-        var totalOT = 0;
-        
-        for (var i = 0; i < workerInputs.length; i++) {
-            totalOT += parseFloat(workerInputs[i].value) || 0;
-        }
-
-        var totalManHours = (workerCount * 8) + totalOT;
-        var productivity = totalManHours > 0 ? ((totalErection + totalDismantling / 2) / totalManHours).toFixed(2) : '0.00';
-
-        var report = 'DAILY WORK REPORT\n\n' +
-            'SUPERVISOR NAME: ' + currentSupervisor + '\n' +
-            'DATE: ' + formattedDate + '\n' +
-            'TOTAL ERECTION: ' + totalErection.toFixed(2) + '\n' +
-            'TOTAL DISMANTLING: ' + totalDismantling.toFixed(2) + '\n' +
-            'TOTAL MANHOURS: ' + totalManHours + '\n' +
-            'PRODUCTIVITY: ' + productivity;
-
-        document.getElementById('reportPreview').textContent = report;
-    }
-
-    function submitAndShare() {
-        if (workEntries.length === 0) {
-            alert('Please add work entries before submitting');
-            return;
-        }
-
-        var submitBtn = document.getElementById('submitBtn');
-        submitBtn.textContent = 'Processing...';
-        submitBtn.disabled = true;
-
-        console.log('Starting submission process...');
-
-        var date = document.getElementById('workDateInput').value;
-        var workerInputs = document.querySelectorAll('.worker-input');
-        var attendanceData = [];
-        
-        for (var i = 0; i < workerInputs.length; i++) {
-            var overtimeHours = parseFloat(workerInputs[i].value) || 0;
+        function removeWorkEntry(index) {
+            workEntries.splice(index, 1);
+            console.log('Work entry removed');
+            displayWorkEntries();
+            updateReportPreview();
             
-            if (overtimeHours > 0 && i < workers.length) {
-                attendanceData.push({
+            if (workEntries.length === 0) {
+                document.getElementById('proceedBtn').style.display = 'none';
+            }
+        }
+
+        function clearWorkForm() {
+            document.getElementById('workType').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('length').value = '';
+            document.getElementById('width').value = '';
+            document.getElementById('height').value = '';
+            document.getElementById('quantity').value = '';
+            updateCalculations();
+        }
+
+        function updateWorkerList() {
+            var container = document.getElementById('workerList');
+            var loading = document.getElementById('workersLoading');
+            
+            if (workers.length === 0) {
+                return;
+            }
+
+            container.innerHTML = '';
+
+            for (var i = 0; i < workers.length; i++) {
+                var worker = workers[i];
+                var workerDiv = document.createElement('div');
+                workerDiv.className = 'worker-item';
+                workerDiv.innerHTML = '<span class="worker-name">' + worker + '</span>' +
+                    '<input type="number" class="worker-input" min="0" max="12" step="0.5" value="0" onchange="updateAttendanceCalc()">';
+                container.appendChild(workerDiv);
+            }
+
+            loading.classList.add('hidden');
+            container.classList.remove('hidden');
+            updateAttendanceCalc();
+            console.log('Worker list updated with ' + workers.length + ' workers');
+        }
+
+        function updateAttendanceCalc() {
+            var workerCount = parseInt(document.getElementById('workerCount').value) || 2;
+            var workerInputs = document.querySelectorAll('.worker-input');
+            var totalOT = 0;
+            
+            for (var i = 0; i < workerInputs.length; i++) {
+                var input = workerInputs[i];
+                var otValue = parseFloat(input.value) || 0;
+                if (otValue < 0) input.value = 0;
+                if (otValue > 12) input.value = 12;
+                totalOT += parseFloat(input.value) || 0;
+            }
+
+            var totalManHours = (workerCount * 8) + totalOT;
+            document.getElementById('attendanceCalc').textContent = 'Total Manhours: ' + totalManHours;
+            
+            updateReportPreview();
+        }
+
+        function showCard(cardType) {
+            if (cardType === 'work') {
+                document.getElementById('workCard').classList.remove('hidden');
+                document.getElementById('attendanceCard').classList.add('hidden');
+                document.getElementById('workBtn').classList.add('active');
+                document.getElementById('attendanceBtn').classList.remove('active');
+                document.getElementById('step1').classList.add('active');
+                document.getElementById('step2').classList.remove('active');
+                currentCard = 'work';
+            } else {
+                document.getElementById('workCard').classList.add('hidden');
+                document.getElementById('attendanceCard').classList.remove('hidden');
+                document.getElementById('workBtn').classList.remove('active');
+                document.getElementById('attendanceBtn').classList.add('active');
+                document.getElementById('step1').classList.add('completed');
+                document.getElementById('step1').classList.remove('active');
+                document.getElementById('step2').classList.add('active');
+                currentCard = 'attendance';
+                
+                if (!workersLoaded) {
+                    loadWorkersFromSheet();
+                }
+            }
+            console.log('Switched to card: ' + cardType);
+        }
+
+        function proceedToAttendance() {
+            if (workEntries.length === 0) {
+                alert('Please add at least one work entry');
+                return;
+            }
+            console.log('Proceeding to attendance');
+            showCard('attendance');
+        }
+
+        function goBackToWork() {
+            showCard('work');
+        }
+
+        function updateReportPreview() {
+            var date = document.getElementById('workDateInput').value;
+            var formattedDate = new Date(date).toLocaleDateString('en-GB');
+            
+            var totalErection = 0;
+            var totalDismantling = 0;
+            
+            for (var i = 0; i < workEntries.length; i++) {
+                totalErection += workEntries[i].erection;
+                totalDismantling += workEntries[i].dismantling;
+            }
+
+            var workerCount = parseInt(document.getElementById('workerCount').value) || 2;
+            var workerInputs = document.querySelectorAll('.worker-input');
+            var totalOT = 0;
+            
+            for (var i = 0; i < workerInputs.length; i++) {
+                totalOT += parseFloat(workerInputs[i].value) || 0;
+            }
+
+            var totalManHours = (workerCount * 8) + totalOT;
+            var productivity = totalManHours > 0 ? ((totalErection + totalDismantling / 2) / totalManHours).toFixed(2) : '0.00';
+
+            var report = 'DAILY WORK REPORT\n\n' +
+                'SUPERVISOR NAME: ' + currentSupervisor + '\n' +
+                'DATE: ' + formattedDate + '\n' +
+                'TOTAL ERECTION: ' + totalErection.toFixed(2) + '\n' +
+                'TOTAL DISMANTLING: ' + totalDismantling.toFixed(2) + '\n' +
+                'TOTAL MANHOURS: ' + totalManHours + '\n' +
+                'PRODUCTIVITY: ' + productivity;
+
+            document.getElementById('reportPreview').textContent = report;
+        }
+
+        function submitAndShare() {
+            if (workEntries.length === 0) {
+                alert('Please add work entries before submitting');
+                return;
+            }
+
+            var submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = 'Processing...';
+            submitBtn.disabled = true;
+
+            console.log('Starting submission process...');
+
+            var date = document.getElementById('workDateInput').value;
+            var workerInputs = document.querySelectorAll('.worker-input');
+            var attendanceData = [];
+            
+            for (var i = 0; i < workerInputs.length; i++) {
+                var overtimeHours = parseFloat(workerInputs[i].value) || 0;
+                
+                if (overtimeHours > 0 && i < workers.length) {
+                    attendanceData.push({
+                        date: date,
+                        supervisorName: currentSupervisor,
+                        workerName: workers[i],
+                        totalManhours: 8,
+                        otHours: overtimeHours,
+                        endShiftManhours: 8 + overtimeHours
+                    });
+                }
+            }
+
+            var payload = {
+                workEntries: [],
+                attendanceData: attendanceData
+            };
+
+            for (var i = 0; i < workEntries.length; i++) {
+                var entry = workEntries[i];
+                payload.workEntries.push({
                     date: date,
                     supervisorName: currentSupervisor,
-                    workerName: workers[i],
-                    totalManhours: 8,
-                    otHours: overtimeHours,
-                    endShiftManhours: 8 + overtimeHours
+                    workType: entry.workType,
+                    description: entry.description,
+                    l: entry.length,
+                    w: entry.width,
+                    h: entry.height,
+                    qty: entry.quantity,
+                    volume: entry.volume,
+                    dismantling: entry.dismantling,
+                    erection: entry.erection
                 });
             }
-        }
 
-        var payload = {
-            workEntries: [],
-            attendanceData: attendanceData
-        };
-
-        for (var i = 0; i < workEntries.length; i++) {
-            var entry = workEntries[i];
-            payload.workEntries.push({
-                date: date,
-                supervisorName: currentSupervisor,
-                workType: entry.workType,
-                description: entry.description,
-                l: entry.length,
-                w: entry.width,
-                h: entry.height,
-                qty: entry.quantity,
-                volume: entry.volume,
-                dismantling: entry.dismantling,
-                erection: entry.erection
-            });
-        }
-
-        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzU_b7mBsiW6tpqTT-6RvJuqBhEK9I_uyWLw7sc60QKnIoUMPxf8xlnTVUz0L_lAXBP/exec';
-        var encodedData = encodeURIComponent(JSON.stringify(payload));
-        var getUrl = appsScriptUrl + '?data=' + encodedData;
-        
-        var img = new Image();
-        img.src = getUrl;
-        
-        setTimeout(function() {
-            console.log('Proceeding with WhatsApp sharing...');
+            var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbynrcB8nexhmAf1N-CxBHGOcSn_3kPrT6r7DxT6Jpvtpb_3qYJ37Cdz3m0586kzrGhHaQ/exec';
+            var encodedData = encodeURIComponent(JSON.stringify(payload));
+            var getUrl = appsScriptUrl + '?data=' + encodedData;
             
-            var report = document.getElementById('reportPreview').textContent;
-            var encodedReport = encodeURIComponent(report);
-            var whatsappUrl = 'https://wa.me/?text=' + encodedReport;
-            
-            window.open(whatsappUrl, '_blank');
+            var img = new Image();
+            img.src = getUrl;
             
             setTimeout(function() {
-                resetApp();
-            }, 1500);
-        }, 1000);
+                console.log('Proceeding with WhatsApp sharing...');
+                
+                var report = document.getElementById('reportPreview').textContent;
+                var encodedReport = encodeURIComponent(report);
+                var whatsappUrl = 'https://wa.me/?text=' + encodedReport;
+                
+                window.open(whatsappUrl, '_blank');
+                
+                setTimeout(function() {
+                    resetApp();
+                }, 1500);
+            }, 1000);
 
-        setTimeout(function() {
-            submitBtn.textContent = 'Submit & Share Report';
-            submitBtn.disabled = false;
-        }, 2000);
-    }
+            setTimeout(function() {
+                submitBtn.textContent = 'Submit & Share Report';
+                submitBtn.disabled = false;
+            }, 2000);
+        }
 
-    function resetApp() {
-        console.log('Resetting app for new entries...');
-        
-        workEntries = [];
-        currentSupervisor = '';
-        
-        document.getElementById('supervisorSelect').value = '';
-        document.getElementById('pinInput').value = '';
-        document.getElementById('workerCount').value = '2';
-        
-        clearWorkForm();
-        
-        document.getElementById('workEntries').innerHTML = '';
-        document.getElementById('proceedBtn').style.display = 'none';
-        
-        updateReportPreview();
-        
-        document.getElementById('authScreen').classList.remove('hidden');
-        document.getElementById('mainScreen').classList.add('hidden');
-        
-        showCard('work');
-        
-        var today = new Date().toISOString().split('T')[0];
-        document.getElementById('workDateInput').value = today;
-        updateWorkDate();
-        
-        console.log('App reset completed successfully');
-        alert('Report shared successfully! App has been reset for new entries.');
-    }
-</script>
-```
-
+        function resetApp() {
+            console.log('Resetting app for new entries...');
+            
+            workEntries = [];
+            currentSupervisor = '';
+            
+            document.getElementById('supervisorSelect').value = '';
+            document.getElementById('pinInput').value = '';
+            document.getElementById('workerCount').value = '2';
+            
+            clearWorkForm();
+            
+            document.getElementById('workEntries').innerHTML = '';
+            document.getElementById('proceedBtn').style.display = 'none';
+            
+            updateReportPreview();
+            
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('mainScreen').classList.add('hidden');
+            
+            showCard('work');
+            
+            var today = new Date().toISOString().split('T')[0];
+            document.getElementById('workDateInput').value = today;
+            updateWorkDate();
+            
+            console.log('App reset completed successfully');
+            alert('Report shared successfully! App has been reset for new entries.');
+        }
+    </script>
 </body>
 </html>

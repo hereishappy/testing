@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work Tracker App v5</title>
+    <title>Work Tracker App v6</title>
     <style>
         * {
             margin: 0;
@@ -284,6 +284,12 @@
         opacity: 0.8;
     }
 
+    .loading {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+    }
+
     @media (max-width: 480px) {
         .container {
             margin: 0;
@@ -302,7 +308,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="version">v5.0</div>
+            <div class="version">v6.0</div>
             <h1>Work Tracker</h1>
             <p>Daily Work & Attendance Management</p>
         </div>
@@ -409,7 +415,8 @@
             </div>
 
             <h4>Workers Overtime (Hours):</h4>
-            <div class="worker-list" id="workerList"></div>
+            <div class="loading" id="workersLoading">Loading workers from MANPOWER sheet...</div>
+            <div class="worker-list hidden" id="workerList"></div>
 
             <div class="calc-display" id="attendanceCalc">
                 Total Manhours: 16
@@ -424,8 +431,7 @@
 </div>
 
 <script>
-    // Authentication data
-    const supervisorPins = {
+    var supervisorPins = {
         'MAHENDRA KUMAR': '1122',
         'PINTU SAH': '3344',
         'HARKIRAT SINGH': '5566',
@@ -436,48 +442,77 @@
         'NSUP4': '1010'
     };
 
-    // Extended worker list - Original + Additional workers
-    const workers = [
-        // Original workers (32)
-        'HARKIRAT', 'MAHENDRA KUMAR', 'SUNIL CHAUHAN', 'PINTU KUMAR SAH',
-        'AMAN KUMAR', 'ATUL MAHADEO', 'CHANDAN KUMAR', 'DEEPAK DAS',
-        'DEEPAK KUMAR', 'DHIRAJ KUMAR MANJI', 'DAULAT YADAV', 'FOOL SINGH',
-        'KIRAN PASWAN', 'KUNDAN KUMAR', 'MITLESH KUMAR', 'NIRAJ KUMAR',
-        'NANDAN KUMAR', 'NARESH KUMAR', 'OM PRAKASH', 'PANDURANG',
-        'RAJU KUMAR', 'ROSHAN CHAUHAN', 'RAM BABU', 'RAM KISHOR DAS',
-        'RAHUL KUMAR', 'SANDIP MADHUKAR', 'SAHAB CHAUHAN', 'SARVESH KUMAR',
-        'SANJITH YADAV', 'SHIVAM KUMAR', 'SUDISH SAH', 'VISHAL PRUTHVIRAJ',
-        // Additional workers (50 more)
-        'AJAY KUMAR', 'ANIL SINGH', 'ANKIT SHARMA', 'ARJUN YADAV', 'ASHOK KUMAR',
-        'BHUSHAN PATIL', 'CHETAN RAUT', 'DILIP SINGH', 'GANESH PAWAR', 'HEMANT KUMAR',
-        'JITESH MALI', 'KAILASH YADAV', 'LAXMAN SINGH', 'MANOJ KUMAR', 'MUKESH SHARMA',
-        'NAVEEN KUMAR', 'PANKAJ SINGH', 'PRADEEP KUMAR', 'RAJESH YADAV', 'RAMESH SINGH',
-        'SACHIN PATIL', 'SANTOSH KUMAR', 'SUMIT SHARMA', 'TEJASH RAUT', 'UMESH YADAV',
-        'VINOD KUMAR', 'YOGESH SINGH', 'AMIT PATIL', 'BHARAT SINGH', 'DINESH KUMAR',
-        'GAJANAN RAUT', 'HARISH YADAV', 'JAGDISH SINGH', 'KAMLESH KUMAR', 'LOKESH SHARMA',
-        'MAHESH PATIL', 'NITESH SINGH', 'PRAKASH YADAV', 'RAKESH KUMAR', 'SURESH SINGH',
-        'TUSHAR PATIL', 'VIKASH YADAV', 'AKASH SINGH', 'BHAVESH KUMAR', 'CHANDAN SHARMA',
-        'DEVENDRA PATIL', 'GOPAL YADAV', 'HITESH SINGH', 'JAYESH KUMAR', 'KISHOR SHARMA'
-    ];
+    var workers = [];
+    var currentSupervisor = '';
+    var workEntries = [];
+    var currentCard = 'work';
+    var workersLoaded = false;
 
-    // Application state
-    let currentSupervisor = '';
-    let workEntries = [];
-    let currentCard = 'work';
-
-    // Initialize app
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Work Tracker App v5.0 Initialized');
-        const today = new Date().toISOString().split('T')[0];
+        console.log('Work Tracker App v6.0 Initialized');
+        var today = new Date().toISOString().split('T')[0];
         document.getElementById('workDateInput').value = today;
         updateWorkDate();
-        updateWorkerList();
-        console.log('Total workers available:', workers.length);
+        loadWorkersFromSheet();
     });
 
+    function loadWorkersFromSheet() {
+        console.log('Loading workers from MANPOWER sheet...');
+        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzU_b7mBsiW6tpqTT-6RvJuqBhEK9I_uyWLw7sc60QKnIoUMPxf8xlnTVUz0L_lAXBP/exec';
+        
+        // Create script element for JSONP-like request
+        var script = document.createElement('script');
+        script.src = appsScriptUrl + '?action=getWorkers&callback=handleWorkersResponse';
+        script.onerror = function() {
+            console.log('Failed to load workers script, using fallback');
+            setupFallbackWorkers();
+        };
+        
+        document.head.appendChild(script);
+        
+        // Fallback timeout
+        setTimeout(function() {
+            if (!workersLoaded) {
+                console.log('Workers loading timeout, using fallback');
+                setupFallbackWorkers();
+            }
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+        }, 8000);
+    }
+
+    function handleWorkersResponse() {
+        // This function will be called by the Apps Script response
+        console.log('Workers response received');
+    }
+
+    function setupFallbackWorkers() {
+        workers = [
+            'HARKIRAT', 'MAHENDRA KUMAR', 'SUNIL CHAUHAN', 'PINTU KUMAR SAH',
+            'AMAN KUMAR', 'ATUL MAHADEO', 'CHANDAN KUMAR', 'DEEPAK DAS',
+            'DEEPAK KUMAR', 'DHIRAJ KUMAR MANJI', 'DAULAT YADAV', 'FOOL SINGH',
+            'KIRAN PASWAN', 'KUNDAN KUMAR', 'MITLESH KUMAR', 'NIRAJ KUMAR',
+            'NANDAN KUMAR', 'NARESH KUMAR', 'OM PRAKASH', 'PANDURANG',
+            'RAJU KUMAR', 'ROSHAN CHAUHAN', 'RAM BABU', 'RAM KISHOR DAS',
+            'RAHUL KUMAR', 'SANDIP MADHUKAR', 'SAHAB CHAUHAN', 'SARVESH KUMAR',
+            'SANJITH YADAV', 'SHIVAM KUMAR', 'SUDISH SAH', 'VISHAL PRUTHVIRAJ'
+        ];
+        workersLoaded = true;
+        updateWorkerList();
+        console.log('Fallback workers loaded:', workers.length);
+    }
+
+    function setWorkers(workerList) {
+        workers = workerList || [];
+        workersLoaded = true;
+        updateWorkerList();
+        console.log('Workers loaded from sheet:', workers.length);
+    }
+
     function login() {
-        const supervisor = document.getElementById('supervisorSelect').value;
-        const pin = document.getElementById('pinInput').value;
+        var supervisor = document.getElementById('supervisorSelect').value;
+        var pin = document.getElementById('pinInput').value;
 
         if (!supervisor) {
             alert('Please select a supervisor');
@@ -491,9 +526,12 @@
 
         if (supervisorPins[supervisor] === pin) {
             currentSupervisor = supervisor;
-            console.log('Login successful:', supervisor);
+            console.log('Login successful: ' + supervisor);
             document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('mainScreen').classList.remove('hidden');
+            if (!workersLoaded) {
+                loadWorkersFromSheet();
+            }
             updateReportPreview();
         } else {
             alert('Invalid PIN. Please try again.');
@@ -502,22 +540,22 @@
     }
 
     function updateWorkDate() {
-        const date = document.getElementById('workDateInput').value;
-        const formattedDate = new Date(date).toLocaleDateString('en-GB');
+        var date = document.getElementById('workDateInput').value;
+        var formattedDate = new Date(date).toLocaleDateString('en-GB');
         document.getElementById('workDate').textContent = formattedDate;
         updateReportPreview();
     }
 
     function updateCalculations() {
-        const workType = document.getElementById('workType').value;
-        const length = parseFloat(document.getElementById('length').value) || 0;
-        const width = parseFloat(document.getElementById('width').value) || 0;
-        const height = parseFloat(document.getElementById('height').value) || 0;
-        const quantity = parseInt(document.getElementById('quantity').value) || 0;
+        var workType = document.getElementById('workType').value;
+        var length = parseFloat(document.getElementById('length').value) || 0;
+        var width = parseFloat(document.getElementById('width').value) || 0;
+        var height = parseFloat(document.getElementById('height').value) || 0;
+        var quantity = parseInt(document.getElementById('quantity').value) || 0;
 
-        const volume = length * width * height * quantity;
-        let erection = 0;
-        let dismantling = 0;
+        var volume = length * width * height * quantity;
+        var erection = 0;
+        var dismantling = 0;
 
         if (workType === 'ERECTION') {
             erection = volume;
@@ -530,21 +568,21 @@
     }
 
     function addWorkEntry() {
-        const workType = document.getElementById('workType').value;
-        const description = document.getElementById('description').value;
-        const length = parseFloat(document.getElementById('length').value) || 0;
-        const width = parseFloat(document.getElementById('width').value) || 0;
-        const height = parseFloat(document.getElementById('height').value) || 0;
-        const quantity = parseInt(document.getElementById('quantity').value) || 0;
+        var workType = document.getElementById('workType').value;
+        var description = document.getElementById('description').value;
+        var length = parseFloat(document.getElementById('length').value) || 0;
+        var width = parseFloat(document.getElementById('width').value) || 0;
+        var height = parseFloat(document.getElementById('height').value) || 0;
+        var quantity = parseInt(document.getElementById('quantity').value) || 0;
 
         if (!workType || !description) {
             alert('Please fill in work type and description');
             return;
         }
 
-        const volume = length * width * height * quantity;
-        let erection = 0;
-        let dismantling = 0;
+        var volume = length * width * height * quantity;
+        var erection = 0;
+        var dismantling = 0;
 
         if (workType === 'ERECTION') {
             erection = volume;
@@ -552,7 +590,7 @@
             dismantling = volume / 2;
         }
 
-        const entry = {
+        var entry = {
             workType: workType,
             description: description,
             length: length,
@@ -565,7 +603,7 @@
         };
 
         workEntries.push(entry);
-        console.log('Work entry added:', entry);
+        console.log('Work entry added');
         displayWorkEntries();
         clearWorkForm();
         
@@ -577,23 +615,24 @@
     }
 
     function displayWorkEntries() {
-        const container = document.getElementById('workEntries');
+        var container = document.getElementById('workEntries');
         container.innerHTML = '';
 
-        workEntries.forEach(function(entry, index) {
-            const entryDiv = document.createElement('div');
+        for (var i = 0; i < workEntries.length; i++) {
+            var entry = workEntries[i];
+            var entryDiv = document.createElement('div');
             entryDiv.className = 'entry-item';
-            entryDiv.innerHTML = '<button class="remove-btn" onclick="removeWorkEntry(' + index + ')">×</button>' +
+            entryDiv.innerHTML = '<button class="remove-btn" onclick="removeWorkEntry(' + i + ')">×</button>' +
                 '<h4>' + entry.workType + ' - ' + entry.description + '</h4>' +
                 '<p>Dimensions: ' + entry.length + ' × ' + entry.width + ' × ' + entry.height + ' × ' + entry.quantity + '</p>' +
                 '<p>Volume: ' + entry.volume.toFixed(2) + ' | Erection: ' + entry.erection.toFixed(2) + ' | Dismantling: ' + entry.dismantling.toFixed(2) + '</p>';
             container.appendChild(entryDiv);
-        });
+        }
     }
 
     function removeWorkEntry(index) {
         workEntries.splice(index, 1);
-        console.log('Work entry removed at index:', index);
+        console.log('Work entry removed');
         displayWorkEntries();
         updateReportPreview();
         
@@ -613,34 +652,44 @@
     }
 
     function updateWorkerList() {
-        const container = document.getElementById('workerList');
+        var container = document.getElementById('workerList');
+        var loading = document.getElementById('workersLoading');
+        
+        if (workers.length === 0) {
+            return;
+        }
+
         container.innerHTML = '';
 
-        workers.forEach(function(worker, index) {
-            const workerDiv = document.createElement('div');
+        for (var i = 0; i < workers.length; i++) {
+            var worker = workers[i];
+            var workerDiv = document.createElement('div');
             workerDiv.className = 'worker-item';
             workerDiv.innerHTML = '<span class="worker-name">' + worker + '</span>' +
-                '<input type="number" class="worker-input" min="0" max="12" step="0.5" value="0" onchange="updateAttendanceCalc()" data-worker="' + worker + '">';
+                '<input type="number" class="worker-input" min="0" max="12" step="0.5" value="0" onchange="updateAttendanceCalc()">';
             container.appendChild(workerDiv);
-        });
+        }
 
+        loading.classList.add('hidden');
+        container.classList.remove('hidden');
         updateAttendanceCalc();
-        console.log('Worker list updated with', workers.length, 'workers');
+        console.log('Worker list updated with ' + workers.length + ' workers');
     }
 
     function updateAttendanceCalc() {
-        const workerCount = parseInt(document.getElementById('workerCount').value) || 2;
-        const workerInputs = document.querySelectorAll('.worker-input');
-        let totalOT = 0;
+        var workerCount = parseInt(document.getElementById('workerCount').value) || 2;
+        var workerInputs = document.querySelectorAll('.worker-input');
+        var totalOT = 0;
         
-        workerInputs.forEach(function(input) {
-            const otValue = parseFloat(input.value) || 0;
+        for (var i = 0; i < workerInputs.length; i++) {
+            var input = workerInputs[i];
+            var otValue = parseFloat(input.value) || 0;
             if (otValue < 0) input.value = 0;
             if (otValue > 12) input.value = 12;
             totalOT += parseFloat(input.value) || 0;
-        });
+        }
 
-        const totalManHours = (workerCount * 8) + totalOT;
+        var totalManHours = (workerCount * 8) + totalOT;
         document.getElementById('attendanceCalc').textContent = 'Total Manhours: ' + totalManHours;
         
         updateReportPreview();
@@ -664,8 +713,12 @@
             document.getElementById('step1').classList.remove('active');
             document.getElementById('step2').classList.add('active');
             currentCard = 'attendance';
+            
+            if (!workersLoaded) {
+                loadWorkersFromSheet();
+            }
         }
-        console.log('Switched to card:', cardType);
+        console.log('Switched to card: ' + cardType);
     }
 
     function proceedToAttendance() {
@@ -673,40 +726,38 @@
             alert('Please add at least one work entry');
             return;
         }
-        console.log('Proceeding to attendance with', workEntries.length, 'work entries');
+        console.log('Proceeding to attendance');
         showCard('attendance');
     }
 
     function goBackToWork() {
         showCard('work');
     }
-```
 
-edDate = new Date(date).toLocaleDateString(‘en-GB’);
-
-```
-        let totalErection = 0;
-        let totalDismantling = 0;
+    function updateReportPreview() {
+        var date = document.getElementById('workDateInput').value;
+        var formattedDate = new Date(date).toLocaleDateString('en-GB');
         
-        workEntries.forEach(function(entry) {
-            totalErection += entry.erection;
-            totalDismantling += entry.dismantling;
-        });
-
-        const workerCount = parseInt(document.getElementById('workerCount').value) || 2;
-        const workerInputs = document.querySelectorAll('.worker-input');
-        let totalOT = 0;
+        var totalErection = 0;
+        var totalDismantling = 0;
         
-        if (workerInputs.length > 0) {
-            workerInputs.forEach(function(input) {
-                totalOT += parseFloat(input.value) || 0;
-            });
+        for (var i = 0; i < workEntries.length; i++) {
+            totalErection += workEntries[i].erection;
+            totalDismantling += workEntries[i].dismantling;
         }
 
-        const totalManHours = (workerCount * 8) + totalOT;
-        const productivity = totalManHours > 0 ? ((totalErection + totalDismantling / 2) / totalManHours).toFixed(2) : '0.00';
+        var workerCount = parseInt(document.getElementById('workerCount').value) || 2;
+        var workerInputs = document.querySelectorAll('.worker-input');
+        var totalOT = 0;
+        
+        for (var i = 0; i < workerInputs.length; i++) {
+            totalOT += parseFloat(workerInputs[i].value) || 0;
+        }
 
-        const report = 'DAILY WORK REPORT\n\n' +
+        var totalManHours = (workerCount * 8) + totalOT;
+        var productivity = totalManHours > 0 ? ((totalErection + totalDismantling / 2) / totalManHours).toFixed(2) : '0.00';
+
+        var report = 'DAILY WORK REPORT\n\n' +
             'SUPERVISOR NAME: ' + currentSupervisor + '\n' +
             'DATE: ' + formattedDate + '\n' +
             'TOTAL ERECTION: ' + totalErection.toFixed(2) + '\n' +
@@ -723,230 +774,39 @@ edDate = new Date(date).toLocaleDateString(‘en-GB’);
             return;
         }
 
-        const submitBtn = document.getElementById('submitBtn');
+        var submitBtn = document.getElementById('submitBtn');
         submitBtn.textContent = 'Processing...';
         submitBtn.disabled = true;
 
         console.log('Starting submission process...');
 
-        // Prepare data for Google Sheets
-        const date = document.getElementById('workDateInput').value;
-        const workerCount = parseInt(document.getElementById('workerCount').value) || 2;
+        var date = document.getElementById('workDateInput').value;
+        var workerInputs = document.querySelectorAll('.worker-input');
+        var attendanceData = [];
         
-        // Get overtime data
-        const workerInputs = document.querySelectorAll('.worker-input');
-        const attendanceData = [];
-        let totalOT = 0;
-        
-        workerInputs.forEach(function(input, index) {
-            const overtimeHours = parseFloat(input.value) || 0;
-            totalOT += overtimeHours;
+        for (var i = 0; i < workerInputs.length; i++) {
+            var overtimeHours = parseFloat(workerInputs[i].value) || 0;
             
-            if (overtimeHours > 0) {
+            if (overtimeHours > 0 && i < workers.length) {
                 attendanceData.push({
                     date: date,
                     supervisorName: currentSupervisor,
-                    workerName: workers[index],
+                    workerName: workers[i],
                     totalManhours: 8,
                     otHours: overtimeHours,
                     endShiftManhours: 8 + overtimeHours
                 });
             }
-        });
+        }
 
-        // Prepare data payload
-        const payload = {
-            workEntries: workEntries.map(function(entry) {
-                return {
-                    date: date,
-                    supervisorName: currentSupervisor,
-                    workType: entry.workType,
-                    description: entry.description,
-                    l: entry.length,
-                    w: entry.width,
-                    h: entry.height,
-                    qty: entry.quantity,
-                    volume: entry.volume,
-                    dismantling: entry.dismantling,
-                    erection: entry.erection
-                };
-            }),
+        var payload = {
+            workEntries: [],
             attendanceData: attendanceData
         };
 
-        console.log('Data prepared:', {
-            workEntries: payload.workEntries.length,
-            attendanceEntries: payload.attendanceData.length
-        });
-
-        // Send data to Google Apps Script
-        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzU_b7mBsiW6tpqTT-6RvJuqBhEK9I_uyWLw7sc60QKnIoUMPxf8xlnTVUz0L_lAXBP/exec';
-        
-        try {
-            const encodedData = encodeURIComponent(JSON.stringify(payload));
-            const getUrl = appsScriptUrl + '?data=' + encodedData;
-            
-            console.log('Sending data to Google Sheets...');
-            
-            // Use a simple approach that works reliably
-            const img = new Image();
-            img.onload = img.onerror = function() {
-                console.log('Data transmission completed');
-            };
-            img.src = getUrl;
-            
-            // Don't wait for response, proceed immediately
-            setTimeout(function() {
-                console.log('Proceeding with WhatsApp sharing...');
-                
-                const report = document.getElementById('reportPreview').textContent;
-                const encodedReport = encodeURIComponent(report);
-                const whatsappUrl = 'https://wa.me/?text=' + encodedReport;
-                
-                window.open(whatsappUrl, '_blank');
-                
-                setTimeout(function() {
-                    resetApp();
-                }, 1500);
-            }, 1000);
-            
-        } catch (error) {
-            console.error('Error preparing data:', error);
-            alert('Error occurred, but continuing with report sharing...');
-            
-            const report = document.getElementById('reportPreview').textContent;
-            const encodedReport = encodeURIComponent(report);
-            const whatsappUrl = 'https://wa.me/?text=' + encodedReport;
-            
-            window.open(whatsappUrl, '_blank');
-            
-            setTimeout(function() {
-                resetApp();
-            }, 1500);
-        }
-
-        // Reset button state
-        setTimeout(function() {
-            submitBtn.textContent = 'Submit & Share Report';
-            submitBtn.disabled = false;
-        }, 2000);
-    }
-
-    function resetApp() {
-        console.log('Resetting app for new entries...');
-        
-        // Clear all data
-        workEntries = [];
-        currentSupervisor = '';
-        
-        // Reset forms
-        document.getElementById('supervisorSelect').value = '';
-        document.getElementById('pinInput').value = '';
-        document.getElementById('workerCount').value = '2';
-        
-        // Reset work form
-        clearWorkForm();
-        
-        // Clear displays
-        document.getElementById('workEntries').innerHTML = '';
-        document.getElementById('proceedBtn').style.display = 'none';
-        
-        // Update worker list and calculations
-        updateWorkerList();
-        updateReportPreview();
-        
-        // Show auth screen
-        document.getElementById('authScreen').classList.remove('hidden');
-        document.getElementById('mainScreen').classList.add('hidden');
-        
-        // Reset to first card
-        showCard('work');
-        
-        // Set today's date
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('workDateInput').value = today;
-        updateWorkDate();
-        
-        console.log('App reset completed successfully');
-        alert('Report shared successfully! App has been reset for new entries.');
-    }
-</script>edDate = new Date(date).toLocaleDateString('en-GB');
-        
-        let totalErection = 0;
-        let totalDismantling = 0;
-        
-        workEntries.forEach(entry => {
-            totalErection += entry.erection;
-            totalDismantling += entry.dismantling;
-        });
-
-        const workerCount = parseInt(document.getElementById('workerCount').value) || 2;
-        const workerInputs = document.querySelectorAll('.worker-input');
-        let totalOT = 0;
-        
-        if (workerInputs.length > 0) {
-            workerInputs.forEach(input => {
-                totalOT += parseFloat(input.value) || 0;
-            });
-        }
-
-        const totalManHours = (workerCount * 8) + totalOT;
-        const productivity = totalManHours > 0 ? ((totalErection + totalDismantling / 2) / totalManHours).toFixed(2) : '0.00';
-
-        const report = `DAILY WORK REPORT
-```
-
-SUPERVISOR NAME: ${currentSupervisor}
-DATE: ${formattedDate}
-TOTAL ERECTION: ${totalErection.toFixed(2)}
-TOTAL DISMANTLING: ${totalDismantling.toFixed(2)}
-TOTAL MANHOURS: ${totalManHours}
-PRODUCTIVITY: ${productivity}`;
-
-```
-        document.getElementById('reportPreview').textContent = report;
-    }
-
-    function submitAndShare() {
-        if (workEntries.length === 0) {
-            alert('Please add work entries before submitting');
-            return;
-        }
-
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.textContent = 'Processing...';
-        submitBtn.disabled = true;
-
-        console.log('Starting submission process...');
-
-        // Prepare data for Google Sheets
-        const date = document.getElementById('workDateInput').value;
-        const workerCount = parseInt(document.getElementById('workerCount').value) || 2;
-        
-        // Get overtime data
-        const workerInputs = document.querySelectorAll('.worker-input');
-        const attendanceData = [];
-        let totalOT = 0;
-        
-        workerInputs.forEach((input, index) => {
-            const overtimeHours = parseFloat(input.value) || 0;
-            totalOT += overtimeHours;
-            
-            if (overtimeHours > 0) {
-                attendanceData.push({
-                    date: date,
-                    supervisorName: currentSupervisor,
-                    workerName: workers[index],
-                    totalManhours: 8,
-                    otHours: overtimeHours,
-                    endShiftManhours: 8 + overtimeHours
-                });
-            }
-        });
-
-        // Prepare data payload
-        const payload = {
-            workEntries: workEntries.map(entry => ({
+        for (var i = 0; i < workEntries.length; i++) {
+            var entry = workEntries[i];
+            payload.workEntries.push({
                 date: date,
                 supervisorName: currentSupervisor,
                 workType: entry.workType,
@@ -958,103 +818,59 @@ PRODUCTIVITY: ${productivity}`;
                 volume: entry.volume,
                 dismantling: entry.dismantling,
                 erection: entry.erection
-            })),
-            attendanceData: attendanceData
-        };
+            });
+        }
 
-        console.log('Data prepared:', {
-            workEntries: payload.workEntries.length,
-            attendanceEntries: payload.attendanceData.length
-        });
-
-        // Send data to Google Apps Script
-        const appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzU_b7mBsiW6tpqTT-6RvJuqBhEK9I_uyWLw7sc60QKnIoUMPxf8xlnTVUz0L_lAXBP/exec';
+        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzU_b7mBsiW6tpqTT-6RvJuqBhEK9I_uyWLw7sc60QKnIoUMPxf8xlnTVUz0L_lAXBP/exec';
+        var encodedData = encodeURIComponent(JSON.stringify(payload));
+        var getUrl = appsScriptUrl + '?data=' + encodedData;
         
-        try {
-            const encodedData = encodeURIComponent(JSON.stringify(payload));
-            const getUrl = `${appsScriptUrl}?data=${encodedData}`;
+        var img = new Image();
+        img.src = getUrl;
+        
+        setTimeout(function() {
+            console.log('Proceeding with WhatsApp sharing...');
             
-            console.log('Sending data to Google Sheets...');
-            
-            // Use a simple approach that works reliably
-            const img = new Image();
-            img.onload = img.onerror = function() {
-                console.log('Data transmission completed');
-            };
-            img.src = getUrl;
-            
-            // Don't wait for response, proceed immediately
-            setTimeout(() => {
-                console.log('Proceeding with WhatsApp sharing...');
-                
-                const report = document.getElementById('reportPreview').textContent;
-                const encodedReport = encodeURIComponent(report);
-                const whatsappUrl = `https://wa.me/?text=${encodedReport}`;
-                
-                window.open(whatsappUrl, '_blank');
-                
-                setTimeout(() => {
-                    resetApp();
-                }, 1500);
-            }, 1000);
-            
-        } catch (error) {
-            console.error('Error preparing data:', error);
-            alert('Error occurred, but continuing with report sharing...');
-            
-            const report = document.getElementById('reportPreview').textContent;
-            const encodedReport = encodeURIComponent(report);
-            const whatsappUrl = `https://wa.me/?text=${encodedReport}`;
+            var report = document.getElementById('reportPreview').textContent;
+            var encodedReport = encodeURIComponent(report);
+            var whatsappUrl = 'https://wa.me/?text=' + encodedReport;
             
             window.open(whatsappUrl, '_blank');
             
-            setTimeout(() => {
+            setTimeout(function() {
                 resetApp();
             }, 1500);
-        } finally {
-            // Reset button state
+        }, 1000);
+
+        setTimeout(function() {
             submitBtn.textContent = 'Submit & Share Report';
             submitBtn.disabled = false;
-        }
+        }, 2000);
     }
 
     function resetApp() {
         console.log('Resetting app for new entries...');
         
-        // Clear all data
         workEntries = [];
         currentSupervisor = '';
         
-        // Reset forms
         document.getElementById('supervisorSelect').value = '';
         document.getElementById('pinInput').value = '';
         document.getElementById('workerCount').value = '2';
         
-        // Reset work form
         clearWorkForm();
         
-        // Clear displays
         document.getElementById('workEntries').innerHTML = '';
         document.getElementById('proceedBtn').style.display = 'none';
         
-        // Reset button
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.textContent = 'Submit & Share Report';
-        submitBtn.disabled = false;
-        
-        // Update worker list and calculations
-        updateWorkerList();
         updateReportPreview();
         
-        // Show auth screen
         document.getElementById('authScreen').classList.remove('hidden');
         document.getElementById('mainScreen').classList.add('hidden');
         
-        // Reset to first card
         showCard('work');
         
-        // Set today's date
-        const today = new Date().toISOString().split('T')[0];
+        var today = new Date().toISOString().split('T')[0];
         document.getElementById('workDateInput').value = today;
         updateWorkDate();
         

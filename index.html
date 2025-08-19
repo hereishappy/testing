@@ -469,7 +469,7 @@
         var workersLoaded = false;
 
         // Apps Script URL
-        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbynrcB8nexhmAf1N-CxBHGOcSn_3kPrT6r7DxT6Jpvtpb_3qYJ37Cdz3m0586kzrGhHaQ/exec';
+        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzu2A9xI_VNupPnVQRLRROZ8eiU5HD4F3h_UMxLriXIWgM5NSSMuMPaGmyG_5odrY40OQ/exec';
 
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Work Tracker App v6.1 Initialized');
@@ -808,7 +808,7 @@
 
             var submitBtn = document.getElementById('submitBtn');
             var originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Processing...';
+            submitBtn.textContent = 'Saving to Sheet...';
             submitBtn.disabled = true;
 
             console.log('Starting submission process...');
@@ -856,69 +856,94 @@
 
             console.log('Payload to send:', payload);
 
-            // Method 1: Try POST request with form data
-            var formData = new FormData();
-            formData.append('data', JSON.stringify(payload));
-
-            fetch(appsScriptUrl, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('POST submission result:', data);
-                if (data.status === 'success') {
-                    console.log('Data successfully saved to sheets');
-                }
-            })
-            .catch(error => {
-                console.log('POST submission error:', error);
-                
-                // Fallback Method 2: GET request with URL parameters
-                console.log('Trying GET method as fallback...');
-                var encodedData = encodeURIComponent(JSON.stringify(payload));
-                var getUrl = appsScriptUrl + '?data=' + encodedData;
-                
-                // Use image request for cross-origin compatibility
-                var img = new Image();
-                img.onload = function() {
-                    console.log('GET fallback request sent');
-                };
-                img.onerror = function() {
-                    console.log('GET fallback request completed (error expected)');
-                };
-                img.src = getUrl;
-                
-                // Also try direct GET fetch
-                fetch(getUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('GET fallback result:', data);
-                    })
-                    .catch(err => {
-                        console.log('GET fallback fetch error:', err);
-                    });
-            });
+            // Use GET method as primary since POST has issues
+            var encodedData = encodeURIComponent(JSON.stringify(payload));
+            var getUrl = appsScriptUrl + '?data=' + encodedData;
             
-            // Wait a moment then proceed with WhatsApp sharing
-            setTimeout(function() {
-                console.log('Proceeding with WhatsApp sharing...');
-                
-                var report = document.getElementById('reportPreview').textContent;
-                var encodedReport = encodeURIComponent(report);
-                var whatsappUrl = 'https://wa.me/?text=' + encodedReport;
-                
-                window.open(whatsappUrl, '_blank');
-                
-                setTimeout(function() {
-                    resetApp();
-                }, 1500);
-            }, 2000); // Increased wait time
+            console.log('Submitting via GET method...');
+            
+            // Method 1: Fetch request
+            fetch(getUrl)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Network response was not ok');
+                })
+                .then(data => {
+                    console.log('Submission successful:', data);
+                    submitBtn.textContent = 'Saved! Sharing...';
+                    
+                    if (data.status === 'success') {
+                        proceedToWhatsApp();
+                    } else {
+                        console.log('Warning: Submission may have failed:', data.message);
+                        proceedToWhatsApp(); // Still proceed to WhatsApp
+                    }
+                })
+                .catch(error => {
+                    console.log('Fetch failed, trying image method:', error);
+                    submitBtn.textContent = 'Retrying...';
+                    
+                    // Method 2: Image fallback for cross-origin issues
+                    var img = new Image();
+                    img.onload = function() {
+                        console.log('Image method completed (likely successful)');
+                        submitBtn.textContent = 'Saved! Sharing...';
+                        proceedToWhatsApp();
+                    };
+                    img.onerror = function() {
+                        console.log('Image method completed (status unknown)');
+                        submitBtn.textContent = 'Sharing...';
+                        proceedToWhatsApp();
+                    };
+                    img.src = getUrl;
+                    
+                    // Timeout fallback
+                    setTimeout(function() {
+                        console.log('Proceeding after timeout');
+                        proceedToWhatsApp();
+                    }, 3000);
+                });
 
+            function proceedToWhatsApp() {
+                setTimeout(function() {
+                    console.log('Proceeding with WhatsApp sharing...');
+                    
+                    var report = document.getElementById('reportPreview').textContent;
+                    var encodedReport = encodeURIComponent(report);
+                    var whatsappUrl = 'https://wa.me/?text=' + encodedReport;
+                    
+                    submitBtn.textContent = 'Opening WhatsApp...';
+                    window.open(whatsappUrl, '_blank');
+                    
+                    setTimeout(function() {
+                        resetApp();
+                    }, 1500);
+                }, 500);
+            }
+
+            // Reset button after timeout regardless
             setTimeout(function() {
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
-            }, 3000);
+            }, 8000);
+        }
+
+        // Add a function to test the connection
+        function testConnection() {
+            console.log('Testing connection to Google Apps Script...');
+            
+            fetch(appsScriptUrl + '?test=1')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Connection test result:', data);
+                    alert('Connection test result: ' + data.message);
+                })
+                .catch(error => {
+                    console.error('Connection test failed:', error);
+                    alert('Connection test failed: ' + error.message);
+                });
         }
 
         function resetApp() {

@@ -469,7 +469,7 @@
         var workersLoaded = false;
 
         // Apps Script URL
-        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzU_b7mBsiW6tpqTT-6RvJuqBhEK9I_uyWLw7sc60QKnIoUMPxf8xlnTVUz0L_lAXBP/exec';
+        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbynrcB8nexhmAf1N-CxBHGOcSn_3kPrT6r7DxT6Jpvtpb_3qYJ37Cdz3m0586kzrGhHaQ/exec';
 
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Work Tracker App v6.1 Initialized');
@@ -854,30 +854,53 @@
                 });
             }
 
-            // Send data to Google Sheets
-            var encodedData = encodeURIComponent(JSON.stringify(payload));
-            var getUrl = appsScriptUrl + '?data=' + encodedData;
+            console.log('Payload to send:', payload);
+
+            // Method 1: Try POST request with form data
+            var formData = new FormData();
+            formData.append('data', JSON.stringify(payload));
+
+            fetch(appsScriptUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('POST submission result:', data);
+                if (data.status === 'success') {
+                    console.log('Data successfully saved to sheets');
+                }
+            })
+            .catch(error => {
+                console.log('POST submission error:', error);
+                
+                // Fallback Method 2: GET request with URL parameters
+                console.log('Trying GET method as fallback...');
+                var encodedData = encodeURIComponent(JSON.stringify(payload));
+                var getUrl = appsScriptUrl + '?data=' + encodedData;
+                
+                // Use image request for cross-origin compatibility
+                var img = new Image();
+                img.onload = function() {
+                    console.log('GET fallback request sent');
+                };
+                img.onerror = function() {
+                    console.log('GET fallback request completed (error expected)');
+                };
+                img.src = getUrl;
+                
+                // Also try direct GET fetch
+                fetch(getUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('GET fallback result:', data);
+                    })
+                    .catch(err => {
+                        console.log('GET fallback fetch error:', err);
+                    });
+            });
             
-            // Use image request as fallback for cross-origin issues
-            var img = new Image();
-            img.onload = function() {
-                console.log('Data submission successful');
-            };
-            img.onerror = function() {
-                console.log('Image request failed, but data may have been processed');
-            };
-            img.src = getUrl;
-            
-            // Also try fetch as primary method
-            fetch(getUrl)
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Fetch submission result:', data);
-                })
-                .catch(error => {
-                    console.log('Fetch submission error (may still succeed):', error);
-                });
-            
+            // Wait a moment then proceed with WhatsApp sharing
             setTimeout(function() {
                 console.log('Proceeding with WhatsApp sharing...');
                 
@@ -890,12 +913,12 @@
                 setTimeout(function() {
                     resetApp();
                 }, 1500);
-            }, 1000);
+            }, 2000); // Increased wait time
 
             setTimeout(function() {
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
-            }, 2000);
+            }, 3000);
         }
 
         function resetApp() {

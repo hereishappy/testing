@@ -1,986 +1,325 @@
+<!-- Index.html - Frontend for Shift Management Web App -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work Tracker App v6.1</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 10px;
-        }
-
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            min-height: calc(100vh - 20px);
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2196F3, #21CBF3);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 1.5em;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 0.9em;
-        }
-
-        .content {
-            padding: 20px;
-        }
-
-        .auth-screen {
-            text-align: center;
-            padding: 40px 20px;
-        }
-
-        .auth-screen h2 {
-            color: #333;
-            margin-bottom: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e1e1;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #2196F3;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #2196F3, #21CBF3);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(33, 150, 243, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-        }
-
-        .card {
-            background: #f8f9ff;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-left: 4px solid #2196F3;
-        }
-
-        .card h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-        }
-
-        .entry-item {
-            background: white;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            border: 1px solid #e1e1e1;
-            position: relative;
-        }
-
-        .entry-item h4 {
-            color: #2196F3;
-            margin-bottom: 10px;
-            font-size: 1em;
-        }
-
-        .remove-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #ff4757;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .calc-display {
-            background: #e8f5e8;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-            font-weight: 500;
-            color: #2e7d2e;
-        }
-
-        .worker-list {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #e1e1e1;
-            border-radius: 8px;
-            background: white;
-        }
-
-        .worker-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .worker-item:last-child {
-            border-bottom: none;
-        }
-
-        .worker-name {
-            flex-grow: 1;
-            color: #333;
-            font-weight: 500;
-            font-size: 14px;
-        }
-
-        .worker-input {
-            width: 70px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            text-align: center;
-            font-size: 14px;
-        }
-
-        .navigation {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-        }
-
-        .nav-btn {
-            flex: 1;
-            margin: 0 5px;
-            padding: 12px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .nav-btn.active {
-            background: linear-gradient(135deg, #2196F3, #21CBF3);
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .report-preview {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            font-family: monospace;
-            white-space: pre-line;
-            font-size: 14px;
-            border: 1px solid #dee2e6;
-        }
-
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .step {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #e1e1e1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 5px;
-            font-weight: bold;
-            color: #999;
-        }
-
-        .step.active {
-            background: #2196F3;
-            color: white;
-        }
-
-        .step.completed {
-            background: #4CAF50;
-            color: white;
-        }
-
-        .version {
-            position: absolute;
-            top: 5px;
-            right: 10px;
-            font-size: 0.7em;
-            opacity: 0.8;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-
-        .status-message {
-            padding: 10px;
-            border-radius: 8px;
-            margin: 10px 0;
-            font-size: 14px;
-        }
-
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .status-info {
-            background: #cce7ff;
-            color: #004085;
-            border: 1px solid #99d6ff;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                margin: 0;
-                border-radius: 0;
-                min-height: 100vh;
-            }
-            
-            .content {
-                padding: 15px;
-            }
-        }
-    </style>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>Shift Management Dashboard</title>
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background: #f5f6fa; }
+    .card { transition: box-shadow .2s; }
+    .card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.13); }
+    .form-floating > .form-control, .form-floating > .form-select { height: 54px; }
+    @media (max-width: 575px) {
+      .container, .container-fluid { padding-left: 6px; padding-right: 6px; }
+      .card { margin-bottom: 1rem; }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="version">v6.1</div>
-            <h1>Work Tracker</h1>
-            <p>Daily Work & Attendance Management</p>
+<div class="container py-4">
+
+  <!-- SUPERVISOR LOGIN CARD -->
+  <div id="loginCard" class="row justify-content-center">
+    <div class="col-md-6 col-sm-12">
+      <div class="card shadow text-center">
+        <div class="card-body">
+          <h4 class="card-title pb-2">Supervisor Login</h4>
+          <form id="loginForm">
+            <div class="mb-3">
+              <input class="form-control" required placeholder="Supervisor Name" id="loginName">
+            </div>
+            <div class="mb-3">
+              <input type="password" class="form-control" required placeholder="Passcode" id="loginPass">
+            </div>
+            <button type="submit" class="btn btn-success w-50">Login</button>
+          </form>
+          <div id="loginError" class="text-danger mt-2"></div>
         </div>
-
-        <!-- Authentication Screen -->
-        <div id="authScreen" class="content">
-            <div class="auth-screen">
-                <h2>Supervisor Login</h2>
-                <div class="form-group">
-                    <label for="supervisorSelect">Select Supervisor:</label>
-                    <select id="supervisorSelect">
-                        <option value="">Choose Supervisor</option>
-                        <option value="MAHENDRA KUMAR">MAHENDRA KUMAR</option>
-                        <option value="PINTU SAH">PINTU SAH</option>
-                        <option value="HARKIRAT SINGH">HARKIRAT SINGH</option>
-                        <option value="SUNIL CHAUHAN">SUNIL CHAUHAN</option>
-                        <option value="NSUP1">NSUP1</option>
-                        <option value="NSUP2">NSUP2</option>
-                        <option value="NSUP3">NSUP3</option>
-                        <option value="NSUP4">NSUP4</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="pinInput">Enter PIN:</label>
-                    <input type="password" id="pinInput" placeholder="4-digit PIN" maxlength="4">
-                </div>
-                <button class="btn" onclick="login()">Login</button>
-            </div>
-        </div>
-
-        <!-- Main App Screen -->
-        <div id="mainScreen" class="content hidden">
-            <div class="step-indicator">
-                <div class="step active" id="step1">1</div>
-                <div class="step" id="step2">2</div>
-            </div>
-
-            <div class="navigation">
-                <button class="nav-btn active" id="workBtn" onclick="showCard('work')">Work Entries</button>
-                <button class="nav-btn" id="attendanceBtn" onclick="showCard('attendance')">Attendance</button>
-            </div>
-
-            <!-- Work Entry Card -->
-            <div id="workCard" class="card">
-                <h3>End Shift - <span id="workDate"></span></h3>
-                <div class="form-group">
-                    <label for="workDateInput">Date:</label>
-                    <input type="date" id="workDateInput" onchange="updateWorkDate()">
-                </div>
-                
-                <div class="form-group">
-                    <label for="workType">Work Type:</label>
-                    <select id="workType" onchange="updateCalculations()">
-                        <option value="">Select Work Type</option>
-                        <option value="ERECTION">ERECTION</option>
-                        <option value="DISMANTLING">DISMANTLING</option>
-                        <option value="DESCRIPTION">DESCRIPTION</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="description">Description:</label>
-                    <input type="text" id="description" placeholder="Work description">
-                </div>
-
-                <div class="form-group">
-                    <label for="length">Length (L):</label>
-                    <input type="number" id="length" step="0.01" placeholder="0" oninput="updateCalculations()">
-                </div>
-
-                <div class="form-group">
-                    <label for="width">Width (W):</label>
-                    <input type="number" id="width" step="0.01" placeholder="0" oninput="updateCalculations()">
-                </div>
-
-                <div class="form-group">
-                    <label for="height">Height (H):</label>
-                    <input type="number" id="height" step="0.01" placeholder="0" oninput="updateCalculations()">
-                </div>
-
-                <div class="form-group">
-                    <label for="quantity">Quantity:</label>
-                    <input type="number" id="quantity" step="1" placeholder="0" oninput="updateCalculations()">
-                </div>
-
-                <div class="calc-display" id="calculationDisplay">
-                    Volume: 0 | Erection: 0 | Dismantling: 0
-                </div>
-
-                <button class="btn" onclick="addWorkEntry()">Add Entry</button>
-
-                <div id="workEntries"></div>
-                <button class="btn btn-secondary" onclick="proceedToAttendance()" id="proceedBtn" style="display: none;">Proceed to Attendance</button>
-            </div>
-
-            <!-- Attendance Card -->
-            <div id="attendanceCard" class="card hidden">
-                <h3>End Shift Productivity</h3>
-                
-                <div class="form-group">
-                    <label for="workerCount">Number of Workers:</label>
-                    <input type="number" id="workerCount" min="1" value="2" oninput="updateAttendanceCalc()">
-                </div>
-
-                <h4>Workers Overtime (Hours):</h4>
-                <div id="loadingStatus" class="status-message status-info">Loading workers from MANPOWER sheet...</div>
-                <div class="worker-list hidden" id="workerList"></div>
-
-                <div class="calc-display" id="attendanceCalc">
-                    Total Manhours: 16
-                </div>
-
-                <div class="report-preview" id="reportPreview"></div>
-
-                <button class="btn" onclick="submitAndShare()" id="submitBtn">Submit & Share Report</button>
-                <button class="btn btn-secondary" onclick="goBackToWork()">Back to Work Entries</button>
-            </div>
-        </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        var supervisorPins = {
-            'MAHENDRA KUMAR': '1122',
-            'PINTU SAH': '3344',
-            'HARKIRAT SINGH': '5566',
-            'SUNIL CHAUHAN': '7788',
-            'NSUP1': '9012',
-            'NSUP2': '2345',
-            'NSUP3': '6789',
-            'NSUP4': '1010'
-        };
+  <!-- MAIN DASHBOARD CARDS -->
+  <div id="dashboardCards" class="row d-none">
+    <div class="col-md-6 col-sm-12 mb-3">
+      <div class="card h-100 shadow text-center">
+        <div class="card-body">
+          <h5 class="card-title">Start Shift</h5>
+          <p>Log workers starting a new shift.</p>
+          <button class="btn btn-primary" id="startShiftBtn">Start Shift</button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-sm-12 mb-3">
+      <div class="card h-100 shadow text-center">
+        <div class="card-body">
+          <h5 class="card-title">End Shift</h5>
+          <p>End shift, enter productivity and overtime.</p>
+          <button class="btn btn-warning" id="endShiftBtn">End Shift</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        var workers = [];
-        var currentSupervisor = '';
-        var workEntries = [];
-        var currentCard = 'work';
-        var workersLoaded = false;
+  <!-- START SHIFT FORM -->
+  <div id="startShiftForm" class="row d-none justify-content-center">
+    <div class="col-md-8 col-sm-12">
+      <div class="card shadow">
+        <div class="card-body">
+          <h5 class="mb-3">Start Shift</h5>
+          <form id="startForm">
+            <div class="mb-3">
+              <label for="startWorkers" class="form-label">Select Workers</label>
+              <select id="startWorkers" class="form-select" multiple required></select>
+            </div>
+            <div class="mb-3">
+              <label for="startDetails" class="form-label">Additional Details</label>
+              <textarea id="startDetails" class="form-control" rows="2"></textarea>
+            </div>
+            <button class="btn btn-success" type="submit">Submit Shift Start</button>
+            <button class="btn btn-secondary ms-2" type="button" onclick="backToDashboard()">Cancel</button>
+          </form>
+          <div id="startError" class="text-danger mt-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        // Apps Script URL
-        var appsScriptUrl = 'https://script.google.com/macros/s/AKfycbzu2A9xI_VNupPnVQRLRROZ8eiU5HD4F3h_UMxLriXIWgM5NSSMuMPaGmyG_5odrY40OQ/exec';
+  <!-- END SHIFT FORM -->
+  <div id="endShiftForm" class="row d-none justify-content-center">
+    <div class="col-md-8 col-sm-12">
+      <div class="card shadow">
+        <div class="card-body">
+          <h5 class="mb-3">End Shift</h5>
+          <form id="endForm">
+            <div class="mb-3">
+              <label for="endWorkers" class="form-label">Select Workers</label>
+              <select id="endWorkers" class="form-select" multiple required></select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Select Activity</label>
+              <select class="form-select" id="endActivity" required>
+                <option value="">Choose...</option>
+                <option value="Erection">Erection</option>
+                <option value="Dismantling">Dismantling</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Volume</label>
+              <input type="number" step="0.01" min="0" id="endVolume" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Duration (hours)</label>
+              <input type="number" min="0" step="0.01" id="endDuration" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Overtime (hours) [optional]</label>
+              <input type="number" min="0" step="0.01" id="endOvertime" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Remarks</label>
+              <textarea id="endRemarks" class="form-control" rows="2"></textarea>
+            </div>
+            <button class="btn btn-warning" type="submit">End Shift</button>
+            <button class="btn btn-secondary ms-2" type="button" onclick="backToDashboard()">Cancel</button>
+          </form>
+          <div id="endError" class="text-danger mt-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Work Tracker App v6.1 Initialized');
-            var today = new Date().toISOString().split('T')[0];
-            document.getElementById('workDateInput').value = today;
-            updateWorkDate();
-        });
+  <!-- REPORT RESULT CARD -->
+  <div id="reportCard" class="row d-none justify-content-center">
+    <div class="col-md-8 col-sm-12">
+      <div class="card shadow">
+        <div class="card-body text-center">
+          <h5 class="mb-3" id="reportTitle">Report Generated</h5>
+          <pre id="reportText" class="bg-light p-2 border rounded" style="font-size:1rem"></pre>
+          <a class="btn btn-success my-2" id="whatsappShareBtn" href="#" target="_blank">Share via WhatsApp</a>
+          <button class="btn btn-secondary" onclick="backToDashboard()">Back to Home</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        function showStatus(message, type) {
-            var statusEl = document.getElementById('loadingStatus');
-            if (statusEl) {
-                statusEl.textContent = message;
-                statusEl.className = 'status-message status-' + (type || 'info');
-            }
+</div>
+<!-- Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let workerList = [];
+let supervisor = null;
+
+// Initial UI setup
+document.addEventListener('DOMContentLoaded', function() {
+  showCard('loginCard');
+  
+  // Login form
+  document.getElementById('loginForm').onsubmit = function(e) {
+    e.preventDefault();
+    const name = document.getElementById('loginName').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    document.getElementById('loginError').textContent = '';
+    
+    google.script.run
+      .withSuccessHandler(function(res){
+        if (!res.success) {
+          document.getElementById('loginError').textContent = res.message;
+          return;
         }
+        supervisor = res.supervisor;
+        loadConfigAndShowDashboard();
+      })
+      .withFailureHandler(function(err){
+        document.getElementById('loginError').textContent = err.message || "Login failed!";
+      })
+      .authenticateSupervisor({ name, passcode: pass });
+  };
 
-        function loadWorkersFromSheet() {
-            console.log('Loading workers from MANPOWER sheet...');
-            showStatus('Loading workers from MANPOWER sheet...', 'info');
-            
-            // Use fetch API to get workers data
-            fetch(appsScriptUrl + '?action=getWorkers')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Workers response received:', data);
-                    
-                    if (data.status === 'success' && data.workers) {
-                        workers = data.workers;
-                        workersLoaded = true;
-                        showStatus('Successfully loaded ' + workers.length + ' workers', 'success');
-                        updateWorkerList();
-                    } else if (data.status === 'error' && data.workers) {
-                        // Even on error, use fallback workers if provided
-                        workers = data.workers;
-                        workersLoaded = true;
-                        showStatus('Loaded fallback workers (' + workers.length + ' workers)', 'success');
-                        updateWorkerList();
-                    } else {
-                        throw new Error('Invalid response format');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error loading workers:', error);
-                    showStatus('Failed to load from sheet, using default workers', 'error');
-                    setupFallbackWorkers();
-                });
-        }
+  document.getElementById('startShiftBtn').onclick = startShiftFlow;
+  document.getElementById('endShiftBtn').onclick = endShiftFlow;
 
-        function setupFallbackWorkers() {
-            workers = [
-                'HARKIRAT', 'MAHENDRA KUMAR', 'SUNIL CHAUHAN', 'PINTU KUMAR SAH',
-                'AMAN KUMAR', 'ATUL MAHADEO', 'CHANDAN KUMAR', 'DEEPAK DAS',
-                'DEEPAK KUMAR', 'DHIRAJ KUMAR MANJI', 'DAULAT YADAV', 'FOOL SINGH',
-                'KIRAN PASWAN', 'KUNDAN KUMAR', 'MITLESH KUMAR', 'NIRAJ KUMAR',
-                'NANDAN KUMAR', 'NARESH KUMAR', 'OM PRAKASH', 'PANDURANG',
-                'RAJU KUMAR', 'ROSHAN CHAUHAN', 'RAM BABU', 'RAM KISHOR DAS',
-                'RAHUL KUMAR', 'SANDIP MADHUKAR', 'SAHAB CHAUHAN', 'SARVESH KUMAR',
-                'SANJITH YADAV', 'SHIVAM KUMAR', 'SUDISH SAH', 'VISHAL PRUTHVIRAJ'
-            ];
-            workersLoaded = true;
-            updateWorkerList();
-            console.log('Fallback workers loaded:', workers.length);
-        }
+  document.getElementById('startForm').onsubmit = handleStartSubmit;
+  document.getElementById('endForm').onsubmit = handleEndSubmit;
+});
 
-        function login() {
-            var supervisor = document.getElementById('supervisorSelect').value;
-            var pin = document.getElementById('pinInput').value;
+// UI helpers
+function showCard(cardId) {
+  for (let elemId of ['loginCard', 'dashboardCards', 'startShiftForm', 'endShiftForm', 'reportCard']) {
+    document.getElementById(elemId).classList.add('d-none');
+  }
+  document.getElementById(cardId).classList.remove('d-none');
+}
+function backToDashboard() {
+  showCard('dashboardCards');
+}
 
-            if (!supervisor) {
-                alert('Please select a supervisor');
-                return;
-            }
+// Supervisor logged in, load workers and show dashboard cards
+function loadConfigAndShowDashboard() {
+  google.script.run
+    .withSuccessHandler(function(config){
+      workerList = config.workers.map(w => w.name);
+      // Populate worker selects
+      populateWorkerSelect('startWorkers');
+      populateWorkerSelect('endWorkers');
+      showCard('dashboardCards');
+    })
+    .withFailureHandler(function(){
+      alert("Failed to load worker list. Contact admin.");
+    })
+    .getConfigData();
+}
 
-            if (!pin || pin.length !== 4) {
-                alert('Please enter a 4-digit PIN');
-                return;
-            }
+// Populate multi-select worker menu
+function populateWorkerSelect(selectId) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '';
+  workerList.forEach(w => {
+    const opt = document.createElement('option');
+    opt.value = w;
+    opt.textContent = w;
+    sel.appendChild(opt);
+  });
+}
 
-            if (supervisorPins[supervisor] === pin) {
-                currentSupervisor = supervisor;
-                console.log('Login successful: ' + supervisor);
-                document.getElementById('authScreen').classList.add('hidden');
-                document.getElementById('mainScreen').classList.remove('hidden');
-                
-                // Load workers when entering the main screen
-                if (!workersLoaded) {
-                    loadWorkersFromSheet();
-                }
-                updateReportPreview();
-            } else {
-                alert('Invalid PIN. Please try again.');
-                document.getElementById('pinInput').value = '';
-            }
-        }
+// Start Shift UI flow
+function startShiftFlow() {
+  document.getElementById('startForm').reset();
+  document.getElementById('startError').textContent = '';
+  showCard('startShiftForm');
+}
 
-        function updateWorkDate() {
-            var date = document.getElementById('workDateInput').value;
-            var formattedDate = new Date(date).toLocaleDateString('en-GB');
-            document.getElementById('workDate').textContent = formattedDate;
-            updateReportPreview();
-        }
+// End Shift UI flow
+function endShiftFlow() {
+  document.getElementById('endForm').reset();
+  document.getElementById('endError').textContent = '';
+  showCard('endShiftForm');
+}
 
-        function updateCalculations() {
-            var workType = document.getElementById('workType').value;
-            var length = parseFloat(document.getElementById('length').value) || 0;
-            var width = parseFloat(document.getElementById('width').value) || 0;
-            var height = parseFloat(document.getElementById('height').value) || 0;
-            var quantity = parseInt(document.getElementById('quantity').value) || 0;
+// Start Shift Submission
+function handleStartSubmit(e) {
+  e.preventDefault();
+  const workers = [...document.getElementById('startWorkers').selectedOptions].map(o=>o.value);
+  const details = document.getElementById('startDetails').value;
+  document.getElementById('startError').textContent = "";
 
-            var volume = length * width * height * quantity;
-            var erection = 0;
-            var dismantling = 0;
+  if (!workers.length) {
+    document.getElementById('startError').textContent = "Select at least one worker.";
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (res.success) {
+        showReport("Shift Start Report", res.report);
+      } else {
+        document.getElementById('startError').textContent = res.message || "Submission failed.";
+      }
+    })
+    .withFailureHandler(function(err){
+      document.getElementById('startError').textContent = err.message || "Submission error.";
+    })
+    .submitStartShift({ workers, supervisor: supervisor.name, details });
+}
 
-            if (workType === 'ERECTION') {
-                erection = volume;
-            } else if (workType === 'DISMANTLING') {
-                dismantling = volume / 2;
-            }
+// End Shift Submission
+function handleEndSubmit(e) {
+  e.preventDefault();
+  const workers = [...document.getElementById('endWorkers').selectedOptions].map(o=>o.value);
+  const activity = document.getElementById('endActivity').value;
+  const volume = parseFloat(document.getElementById('endVolume').value);
+  const duration = parseFloat(document.getElementById('endDuration').value);
+  const overtime = document.getElementById('endOvertime').value;
+  const remarks = document.getElementById('endRemarks').value;
 
-            document.getElementById('calculationDisplay').textContent = 
-                'Volume: ' + volume.toFixed(2) + ' | Erection: ' + erection.toFixed(2) + ' | Dismantling: ' + dismantling.toFixed(2);
-        }
+  document.getElementById('endError').textContent = "";
+  if (!activity) {
+    document.getElementById('endError').textContent = "Select Activity.";
+    return;
+  }
+  if (!volume || volume <= 0) {
+    document.getElementById('endError').textContent = "Enter a valid volume.";
+    return;
+  }
+  if (!duration || duration <= 0) {
+    document.getElementById('endError').textContent = "Enter a valid duration.";
+    return;
+  }
+  if (!workers.length) {
+    document.getElementById('endError').textContent = "Select at least one worker.";
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (res.success) {
+        showReport("Shift End Report", res.report);
+      } else {
+        document.getElementById('endError').textContent = res.message || "Submission failed.";
+      }
+    })
+    .withFailureHandler(function(err){
+      document.getElementById('endError').textContent = err.message || "Submission error.";
+    })
+    .submitEndShift({
+      supervisor: supervisor.name, 
+      workers, activity, volume, duration,
+      overtime: overtime ? parseFloat(overtime) : 0,
+      remarks
+    });
+}
 
-        function addWorkEntry() {
-            var workType = document.getElementById('workType').value;
-            var description = document.getElementById('description').value;
-            var length = parseFloat(document.getElementById('length').value) || 0;
-            var width = parseFloat(document.getElementById('width').value) || 0;
-            var height = parseFloat(document.getElementById('height').value) || 0;
-            var quantity = parseInt(document.getElementById('quantity').value) || 0;
+// Show report and WhatsApp share UI
+function showReport(title, text) {
+  document.getElementById('reportTitle').textContent = title;
+  document.getElementById('reportText').textContent = text;
+  // WhatsApp share URL (without phone number; add if desired)
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+  document.getElementById('whatsappShareBtn').href = waUrl;
+  showCard('reportCard');
+}
 
-            if (!workType || !description) {
-                alert('Please fill in work type and description');
-                return;
-            }
-
-            var volume = length * width * height * quantity;
-            var erection = 0;
-            var dismantling = 0;
-
-            if (workType === 'ERECTION') {
-                erection = volume;
-            } else if (workType === 'DISMANTLING') {
-                dismantling = volume / 2;
-            }
-
-            var entry = {
-                workType: workType,
-                description: description,
-                length: length,
-                width: width,
-                height: height,
-                quantity: quantity,
-                volume: volume,
-                erection: erection,
-                dismantling: dismantling
-            };
-
-            workEntries.push(entry);
-            console.log('Work entry added');
-            displayWorkEntries();
-            clearWorkForm();
-            
-            if (workEntries.length > 0) {
-                document.getElementById('proceedBtn').style.display = 'block';
-            }
-
-            updateReportPreview();
-        }
-
-        function displayWorkEntries() {
-            var container = document.getElementById('workEntries');
-            container.innerHTML = '';
-
-            for (var i = 0; i < workEntries.length; i++) {
-                var entry = workEntries[i];
-                var entryDiv = document.createElement('div');
-                entryDiv.className = 'entry-item';
-                entryDiv.innerHTML = '<button class="remove-btn" onclick="removeWorkEntry(' + i + ')">×</button>' +
-                    '<h4>' + entry.workType + ' - ' + entry.description + '</h4>' +
-                    '<p>Dimensions: ' + entry.length + ' × ' + entry.width + ' × ' + entry.height + ' × ' + entry.quantity + '</p>' +
-                    '<p>Volume: ' + entry.volume.toFixed(2) + ' | Erection: ' + entry.erection.toFixed(2) + ' | Dismantling: ' + entry.dismantling.toFixed(2) + '</p>';
-                container.appendChild(entryDiv);
-            }
-        }
-
-        function removeWorkEntry(index) {
-            workEntries.splice(index, 1);
-            console.log('Work entry removed');
-            displayWorkEntries();
-            updateReportPreview();
-            
-            if (workEntries.length === 0) {
-                document.getElementById('proceedBtn').style.display = 'none';
-            }
-        }
-
-        function clearWorkForm() {
-            document.getElementById('workType').value = '';
-            document.getElementById('description').value = '';
-            document.getElementById('length').value = '';
-            document.getElementById('width').value = '';
-            document.getElementById('height').value = '';
-            document.getElementById('quantity').value = '';
-            updateCalculations();
-        }
-
-        function updateWorkerList() {
-            var container = document.getElementById('workerList');
-            var loading = document.getElementById('loadingStatus');
-            
-            if (workers.length === 0) {
-                return;
-            }
-
-            container.innerHTML = '';
-
-            for (var i = 0; i < workers.length; i++) {
-                var worker = workers[i];
-                var workerDiv = document.createElement('div');
-                workerDiv.className = 'worker-item';
-                workerDiv.innerHTML = '<span class="worker-name">' + worker + '</span>' +
-                    '<input type="number" class="worker-input" min="0" max="12" step="0.5" value="0" onchange="updateAttendanceCalc()">';
-                container.appendChild(workerDiv);
-            }
-
-            loading.classList.add('hidden');
-            container.classList.remove('hidden');
-            updateAttendanceCalc();
-            console.log('Worker list updated with ' + workers.length + ' workers');
-        }
-
-        function updateAttendanceCalc() {
-            var workerCount = parseInt(document.getElementById('workerCount').value) || 2;
-            var workerInputs = document.querySelectorAll('.worker-input');
-            var totalOT = 0;
-            
-            for (var i = 0; i < workerInputs.length; i++) {
-                var input = workerInputs[i];
-                var otValue = parseFloat(input.value) || 0;
-                if (otValue < 0) input.value = 0;
-                if (otValue > 12) input.value = 12;
-                totalOT += parseFloat(input.value) || 0;
-            }
-
-            var totalManHours = (workerCount * 8) + totalOT;
-            document.getElementById('attendanceCalc').textContent = 'Total Manhours: ' + totalManHours;
-            
-            updateReportPreview();
-        }
-
-        function showCard(cardType) {
-            if (cardType === 'work') {
-                document.getElementById('workCard').classList.remove('hidden');
-                document.getElementById('attendanceCard').classList.add('hidden');
-                document.getElementById('workBtn').classList.add('active');
-                document.getElementById('attendanceBtn').classList.remove('active');
-                document.getElementById('step1').classList.add('active');
-                document.getElementById('step2').classList.remove('active');
-                currentCard = 'work';
-            } else {
-                document.getElementById('workCard').classList.add('hidden');
-                document.getElementById('attendanceCard').classList.remove('hidden');
-                document.getElementById('workBtn').classList.remove('active');
-                document.getElementById('attendanceBtn').classList.add('active');
-                document.getElementById('step1').classList.add('completed');
-                document.getElementById('step1').classList.remove('active');
-                document.getElementById('step2').classList.add('active');
-                currentCard = 'attendance';
-                
-                // Load workers when switching to attendance if not already loaded
-                if (!workersLoaded) {
-                    loadWorkersFromSheet();
-                }
-            }
-            console.log('Switched to card: ' + cardType);
-        }
-
-        function proceedToAttendance() {
-            if (workEntries.length === 0) {
-                alert('Please add at least one work entry');
-                return;
-            }
-            console.log('Proceeding to attendance');
-            showCard('attendance');
-        }
-
-        function goBackToWork() {
-            showCard('work');
-        }
-
-        function updateReportPreview() {
-            var date = document.getElementById('workDateInput').value;
-            var formattedDate = new Date(date).toLocaleDateString('en-GB');
-            
-            var totalErection = 0;
-            var totalDismantling = 0;
-            
-            for (var i = 0; i < workEntries.length; i++) {
-                totalErection += workEntries[i].erection;
-                totalDismantling += workEntries[i].dismantling;
-            }
-
-            var workerCount = parseInt(document.getElementById('workerCount').value) || 2;
-            var workerInputs = document.querySelectorAll('.worker-input');
-            var totalOT = 0;
-            
-            for (var i = 0; i < workerInputs.length; i++) {
-                totalOT += parseFloat(workerInputs[i].value) || 0;
-            }
-
-            var totalManHours = (workerCount * 8) + totalOT;
-            var productivity = totalManHours > 0 ? ((totalErection + totalDismantling / 2) / totalManHours).toFixed(2) : '0.00';
-
-            var report = 'DAILY WORK REPORT\n\n' +
-                'SUPERVISOR NAME: ' + currentSupervisor + '\n' +
-                'DATE: ' + formattedDate + '\n' +
-                'TOTAL ERECTION: ' + totalErection.toFixed(2) + '\n' +
-                'TOTAL DISMANTLING: ' + totalDismantling.toFixed(2) + '\n' +
-                'TOTAL MANHOURS: ' + totalManHours + '\n' +
-                'PRODUCTIVITY: ' + productivity;
-
-            document.getElementById('reportPreview').textContent = report;
-        }
-
-        function submitAndShare() {
-            if (workEntries.length === 0) {
-                alert('Please add work entries before submitting');
-                return;
-            }
-
-            var submitBtn = document.getElementById('submitBtn');
-            var originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Saving to Sheet...';
-            submitBtn.disabled = true;
-
-            console.log('Starting submission process...');
-
-            var date = document.getElementById('workDateInput').value;
-            var workerInputs = document.querySelectorAll('.worker-input');
-            var attendanceData = [];
-            
-            for (var i = 0; i < workerInputs.length; i++) {
-                var overtimeHours = parseFloat(workerInputs[i].value) || 0;
-                
-                if (overtimeHours > 0 && i < workers.length) {
-                    attendanceData.push({
-                        date: date,
-                        supervisorName: currentSupervisor,
-                        workerName: workers[i],
-                        totalManhours: 8,
-                        otHours: overtimeHours,
-                        endShiftManhours: 8 + overtimeHours
-                    });
-                }
-            }
-
-            var payload = {
-                workEntries: [],
-                attendanceData: attendanceData
-            };
-
-            for (var i = 0; i < workEntries.length; i++) {
-                var entry = workEntries[i];
-                payload.workEntries.push({
-                    date: date,
-                    supervisorName: currentSupervisor,
-                    workType: entry.workType,
-                    description: entry.description,
-                    l: entry.length,
-                    w: entry.width,
-                    h: entry.height,
-                    qty: entry.quantity,
-                    volume: entry.volume,
-                    dismantling: entry.dismantling,
-                    erection: entry.erection
-                });
-            }
-
-            console.log('Payload to send:', payload);
-
-            // Use GET method as primary since POST has issues
-            var encodedData = encodeURIComponent(JSON.stringify(payload));
-            var getUrl = appsScriptUrl + '?data=' + encodedData;
-            
-            console.log('Submitting via GET method...');
-            
-            // Method 1: Fetch request
-            fetch(getUrl)
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    throw new Error('Network response was not ok');
-                })
-                .then(data => {
-                    console.log('Submission successful:', data);
-                    submitBtn.textContent = 'Saved! Sharing...';
-                    
-                    if (data.status === 'success') {
-                        proceedToWhatsApp();
-                    } else {
-                        console.log('Warning: Submission may have failed:', data.message);
-                        proceedToWhatsApp(); // Still proceed to WhatsApp
-                    }
-                })
-                .catch(error => {
-                    console.log('Fetch failed, trying image method:', error);
-                    submitBtn.textContent = 'Retrying...';
-                    
-                    // Method 2: Image fallback for cross-origin issues
-                    var img = new Image();
-                    img.onload = function() {
-                        console.log('Image method completed (likely successful)');
-                        submitBtn.textContent = 'Saved! Sharing...';
-                        proceedToWhatsApp();
-                    };
-                    img.onerror = function() {
-                        console.log('Image method completed (status unknown)');
-                        submitBtn.textContent = 'Sharing...';
-                        proceedToWhatsApp();
-                    };
-                    img.src = getUrl;
-                    
-                    // Timeout fallback
-                    setTimeout(function() {
-                        console.log('Proceeding after timeout');
-                        proceedToWhatsApp();
-                    }, 3000);
-                });
-
-            function proceedToWhatsApp() {
-                setTimeout(function() {
-                    console.log('Proceeding with WhatsApp sharing...');
-                    
-                    var report = document.getElementById('reportPreview').textContent;
-                    var encodedReport = encodeURIComponent(report);
-                    var whatsappUrl = 'https://wa.me/?text=' + encodedReport;
-                    
-                    submitBtn.textContent = 'Opening WhatsApp...';
-                    window.open(whatsappUrl, '_blank');
-                    
-                    setTimeout(function() {
-                        resetApp();
-                    }, 1500);
-                }, 500);
-            }
-
-            // Reset button after timeout regardless
-            setTimeout(function() {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }, 8000);
-        }
-
-        // Add a function to test the connection
-        function testConnection() {
-            console.log('Testing connection to Google Apps Script...');
-            
-            fetch(appsScriptUrl + '?test=1')
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Connection test result:', data);
-                    alert('Connection test result: ' + data.message);
-                })
-                .catch(error => {
-                    console.error('Connection test failed:', error);
-                    alert('Connection test failed: ' + error.message);
-                });
-        }
-
-        function resetApp() {
-            console.log('Resetting app for new entries...');
-            
-            workEntries = [];
-            currentSupervisor = '';
-            workersLoaded = false;
-            
-            document.getElementById('supervisorSelect').value = '';
-            document.getElementById('pinInput').value = '';
-            document.getElementById('workerCount').value = '2';
-            
-            clearWorkForm();
-            
-            document.getElementById('workEntries').innerHTML = '';
-            document.getElementById('proceedBtn').style.display = 'none';
-            
-            // Reset worker list
-            document.getElementById('workerList').innerHTML = '';
-            document.getElementById('workerList').classList.add('hidden');
-            document.getElementById('loadingStatus').classList.remove('hidden');
-            
-            updateReportPreview();
-            
-            document.getElementById('authScreen').classList.remove('hidden');
-            document.getElementById('mainScreen').classList.add('hidden');
-            
-            showCard('work');
-            
-            var today = new Date().toISOString().split('T')[0];
-            document.getElementById('workDateInput').value = today;
-            updateWorkDate();
-            
-            console.log('App reset completed successfully');
-            alert('Report shared successfully! App has been reset for new entries.');
-        }
-    </script>
+</script>
 </body>
 </html>

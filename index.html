@@ -1,312 +1,202 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html>
+  <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site Reporting - Safety First</title>
+    <title>Shift Management - Site Work</title>
+    <!-- Bootstrap 5 CDN -->
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .safety-ticker {
-            background: #ff6b35;
-            color: white;
-            padding: 12px 0;
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .ticker-content {
-            display: inline-block;
-            animation: scroll 60s linear infinite;
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        @keyframes scroll {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-
-        .header h1 {
-            color: #2c3e50;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .header p {
-            color: #7f8c8d;
-            font-size: 1.1rem;
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 30px 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .iframe-container {
-            width: 100%;
-            max-width: 1200px;
-            height: 70vh;
-            min-height: 600px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            position: relative;
-        }
-
-        .iframe-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #ff6b35, #f7931e, #ff6b35);
-            z-index: 1;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 15px;
-        }
-
-        .footer {
-            background: rgba(44, 62, 80, 0.95);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .footer-ticker {
-            background: #27ae60;
-            color: white;
-            padding: 10px 0;
-            overflow: hidden;
-            white-space: nowrap;
-            margin-top: 15px;
-        }
-
-        .footer-ticker .ticker-content {
-            animation: scroll-reverse 45s linear infinite;
-            font-size: 14px;
-        }
-
-        @keyframes scroll-reverse {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .safety-icon {
-            display: inline-block;
-            margin: 0 15px;
-            font-size: 1.2em;
-        }
-
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2;
-            transition: opacity 0.3s ease;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #ff6b35;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-            
-            .ticker-content {
-                font-size: 14px;
-            }
-            
-            .main-content {
-                padding: 20px 10px;
-            }
-            
-            .iframe-container {
-                height: 60vh;
-                min-height: 500px;
-            }
-        }
+      .card-group {display:flex;gap:2rem;flex-wrap:wrap;justify-content:center;margin-top:3vh;}
+      .shift-card {min-width:320px;max-width:380px;margin-bottom:2rem;}
+      @media (max-width: 768px) {
+        .card-group {flex-direction: column;align-items: center;}
+        .shift-card {max-width:95vw;}
+      }
+      .hide {display:none;}
+      .workers-list label { margin-right:12px; min-width: 120px;}
     </style>
-</head>
-<body>
-    <!-- Header Safety Ticker -->
-    <div class="safety-ticker">
-        <div class="ticker-content">
-            🚧 SAFETY FIRST: Always wear hard hats and safety gear on site 
-            <span class="safety-icon">⚠️</span>
-            Check scaffolding stability before use 
-            <span class="safety-icon">🔧</span>
-            Maintain 3-point contact when climbing 
-            <span class="safety-icon">👷</span>
-            Report unsafe conditions immediately 
-            <span class="safety-icon">📋</span>
-            Keep work areas clean and organized 
-            <span class="safety-icon">🧹</span>
-            Use proper lifting techniques 
-            <span class="safety-icon">💪</span>
-            Never work alone in hazardous areas 
-            <span class="safety-icon">👥</span>
-            Inspect tools before each use 
-            <span class="safety-icon">🔍</span>
-        </div>
-    </div>
-
-    <!-- Header -->
-    <div class="header">
-        <h1>🏗️ Shift Management — Embedded App</h1>
-        <p>Professional construction site management and safety reporting</p>
-        <p style="margin-top: 10px; font-size: 0.9rem; color: #95a5a6;">If the embedded app doesn't load, use the fallback link below.</p>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="iframe-container">
-            <div class="loading-overlay" id="loadingOverlay">
-                <div class="loading-spinner"></div>
-            </div>
-            <iframe 
-                src="https://script.google.com/macros/s/AKfycbyK5q8F4ZRZStDou1kqUjF-axzcJzudbgslhObRyhSQSyk-ryezqIAnDloeAgpryzUz/exec"
-                title="Site Reporting Application"
-                onload="hideLoading()"
-                onerror="showError()">
-            </iframe>
-        </div>
-    </div>
-
-    <!-- Fallback Link -->
-    <div style="text-align: center; padding: 20px; background: rgba(255, 255, 255, 0.9); margin: 0 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        <p style="color: #2c3e50; font-weight: 600; margin-bottom: 15px;">📱 Fallback Access</p>
-        <a href="https://script.google.com/macros/s/AKfycbyK5q8F4ZRZStDou1kqUjF-axzcJzudbgslhObRyhSQSyk-ryezqIAnDloeAgpryzUz/exec" 
-           target="_blank" 
-           style="display: inline-block; background: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.3s ease; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);"
-           onmouseover="this.style.background='#2980b9'"
-           onmouseout="this.style.background='#3498db'">
-            🔗 Open Shift Management App in New Tab
-        </a>
-        <p style="color: #7f8c8d; font-size: 0.9rem; margin-top: 10px;">Click above if the embedded version isn't working properly</p>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        <p><strong>Safety is Everyone's Responsibility</strong></p>
-        <p>Report incidents immediately • Follow all safety protocols • Stay alert and aware</p>
-        
-        <!-- Footer Safety Ticker -->
-        <div class="footer-ticker">
-            <div class="ticker-content">
-                🛡️ Scaffolding Safety Tips: Check base plates are level and secure 
-                <span class="safety-icon">⚖️</span>
-                Ensure guardrails are properly installed 
-                <span class="safety-icon">🚧</span>
-                Never exceed weight limits 
-                <span class="safety-icon">⚠️</span>
-                Use tie-offs every 26 feet 
-                <span class="safety-icon">📏</span>
-                Inspect planks for damage daily 
-                <span class="safety-icon">🔍</span>
-                Maintain safe access points 
-                <span class="safety-icon">🚪</span>
-                Weather conditions matter - no work in high winds 
-                <span class="safety-icon">🌪️</span>
-                Tag out damaged equipment immediately 
-                <span class="safety-icon">🏷️</span>
-            </div>
-        </div>
-    </div>
-
     <script>
-        function hideLoading() {
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                setTimeout(() => {
-                    overlay.style.display = 'none';
-                }, 300);
-            }
+      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxBgpPyplN2hSsLP-ZPrP9scpAOXjupBuxTeXQDwOtey4Xnu0qTTPxkbeI-XjJMO848/exec";
+      let appConfig = {};
+      let entries = [];
+      let endShiftOts = {};
+
+      window.onload = async function() {
+        try {
+          const res = await fetch(`${WEB_APP_URL}?action=getAppData`);
+          appConfig = await res.json();
+          populateSupervisorDropdown('start-login-supervisor');
+          populateSupervisorDropdown('end-login-supervisor');
+          populateWorkersList();
+        } catch (e) {
+          alert("Error loading app config: " + e);
         }
+      };
 
-        function showError() {
-            const overlay = document.getElementById('loadingOverlay');
-            if (overlay) {
-                overlay.innerHTML = `
-                    <div style="text-align: center; color: #e74c3c;">
-                        <h3>⚠️ Connection Error</h3>
-                        <p>Unable to load the reporting system</p>
-                        <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                            🔄 Retry
-                        </button>
-                    </div>
-                `;
-            }
+      function populateSupervisorDropdown(id) {
+        const el = document.getElementById(id);
+        el.innerHTML = "<option value=''>Select supervisor</option>";
+        appConfig.supervisors.forEach(sv => {
+          el.innerHTML += `<option value="${sv}">${sv}</option>`;
+        });
+      }
+
+      function populateWorkersList() {
+        const wl = document.getElementById('start-workers-list');
+        if (!wl) return;
+        wl.innerHTML = "";
+        appConfig.workers.forEach(w => {
+          wl.innerHTML += `<div class="form-check">
+                <input class="form-check-input" type="checkbox" value="${w}" id="chk-${w.replace(/\s+/g,'-')}" name="workers">
+                <label class="form-check-label" for="chk-${w.replace(/\s+/g,'-')}">${w}</label>
+              </div>`;
+        });
+      }
+
+      async function startLogin() {
+        const supervisor = document.getElementById('start-login-supervisor').value;
+        const passcode = document.getElementById('start-login-passcode').value;
+        if (!supervisor || passcode.length !== 4) return alert('Fill all fields with valid data.');
+
+        try {
+          const res = await fetch(`${WEB_APP_URL}?action=validateSupervisorLogin&supervisor=${encodeURIComponent(supervisor)}&passcode=${encodeURIComponent(passcode)}`);
+          const valid = await res.json();
+          if (valid) {
+            document.getElementById('start-shift-login').classList.add('hide');
+            showStartShiftCard(supervisor);
+          } else alert('Invalid login or passcode. Try again.');
+        } catch (e) {
+          alert("Login error: " + e);
         }
+      }
 
-        // Add some interactive safety reminders
-        let reminderCount = 0;
-        const safetyReminders = [
-            "🚨 Remember: Safety first, productivity second!",
-            "⚠️ Check your PPE before starting work",
-            "🔧 Inspect equipment daily for safety",
-            "👥 Communicate hazards to your team"
-        ];
+      async function endLogin() {
+        const supervisor = document.getElementById('end-login-supervisor').value;
+        const passcode = document.getElementById('end-login-passcode').value;
+        if (!supervisor || passcode.length !== 4) return alert('Fill all fields with valid data.');
 
-        setInterval(() => {
-            if (reminderCount < 3) { // Show only first 3 times
-                console.log(safetyReminders[reminderCount % safetyReminders.length]);
-                reminderCount++;
-            }
-        }, 30000); // Every 30 seconds
+        try {
+          const res = await fetch(`${WEB_APP_URL}?action=validateSupervisorLogin&supervisor=${encodeURIComponent(supervisor)}&passcode=${encodeURIComponent(passcode)}`);
+          const valid = await res.json();
+          if (valid) {
+            document.getElementById('end-shift-login').classList.add('hide');
+            showEndShiftEntry(supervisor);
+          } else alert('Invalid login or passcode. Try again.');
+        } catch (e) {
+          alert("Login error: " + e);
+        }
+      }
+
+      function showStartShiftCard(supervisor) {
+        document.getElementById('start-shift-form').classList.remove('hide');
+        document.getElementById('start-supervisor-name').value = supervisor;
+        document.getElementById('start-date-input').value = new Date().toISOString().slice(0,10);
+        populateWorkersList();
+      }
+
+      async function submitStartShift() {
+        const supervisor = document.getElementById('start-supervisor-name').value;
+        const date = document.getElementById('start-date-input').value;
+        const workerInputs = document.querySelectorAll('input[name="workers"]:checked');
+        const selected = Array.from(workerInputs).map(input=>input.value);
+        if (!supervisor || !date || selected.length<1) return alert("Select at least one worker!");
+
+        try {
+          await fetch(`${WEB_APP_URL}?action=saveStartShift`, {
+            method: 'POST',
+            body: JSON.stringify({date, supervisor, workers: selected}),
+            headers: {'Content-Type': 'application/json'}
+          });
+          alert("Start shift saved successfully.");
+          window.location.reload();
+        } catch (e) {
+          alert("Error saving shift: " + e);
+        }
+      }
+
+      function showEndShiftEntry(supervisor) {
+        document.getElementById('end-entry-form').classList.remove('hide');
+        document.getElementById('end-supervisor-name').innerText = supervisor;
+        document.getElementById('end-date-input').value = new Date().toISOString().slice(0,10);
+        entries = [];
+        renderEndShiftEntries();
+      }
+
+      function addEndShiftEntry() {
+        const type = document.getElementById('end-type').value;
+        const desc = document.getElementById('end-desc').value.trim();
+        const l = Number(document.getElementById('end-length').value);
+        const w = Number(document.getElementById('end-width').value);
+        const h = Number(document.getElementById('end-height').value);
+        const qty = Number(document.getElementById('end-qty').value);
+        if (!type || !desc || l<=0 || w<=0 || h<=0 || qty<=0) return alert('All fields required, no negatives or zeros!');
+        const volume = l*w*h*qty;
+        entries.push({type, description: desc, length: l, width:w, height:h, quantity:qty, volume});
+        renderEndShiftEntries();
+        document.getElementById('end-desc').value='';
+        ['end-length','end-width','end-height','end-qty'].forEach(id=>document.getElementById(id).value='');
+      }
+
+      function renderEndShiftEntries(){
+        const tbl = document.getElementById('end-entries-table');
+        tbl.innerHTML = '';
+        if (!entries.length) return;
+        tbl.innerHTML = `
+          <tr><th>#</th><th>Type</th><th>Description</th><th>LxWxH</th><th>Qty</th><th>Volume</th></tr>
+          ${entries.map((e,i)=>`<tr>
+          <td>${i+1}</td>
+          <td>${e.type}</td>
+          <td>${e.description}</td>
+          <td>${e.length}x${e.width}x${e.height}</td>
+          <td>${e.quantity}</td>
+          <td>${e.volume}</td>
+          </tr>`).join('')}`;
+      }
+
+      function submitEndEntries() {
+        if (!entries.length) return alert('Add at least one entry!');
+        document.getElementById('end-entry-form').classList.add('hide');
+        document.getElementById('end-ot-form').classList.remove('hide');
+        const wl = document.getElementById('end-ot-workers');
+        wl.innerHTML = '';
+        appConfig.workers.forEach(w=>{
+          wl.innerHTML += `<tr>
+              <td>${w}</td>
+              <td><input class="form-control" type="number" min="0" max="12" value="0" id="ot-${w.replace(/\s+/g,'-')}"></td>
+          </tr>`;
+        });
+      }
+
+      async function submitEndAndClose() {
+        const supervisor = document.getElementById('end-supervisor-name').innerText;
+        const date = document.getElementById('end-date-input').value;
+        endShiftOts = {};
+        appConfig.workers.forEach(w=>{
+          const otVal = Number(document.getElementById(`ot-${w.replace(/\s+/g,'-')}`).value)||0;
+          endShiftOts[w]=otVal;
+        });
+
+        try {
+          await fetch(`${WEB_APP_URL}?action=saveEndShift`, {
+            method: 'POST',
+            body: JSON.stringify({
+              date, supervisor,
+              entries, overtimesObj:endShiftOts
+            }),
+            headers: {'Content-Type': 'application/json'}
+          });
+          alert("End shift saved successfully.");
+          window.location.reload();
+        } catch (e) {
+          alert('Error: '+e.message);
+        }
+      }
+
+      function logout() {window.location.reload();}
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97202977666e563e',t:'MTc1NTY3NDc4Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  </head>
+  <body class="bg-light">
+    <!-- Body remains the same -->
+  </body>
 </html>

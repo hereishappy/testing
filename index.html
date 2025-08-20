@@ -1,202 +1,246 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Shift Management - Site Work</title>
-    <!-- Bootstrap 5 CDN -->
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-      .card-group {display:flex;gap:2rem;flex-wrap:wrap;justify-content:center;margin-top:3vh;}
-      .shift-card {min-width:320px;max-width:380px;margin-bottom:2rem;}
-      @media (max-width: 768px) {
-        .card-group {flex-direction: column;align-items: center;}
-        .shift-card {max-width:95vw;}
-      }
-      .hide {display:none;}
-      .workers-list label { margin-right:12px; min-width: 120px;}
-    </style>
-    <script>
-      const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxBgpPyplN2hSsLP-ZPrP9scpAOXjupBuxTeXQDwOtey4Xnu0qTTPxkbeI-XjJMO848/exec";
-      let appConfig = {};
-      let entries = [];
-      let endShiftOts = {};
+<head>
+<meta charset="UTF-8">
+<title>Shift Management - Site Work</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  .card-group {display:flex;gap:2rem;flex-wrap:wrap;justify-content:center;margin-top:3vh;}
+  .shift-card {min-width:320px;max-width:380px;margin-bottom:2rem;}
+  @media (max-width: 768px) {
+    .card-group {flex-direction: column;align-items: center;}
+    .shift-card {max-width:95vw;}
+  }
+  .hide {display:none;}
+  .workers-list label { margin-right:12px; min-width: 120px;}
+</style>
+<script>
+const webAppUrl = "https://script.google.com/macros/s/AKfycbxBgpPyplN2hSsLP-ZPrP9scpAOXjupBuxTeXQDwOtey4Xnu0qTTPxkbeI-XjJMO848/exec";
+let appConfig = {};
+let entries = [];
+let endShiftOts = {};
 
-      window.onload = async function() {
-        try {
-          const res = await fetch(`${WEB_APP_URL}?action=getAppData`);
-          appConfig = await res.json();
-          populateSupervisorDropdown('start-login-supervisor');
-          populateSupervisorDropdown('end-login-supervisor');
-          populateWorkersList();
-        } catch (e) {
-          alert("Error loading app config: " + e);
-        }
-      };
+async function fetchFromWebApp(action, payload={}) {
+  const res = await fetch(webAppUrl + '?action=' + action, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: {'Content-Type':'application/json'}
+  });
+  return res.json();
+}
 
-      function populateSupervisorDropdown(id) {
-        const el = document.getElementById(id);
-        el.innerHTML = "<option value=''>Select supervisor</option>";
-        appConfig.supervisors.forEach(sv => {
-          el.innerHTML += `<option value="${sv}">${sv}</option>`;
-        });
-      }
+window.onload = async function() {
+  const cfg = await fetchFromWebApp('getAppData');
+  appConfig = cfg;
+  populateSupervisorDropdown('start-login-supervisor');
+  populateSupervisorDropdown('end-login-supervisor');
+  populateWorkersList();
+};
 
-      function populateWorkersList() {
-        const wl = document.getElementById('start-workers-list');
-        if (!wl) return;
-        wl.innerHTML = "";
-        appConfig.workers.forEach(w => {
-          wl.innerHTML += `<div class="form-check">
-                <input class="form-check-input" type="checkbox" value="${w}" id="chk-${w.replace(/\s+/g,'-')}" name="workers">
-                <label class="form-check-label" for="chk-${w.replace(/\s+/g,'-')}">${w}</label>
-              </div>`;
-        });
-      }
+function populateSupervisorDropdown(id) {
+  const el = document.getElementById(id);
+  el.innerHTML = "<option value=''>Select supervisor</option>";
+  appConfig.supervisors.forEach(sv => {
+    el.innerHTML += `<option value="${sv}">${sv}</option>`;
+  });
+}
 
-      async function startLogin() {
-        const supervisor = document.getElementById('start-login-supervisor').value;
-        const passcode = document.getElementById('start-login-passcode').value;
-        if (!supervisor || passcode.length !== 4) return alert('Fill all fields with valid data.');
+function populateWorkersList() {
+  const wl = document.getElementById('start-workers-list');
+  if (!wl) return;
+  wl.innerHTML = "";
+  appConfig.workers.forEach(w => {
+    wl.innerHTML += `<div class="form-check">
+          <input class="form-check-input" type="checkbox" value="${w}" id="chk-${w.replace(/\s+/g,'-')}" name="workers">
+          <label class="form-check-label" for="chk-${w.replace(/\s+/g,'-')}">${w}</label>
+        </div>`;
+  });
+}
 
-        try {
-          const res = await fetch(`${WEB_APP_URL}?action=validateSupervisorLogin&supervisor=${encodeURIComponent(supervisor)}&passcode=${encodeURIComponent(passcode)}`);
-          const valid = await res.json();
-          if (valid) {
-            document.getElementById('start-shift-login').classList.add('hide');
-            showStartShiftCard(supervisor);
-          } else alert('Invalid login or passcode. Try again.');
-        } catch (e) {
-          alert("Login error: " + e);
-        }
-      }
+async function startLogin() {
+  const supervisor = document.getElementById('start-login-supervisor').value;
+  const passcode = document.getElementById('start-login-passcode').value;
+  if (!supervisor || passcode.length !== 4) return alert('Fill all fields with valid data.');
+  const res = await fetchFromWebApp('validateSupervisorLogin', {supervisor, passcode});
+  if(res.success){
+    document.getElementById('start-shift-login').classList.add('hide');
+    showStartShiftCard(supervisor);
+  } else alert('Invalid login or passcode. Try again.');
+}
 
-      async function endLogin() {
-        const supervisor = document.getElementById('end-login-supervisor').value;
-        const passcode = document.getElementById('end-login-passcode').value;
-        if (!supervisor || passcode.length !== 4) return alert('Fill all fields with valid data.');
+async function endLogin() {
+  const supervisor = document.getElementById('end-login-supervisor').value;
+  const passcode = document.getElementById('end-login-passcode').value;
+  if (!supervisor || passcode.length !== 4) return alert('Fill all fields with valid data.');
+  const res = await fetchFromWebApp('validateSupervisorLogin', {supervisor, passcode});
+  if(res.success){
+    document.getElementById('end-shift-login').classList.add('hide');
+    showEndShiftEntry(supervisor);
+  } else alert('Invalid login or passcode. Try again.');
+}
 
-        try {
-          const res = await fetch(`${WEB_APP_URL}?action=validateSupervisorLogin&supervisor=${encodeURIComponent(supervisor)}&passcode=${encodeURIComponent(passcode)}`);
-          const valid = await res.json();
-          if (valid) {
-            document.getElementById('end-shift-login').classList.add('hide');
-            showEndShiftEntry(supervisor);
-          } else alert('Invalid login or passcode. Try again.');
-        } catch (e) {
-          alert("Login error: " + e);
-        }
-      }
+function showStartShiftCard(supervisor) {
+  document.getElementById('start-shift-form').classList.remove('hide');
+  document.getElementById('start-supervisor-name').value = supervisor;
+  document.getElementById('start-date-input').value = new Date().toISOString().slice(0,10);
+  populateWorkersList();
+}
 
-      function showStartShiftCard(supervisor) {
-        document.getElementById('start-shift-form').classList.remove('hide');
-        document.getElementById('start-supervisor-name').value = supervisor;
-        document.getElementById('start-date-input').value = new Date().toISOString().slice(0,10);
-        populateWorkersList();
-      }
+async function submitStartShift() {
+  const supervisor = document.getElementById('start-supervisor-name').value;
+  const date = document.getElementById('start-date-input').value;
+  const workerInputs = document.querySelectorAll('input[name="workers"]:checked');
+  const selected = Array.from(workerInputs).map(input=>input.value);
+  if (!supervisor || !date || selected.length<1) return alert("Select at least one worker!");
+  await fetchFromWebApp('saveStartShift', {date, supervisor, workers:selected});
+  alert("Start shift saved successfully.");
+  window.location.reload();
+}
 
-      async function submitStartShift() {
-        const supervisor = document.getElementById('start-supervisor-name').value;
-        const date = document.getElementById('start-date-input').value;
-        const workerInputs = document.querySelectorAll('input[name="workers"]:checked');
-        const selected = Array.from(workerInputs).map(input=>input.value);
-        if (!supervisor || !date || selected.length<1) return alert("Select at least one worker!");
+function showEndShiftEntry(supervisor) {
+  document.getElementById('end-entry-form').classList.remove('hide');
+  document.getElementById('end-supervisor-name').innerText = supervisor;
+  document.getElementById('end-date-input').value = new Date().toISOString().slice(0,10);
+  entries = [];
+  renderEndShiftEntries();
+}
 
-        try {
-          await fetch(`${WEB_APP_URL}?action=saveStartShift`, {
-            method: 'POST',
-            body: JSON.stringify({date, supervisor, workers: selected}),
-            headers: {'Content-Type': 'application/json'}
-          });
-          alert("Start shift saved successfully.");
-          window.location.reload();
-        } catch (e) {
-          alert("Error saving shift: " + e);
-        }
-      }
+function addEndShiftEntry() {
+  const type = document.getElementById('end-type').value;
+  const desc = document.getElementById('end-desc').value.trim();
+  const l = Number(document.getElementById('end-length').value);
+  const w = Number(document.getElementById('end-width').value);
+  const h = Number(document.getElementById('end-height').value);
+  const qty = Number(document.getElementById('end-qty').value);
+  if (!type || !desc || l<=0 || w<=0 || h<=0 || qty<=0) return alert('All fields required, no negatives or zeros!');
+  const volume = l*w*h*qty;
+  entries.push({type, description: desc, length: l, width:w, height:h, quantity:qty, volume});
+  renderEndShiftEntries();
+  document.getElementById('end-desc').value='';
+  ['end-length','end-width','end-height','end-qty'].forEach(id=>document.getElementById(id).value='');
+}
 
-      function showEndShiftEntry(supervisor) {
-        document.getElementById('end-entry-form').classList.remove('hide');
-        document.getElementById('end-supervisor-name').innerText = supervisor;
-        document.getElementById('end-date-input').value = new Date().toISOString().slice(0,10);
-        entries = [];
-        renderEndShiftEntries();
-      }
+function renderEndShiftEntries(){
+  const tbl = document.getElementById('end-entries-table');
+  tbl.innerHTML = '';
+  if (!entries.length) return;
+  tbl.innerHTML = `
+    <tr><th>#</th><th>Type</th><th>Description</th><th>LxWxH</th><th>Qty</th><th>Volume</th></tr>
+    ${entries.map((e,i)=>`<tr>
+    <td>${i+1}</td>
+    <td>${e.type}</td>
+    <td>${e.description}</td>
+    <td>${e.length}x${e.width}x${e.height}</td>
+    <td>${e.quantity}</td>
+    <td>${e.volume}</td>
+    </tr>`).join('')}`;
+}
 
-      function addEndShiftEntry() {
-        const type = document.getElementById('end-type').value;
-        const desc = document.getElementById('end-desc').value.trim();
-        const l = Number(document.getElementById('end-length').value);
-        const w = Number(document.getElementById('end-width').value);
-        const h = Number(document.getElementById('end-height').value);
-        const qty = Number(document.getElementById('end-qty').value);
-        if (!type || !desc || l<=0 || w<=0 || h<=0 || qty<=0) return alert('All fields required, no negatives or zeros!');
-        const volume = l*w*h*qty;
-        entries.push({type, description: desc, length: l, width:w, height:h, quantity:qty, volume});
-        renderEndShiftEntries();
-        document.getElementById('end-desc').value='';
-        ['end-length','end-width','end-height','end-qty'].forEach(id=>document.getElementById(id).value='');
-      }
+function submitEndEntries() {
+  if (!entries.length) return alert('Add at least one entry!');
+  document.getElementById('end-entry-form').classList.add('hide');
+  document.getElementById('end-ot-form').classList.remove('hide');
+  const wl = document.getElementById('end-ot-workers');
+  wl.innerHTML = '';
+  appConfig.workers.forEach(w=>{
+    wl.innerHTML += `<tr>
+        <td>${w}</td>
+        <td><input class="form-control" type="number" min="0" max="12" value="0" id="ot-${w.replace(/\s+/g,'-')}"></td>
+    </tr>`;
+  });
+}
 
-      function renderEndShiftEntries(){
-        const tbl = document.getElementById('end-entries-table');
-        tbl.innerHTML = '';
-        if (!entries.length) return;
-        tbl.innerHTML = `
-          <tr><th>#</th><th>Type</th><th>Description</th><th>LxWxH</th><th>Qty</th><th>Volume</th></tr>
-          ${entries.map((e,i)=>`<tr>
-          <td>${i+1}</td>
-          <td>${e.type}</td>
-          <td>${e.description}</td>
-          <td>${e.length}x${e.width}x${e.height}</td>
-          <td>${e.quantity}</td>
-          <td>${e.volume}</td>
-          </tr>`).join('')}`;
-      }
+async function submitEndAndClose() {
+  const supervisor = document.getElementById('end-supervisor-name').innerText;
+  const date = document.getElementById('end-date-input').value;
+  endShiftOts = {};
+  appConfig.workers.forEach(w=>{
+    const otVal = Number(document.getElementById(`ot-${w.replace(/\s+/g,'-')}`).value)||0;
+    endShiftOts[w]=otVal;
+  });
+  await fetchFromWebApp('saveEndShift', {date, supervisor, entries, overtimesObj:endShiftOts});
+  alert("End shift saved successfully.");
+  window.location.reload();
+}
 
-      function submitEndEntries() {
-        if (!entries.length) return alert('Add at least one entry!');
-        document.getElementById('end-entry-form').classList.add('hide');
-        document.getElementById('end-ot-form').classList.remove('hide');
-        const wl = document.getElementById('end-ot-workers');
-        wl.innerHTML = '';
-        appConfig.workers.forEach(w=>{
-          wl.innerHTML += `<tr>
-              <td>${w}</td>
-              <td><input class="form-control" type="number" min="0" max="12" value="0" id="ot-${w.replace(/\s+/g,'-')}"></td>
-          </tr>`;
-        });
-      }
-
-      async function submitEndAndClose() {
-        const supervisor = document.getElementById('end-supervisor-name').innerText;
-        const date = document.getElementById('end-date-input').value;
-        endShiftOts = {};
-        appConfig.workers.forEach(w=>{
-          const otVal = Number(document.getElementById(`ot-${w.replace(/\s+/g,'-')}`).value)||0;
-          endShiftOts[w]=otVal;
-        });
-
-        try {
-          await fetch(`${WEB_APP_URL}?action=saveEndShift`, {
-            method: 'POST',
-            body: JSON.stringify({
-              date, supervisor,
-              entries, overtimesObj:endShiftOts
-            }),
-            headers: {'Content-Type': 'application/json'}
-          });
-          alert("End shift saved successfully.");
-          window.location.reload();
-        } catch (e) {
-          alert('Error: '+e.message);
-        }
-      }
-
-      function logout() {window.location.reload();}
-    </script>
-  </head>
-  <body class="bg-light">
-    <!-- Body remains the same -->
-  </body>
+function logout() {window.location.reload();}
+</script>
+</head>
+<body class="bg-light">
+<div class="container mt-4">
+  <h2 class="text-center mb-4">Site Shift Management</h2>
+  <div class="card-group">
+    <!-- Start Shift Card -->
+    <div class="card shift-card">
+      <div class="card-body">
+        <h5 class="card-title">Start Shift</h5>
+        <div id="start-shift-login">
+          <div class="mb-3">
+            <label>Supervisor:</label>
+            <select id="start-login-supervisor" class="form-select"></select>
+          </div>
+          <div class="mb-3">
+            <label>Passcode:</label>
+            <input type="password" id="start-login-passcode" class="form-control" maxlength="4">
+          </div>
+          <button class="btn btn-primary" onclick="startLogin()">Login</button>
+        </div>
+        <div id="start-shift-form" class="hide">
+          <input type="hidden" id="start-supervisor-name">
+          <div class="mb-3"><label>Date:</label><input type="date" id="start-date-input" class="form-control"></div>
+          <div id="start-workers-list" class="workers-list mb-3"></div>
+          <button class="btn btn-success" onclick="submitStartShift()">Submit Start Shift</button>
+          <button class="btn btn-secondary mt-2" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+    <!-- End Shift Card -->
+    <div class="card shift-card">
+      <div class="card-body">
+        <h5 class="card-title">End Shift</h5>
+        <div id="end-shift-login">
+          <div class="mb-3">
+            <label>Supervisor:</label>
+            <select id="end-login-supervisor" class="form-select"></select>
+          </div>
+          <div class="mb-3">
+            <label>Passcode:</label>
+            <input type="password" id="end-login-passcode" class="form-control" maxlength="4">
+          </div>
+          <button class="btn btn-primary" onclick="endLogin()">Login</button>
+        </div>
+        <div id="end-entry-form" class="hide">
+          <p>Supervisor: <span id="end-supervisor-name"></span></p>
+          <div class="mb-3"><label>Date:</label><input type="date" id="end-date-input" class="form-control"></div>
+          <div class="mb-3">
+            <label>Type:</label>
+            <input type="text" id="end-type" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label>Description:</label>
+            <input type="text" id="end-desc" class="form-control">
+          </div>
+          <div class="mb-3 row">
+            <div class="col"><label>L (m):</label><input type="number" id="end-length" class="form-control"></div>
+            <div class="col"><label>W (m):</label><input type="number" id="end-width" class="form-control"></div>
+            <div class="col"><label>H (m):</label><input type="number" id="end-height" class="form-control"></div>
+            <div class="col"><label>Qty:</label><input type="number" id="end-qty" class="form-control"></div>
+          </div>
+          <button class="btn btn-secondary" onclick="addEndShiftEntry()">Add Entry</button>
+          <table class="table mt-3" id="end-entries-table"></table>
+          <button class="btn btn-success mt-2" onclick="submitEndEntries()">Next - Overtime</button>
+          <button class="btn btn-secondary mt-2" onclick="logout()">Logout</button>
+        </div>
+        <div id="end-ot-form" class="hide">
+          <p>Supervisor: <span id="end-supervisor-name"></span></p>
+          <table class="table" id="end-ot-workers"><tr><th>Worker</th><th>OT Hours</th></tr></table>
+          <button class="btn btn-success" onclick="submitEndAndClose()">Submit End Shift</button>
+          <button class="btn btn-secondary mt-2" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
 </html>

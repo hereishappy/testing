@@ -1,122 +1,298 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Shift Management (Embedded)</title>
-  <style>
-    :root{
-      --bg:#f6f7fb;
-      --card:#ffffff;
-      --muted:#6b6f76;
-    }
-    html,body{height:100%;margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
-    body{background:var(--bg);display:flex;flex-direction:column;}
-    header{padding:12px 16px;background:linear-gradient(90deg,#0d6efd22,#0d6efd11);display:flex;align-items:center;gap:12px;box-shadow:0 1px 0 rgba(0,0,0,.04);}
-    h1{font-size:16px;margin:0;}
-    p.hint{margin:0;color:var(--muted);font-size:13px;}
-    .iframe-wrap{flex:1;display:flex;align-items:stretch;justify-content:center;}
-    iframe{
-      width:100%;
-      height:100%;
-      border:0;
-      min-height:420px;
-    }
-    .fallback{
-      max-width:820px;
-      width:94%;
-      margin:28px auto;
-      background:var(--card);
-      border-radius:8px;
-      padding:18px;
-      box-shadow:0 6px 18px rgba(16,24,40,0.06);
-      text-align:center;
-    }
-    .fallback a{color:#0d6efd;text-decoration:none;font-weight:600;}
-    .small{font-size:13px;color:var(--muted);margin-top:8px;}
-    @media (max-width:520px){
-      h1{font-size:14px;}
-      .fallback{padding:14px;}
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Reporting - Safety First</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .safety-ticker {
+            background: #ff6b35;
+            color: white;
+            padding: 12px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .ticker-content {
+            display: inline-block;
+            animation: scroll 60s linear infinite;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .iframe-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 70vh;
+            min-height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .iframe-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b35, #f7931e, #ff6b35);
+            z-index: 1;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 15px;
+        }
+
+        .footer {
+            background: rgba(44, 62, 80, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .footer-ticker {
+            background: #27ae60;
+            color: white;
+            padding: 10px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            margin-top: 15px;
+        }
+
+        .footer-ticker .ticker-content {
+            animation: scroll-reverse 45s linear infinite;
+            font-size: 14px;
+        }
+
+        @keyframes scroll-reverse {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .safety-icon {
+            display: inline-block;
+            margin: 0 15px;
+            font-size: 1.2em;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #ff6b35;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .ticker-content {
+                font-size: 14px;
+            }
+            
+            .main-content {
+                padding: 20px 10px;
+            }
+            
+            .iframe-container {
+                height: 60vh;
+                min-height: 500px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <div>
-      <h1>Shift Management — Embedded App</h1>
-      <p class="hint">If the embedded app doesn't load, use the fallback link below.</p>
+    <!-- Header Safety Ticker -->
+    <div class="safety-ticker">
+        <div class="ticker-content">
+            🚧 SAFETY FIRST: Always wear hard hats and safety gear on site 
+            <span class="safety-icon">⚠️</span>
+            Check scaffolding stability before use 
+            <span class="safety-icon">🔧</span>
+            Maintain 3-point contact when climbing 
+            <span class="safety-icon">👷</span>
+            Report unsafe conditions immediately 
+            <span class="safety-icon">📋</span>
+            Keep work areas clean and organized 
+            <span class="safety-icon">🧹</span>
+            Use proper lifting techniques 
+            <span class="safety-icon">💪</span>
+            Never work alone in hazardous areas 
+            <span class="safety-icon">👥</span>
+            Inspect tools before each use 
+            <span class="safety-icon">🔍</span>
+        </div>
     </div>
-  </header>
 
-  <div class="iframe-wrap" id="frameArea">
-    <!-- Replace the src value below if your exec URL changes -->
-    <iframe id="appFrame" src="https://script.google.com/macros/s/AKfycbyK5q8F4ZRZStDou1kqUjF-axzcJzudbgslhObRyhSQSyk-ryezqIAnDloeAgpryzUz/exec"
-            title="Shift Management App"
-            allowfullscreen
-            sandbox="allow-scripts allow-forms allow-same-origin allow-popups">
-    </iframe>
-  </div>
-
-  <div class="fallback" id="fallback" style="display:none;">
-    <div>
-      <strong>Embedded app didn't load.</strong>
-      <div class="small">This usually happens when the target site blocks being shown in an iframe. You can still open the app directly:</div>
-      <p style="margin-top:12px;">
-        <a id="directLink" href="https://script.google.com/macros/s/AKfycbyK5q8F4ZRZStDou1kqUjF-axzcJzudbgslhObRyhSQSyk-ryezqIAnDloeAgpryzUz/exec" target="_blank" rel="noopener">Open Shift Management (direct link)</a>
-      </p>
-      <div class="small">If you see a Google permissions page when opening directly, make sure the Apps Script deployment is set to <em>Anyone (with link)</em> or the correct account is used.</div>
+    <!-- Header -->
+    <div class="header">
+        <h1>🏗️ Site Reporting System</h1>
+        <p>Professional construction site management and safety reporting</p>
     </div>
-  </div>
 
-  <script>
-    // If the iframe blocks due to X-Frame-Options or similar, show fallback after timeout.
-    (function(){
-      const iframe = document.getElementById('appFrame');
-      const fallback = document.getElementById('fallback');
-      let loaded = false;
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="iframe-container">
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-spinner"></div>
+            </div>
+            <iframe 
+                src="https://script.google.com/macros/s/AKfycbyK5q8F4ZRZStDou1kqUjF-axzcJzudbgslhObRyhSQSyk-ryezqIAnDloeAgpryzUz/exec"
+                title="Site Reporting Application"
+                onload="hideLoading()"
+                onerror="showError()">
+            </iframe>
+        </div>
+    </div>
 
-      // If iframe loads successfully, set loaded = true
-      iframe.addEventListener('load', function() {
-        try {
-          // Try to access iframe document (may throw if cross-origin blocked)
-          const doc = iframe.contentDocument || iframe.contentWindow.document;
-          // If contentDocument exists and has body, consider it loaded
-          if (doc && doc.body) {
-            loaded = true;
-            // Optional: hide fallback if previously visible
-            fallback.style.display = 'none';
-          }
-        } catch (e) {
-          // cross-origin access blocked — still may have loaded visually
-          loaded = true; // assume it loaded even if we can't inspect it
-          fallback.style.display = 'none';
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>Safety is Everyone's Responsibility</strong></p>
+        <p>Report incidents immediately • Follow all safety protocols • Stay alert and aware</p>
+        
+        <!-- Footer Safety Ticker -->
+        <div class="footer-ticker">
+            <div class="ticker-content">
+                🛡️ Scaffolding Safety Tips: Check base plates are level and secure 
+                <span class="safety-icon">⚖️</span>
+                Ensure guardrails are properly installed 
+                <span class="safety-icon">🚧</span>
+                Never exceed weight limits 
+                <span class="safety-icon">⚠️</span>
+                Use tie-offs every 26 feet 
+                <span class="safety-icon">📏</span>
+                Inspect planks for damage daily 
+                <span class="safety-icon">🔍</span>
+                Maintain safe access points 
+                <span class="safety-icon">🚪</span>
+                Weather conditions matter - no work in high winds 
+                <span class="safety-icon">🌪️</span>
+                Tag out damaged equipment immediately 
+                <span class="safety-icon">🏷️</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function hideLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
         }
-      });
 
-      // After 4 seconds, if not loaded visually, show fallback link
-      setTimeout(function(){
-        // If iframe is blank height or same-origin access shows empty, show fallback
-        // We use a conservative check: if iframe's contentWindow.location is 'about:blank' then it didn't load.
-        try {
-          const loc = iframe.contentWindow && iframe.contentWindow.location && iframe.contentWindow.location.href;
-          if (!loc || loc.indexOf('about:blank') !== -1) {
-            fallback.style.display = 'block';
-          } else {
-            // it has some location, likely loaded
-            fallback.style.display = 'none';
-          }
-        } catch (e) {
-          // cross-origin: if we couldn't access location, assume iframe either loaded or blocked.
-          // Show fallback only if the iframe appears visually empty (fallback as safety)
-          // We'll do a quick visual check: compute iframe clientHeight
-          if (iframe.clientHeight < 50) {
-            fallback.style.display = 'block';
-          } else {
-            fallback.style.display = 'none';
-          }
+        function showError() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.innerHTML = `
+                    <div style="text-align: center; color: #e74c3c;">
+                        <h3>⚠️ Connection Error</h3>
+                        <p>Unable to load the reporting system</p>
+                        <button onclick="location.reload()" style="margin-top: 15px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            🔄 Retry
+                        </button>
+                    </div>
+                `;
+            }
         }
-      }, 4000);
-    })();
-  </script>
-</body>
+
+        // Add some interactive safety reminders
+        let reminderCount = 0;
+        const safetyReminders = [
+            "🚨 Remember: Safety first, productivity second!",
+            "⚠️ Check your PPE before starting work",
+            "🔧 Inspect equipment daily for safety",
+            "👥 Communicate hazards to your team"
+        ];
+
+        setInterval(() => {
+            if (reminderCount < 3) { // Show only first 3 times
+                console.log(safetyReminders[reminderCount % safetyReminders.length]);
+                reminderCount++;
+            }
+        }, 30000); // Every 30 seconds
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'972026f494dcaa12',t:'MTc1NTY3NDY3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

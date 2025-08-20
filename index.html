@@ -5,12 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Web App</title>
 
+  <!-- Optional: manifest for Add to Home Screen -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    .banner {
+      background-color: #ffcc00;
+      color: #000;
+      padding: 10px;
+      font-weight: bold;
+    }
+    .content {
+      padding: 20px;
+    }
+  </style>
+
   <script>
-    // Redirect immediately to your Apps Script web app
-    window.location.href = "https://script.google.com/macros/s/AKfycbx7u1kf32XAhAXvCzsZYWBF2CCWLMV_Ww0Vq9CsN6kx8WvxN0kT_6NVOqJ8MtV-UU5d/exec";
+    // Redirect to your Apps Script web app after a short delay
+    // Delay lets users see the banner
+    setTimeout(() => {
+      window.location.href = "https://script.google.com/macros/s/AKfycbx7u1kf32XAhAXvCzsZYWBF2CCWLMV_Ww0Vq9CsN6kx8WvxN0kT_6NVOqJ8MtV-UU5d/exec";
+    }, 2000); // 2 seconds
   </script>
 </head>
 <body>
-  <p>Redirecting to the app...</p>
+  <div class="banner">
+    This application was created by a Google Apps Script user
+  </div>
+
+  <div class="content">
+    <p>Redirecting to the app...</p>
+  </div>
 </body>
 </html>

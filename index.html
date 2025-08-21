@@ -1,47 +1,811 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Web App</title>
-
-  <!-- Optional: manifest for Add to Home Screen -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#000000">
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-    .banner {
-      background-color: #ffcc00;
-      color: #000;
-      padding: 10px;
-      font-weight: bold;
-    }
-    .content {
-      padding: 20px;
-    }
-  </style>
-
-  <script>
-    // Redirect to your Apps Script web app after a short delay
-    // Delay lets users see the banner
-    setTimeout(() => {
-      window.location.href = "https://script.google.com/macros/s/AKfycbx7u1kf32XAhAXvCzsZYWBF2CCWLMV_Ww0Vq9CsN6kx8WvxN0kT_6NVOqJ8MtV-UU5d/exec";
-    }, 2000); // 2 seconds
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supervisor Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .corporate-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+            min-height: 100vh;
+        }
+        .corporate-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .input-corporate {
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+            background: #ffffff;
+        }
+        .input-corporate:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+        .btn-corporate {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            transition: all 0.3s ease;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        .btn-corporate:hover {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+        }
+        .worker-card {
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        .worker-card:hover {
+            border-color: #d1d5db;
+            background: #f3f4f6;
+        }
+        .worker-card.selected {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+        .header-corporate {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem 0.75rem 0 0;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-<body>
-  <div class="banner">
-    This application was created by a Google Apps Script user
-  </div>
+<body class="font-sans antialiased">
+    <div class="corporate-bg">
+        <div class="container mx-auto px-4 py-8">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl font-bold text-white mb-2">Supervisor Management System</h1>
+                <p class="text-blue-100 text-lg">Professional Workforce Data Management</p>
+            </div>
 
-  <div class="content">
-    <p>Redirecting to the app...</p>
-  </div>
-</body>
+            <!-- Loading Message -->
+            <div id="loadingMessage" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="corporate-card rounded-xl p-6 text-center">
+                    <div class="loading-spinner mx-auto mb-4"></div>
+                    <p class="text-gray-700 font-semibold" id="loadingText">Loading...</p>
+                </div>
+            </div>
+
+            <!-- Main Menu -->
+            <div id="mainMenu" class="max-w-4xl mx-auto">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Start Shift Card -->
+                    <div class="corporate-card rounded-xl overflow-hidden">
+                        <div class="header-corporate">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold">Start Shift</h3>
+                                        <p class="text-blue-100 text-sm">Initialize Daily Operations</p>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-gray-600 mb-6">Begin your workday by logging in and selecting your team members for today's operations.</p>
+                            <button onclick="showLogin('start')" class="btn-corporate w-full py-3 px-6 rounded-lg text-white">
+                                Access Start Shift
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- End Shift Card -->
+                    <div class="corporate-card rounded-xl overflow-hidden">
+                        <div class="header-corporate">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold">End Shift</h3>
+                                        <p class="text-blue-100 text-sm">Complete Daily Operations</p>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-pending">Pending</span>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <p class="text-gray-600 mb-6">Record work completed, track productivity metrics, and manage overtime hours for comprehensive reporting.</p>
+                            <button onclick="showLogin('end')" class="btn-corporate w-full py-3 px-6 rounded-lg text-white">
+                                Access End Shift
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Modal -->
+            <div id="loginModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div class="corporate-card rounded-xl w-full max-w-md">
+                    <div class="header-corporate">
+                        <h3 class="text-xl font-bold text-center" id="loginTitle">Supervisor Authentication</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Supervisor Name</label>
+                            <select id="supervisorSelect" class="input-corporate w-full px-4 py-3 rounded-lg text-gray-800">
+                                <option value="">Select Supervisor</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">4-Digit Passcode</label>
+                            <input type="password" id="passcode" maxlength="4" class="input-corporate w-full px-4 py-3 rounded-lg text-gray-800" placeholder="Enter security code">
+                        </div>
+                        <div class="flex gap-3 pt-4">
+                            <button onclick="hideLogin()" class="btn-secondary flex-1 py-3 rounded-lg font-semibold">
+                                Cancel
+                            </button>
+                            <button onclick="validateLogin()" class="btn-corporate flex-1 py-3 rounded-lg text-white">
+                                Authenticate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Start Shift Interface -->
+            <div id="startShiftInterface" class="hidden max-w-4xl mx-auto">
+                <div class="corporate-card rounded-xl">
+                    <div class="header-corporate">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-bold">Start Shift Management</h2>
+                            <button onclick="logout()" class="px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 text-white font-semibold">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="grid md:grid-cols-2 gap-6 mb-8">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Supervisor</label>
+                                <input type="text" id="startSupervisor" class="input-corporate w-full px-4 py-3 rounded-lg text-gray-800 bg-gray-50" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                                <input type="date" id="startDate" class="input-corporate w-full px-4 py-3 rounded-lg text-gray-800">
+                            </div>
+                        </div>
+
+                        <div class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Team Selection</h3>
+                            <p class="text-gray-600 mb-4">Select team members who will be working today:</p>
+                            <div id="workersList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-80 overflow-y-auto">
+                                <!-- Workers will be loaded here -->
+                            </div>
+                        </div>
+
+                        <button id="submitStartShift" onclick="submitStartShift()" class="btn-corporate w-full py-4 rounded-lg text-white text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            Submit Start Shift Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- End Shift Interface -->
+            <div id="endShiftInterface" class="hidden max-w-6xl mx-auto">
+                <div class="corporate-card rounded-xl">
+                    <div class="header-corporate">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-bold">End Shift Management</h2>
+                            <button onclick="logout()" class="px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 text-white font-semibold">
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Supervisor Info -->
+                        <div class="grid md:grid-cols-2 gap-6 mb-8">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Supervisor</label>
+                                <input type="text" id="endSupervisor" class="input-corporate w-full px-4 py-3 rounded-lg text-gray-800 bg-gray-50" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Date</label>
+                                <input type="date" id="endDate" class="input-corporate w-full px-4 py-3 rounded-lg text-gray-800">
+                            </div>
+                        </div>
+
+                        <!-- Work Type Selection -->
+                        <div id="workTypeSection" class="mb-8">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4">Work Configuration</h3>
+                            <div class="grid md:grid-cols-2 gap-6 mb-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Work Type</label>
+                                    <select id="workType" class="input-corporate w-full px-4 py-3 rounded-lg text-gray-800" onchange="showWorkEntry()">
+                                        <option value="">Select Work Type</option>
+                                        <option value="erection">Erection</option>
+                                        <option value="dismantling">Dismantling</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                                    <textarea id="workDescription" class="input-corporate w-full px-4 py-3 rounded-lg text-gray-800" rows="3" placeholder="Enter detailed work description"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Work Entry Form -->
+                        <div id="workEntryForm" class="hidden mb-8">
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h4 class="text-lg font-bold text-gray-800 mb-4">Measurement Entry</h4>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Length (m)</label>
+                                        <input type="number" id="length" class="input-corporate w-full px-3 py-2 rounded-lg text-gray-800" step="0.01" placeholder="0.00">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Width (m)</label>
+                                        <input type="number" id="width" class="input-corporate w-full px-3 py-2 rounded-lg text-gray-800" step="0.01" placeholder="0.00">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Height (m)</label>
+                                        <input type="number" id="height" class="input-corporate w-full px-3 py-2 rounded-lg text-gray-800" step="0.01" placeholder="0.00">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Quantity</label>
+                                        <input type="number" id="quantity" class="input-corporate w-full px-3 py-2 rounded-lg text-gray-800" min="1" placeholder="1">
+                                    </div>
+                                </div>
+                                <button onclick="addWorkEntry()" class="btn-corporate px-6 py-3 rounded-lg text-white font-semibold">
+                                    Add Measurement Entry
+                                </button>
+                            </div>
+
+                            <!-- Work Summary -->
+                            <div id="workSummary" class="mt-6">
+                                <h4 class="text-lg font-bold text-gray-800 mb-4">Work Summary</h4>
+                                <div id="workEntries" class="space-y-3 max-h-60 overflow-y-auto mb-6">
+                                    <!-- Entries will be added here -->
+                                </div>
+                                <button onclick="submitWorkData()" class="btn-corporate w-full py-3 rounded-lg text-white font-semibold">
+                                    Submit Work Data & Continue
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Overtime Section -->
+                        <div id="overtimeSection" class="hidden">
+                            <div class="bg-gray-50 rounded-lg p-6">
+                                <h3 class="text-lg font-bold text-gray-800 mb-4">Overtime Management</h3>
+                                <p class="text-gray-600 mb-4">Record additional hours worked by team members:</p>
+                                <div id="overtimeWorkers" class="space-y-3 max-h-80 overflow-y-auto mb-6">
+                                    <!-- Overtime workers will be loaded here -->
+                                </div>
+                                <button onclick="submitEndShift()" class="btn-corporate w-full py-4 rounded-lg text-white text-lg font-semibold">
+                                    Complete Shift & Generate Report
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Google Apps Script Web App URL - UPDATE THIS WITH YOUR DEPLOYED URL
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+        
+        // Global variables
+        let currentShiftType = '';
+        let currentSupervisor = '';
+        let selectedWorkers = [];
+        let workEntries = [];
+        let supervisors = [];
+        let workers = [];
+        let overtimeHours = {};
+        
+        // Fallback sample data for testing
+        const sampleSupervisors = [
+            { name: 'John Smith', password: '1234' },
+            { name: 'Sarah Johnson', password: '5678' },
+            { name: 'Mike Wilson', password: '9012' }
+        ];
+
+        const sampleWorkers = [
+            'Alex Rodriguez', 'David Chen', 'Maria Garcia', 'James Brown',
+            'Lisa Wang', 'Robert Taylor', 'Jennifer Lee', 'Michael Davis',
+            'Amanda Wilson', 'Christopher Martinez', 'Jessica Thompson', 'Daniel Anderson'
+        ];
+
+        // Initialize app
+        function initApp() {
+            showLoadingMessage('Initializing system...');
+            loadSupervisors();
+            loadWorkers();
+            setCurrentDate();
+        }
+
+        function showLoadingMessage(message) {
+            document.getElementById('loadingText').textContent = message;
+            document.getElementById('loadingMessage').classList.remove('hidden');
+        }
+
+        function hideLoadingMessage() {
+            document.getElementById('loadingMessage').classList.add('hidden');
+        }
+
+        // Google Apps Script Integration Functions
+        async function callGoogleScript(action, data = {}) {
+            try {
+                const payload = {
+                    action: action,
+                    ...data
+                };
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('Error calling Google Script:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        async function loadSupervisors() {
+            showLoadingMessage('Loading supervisors...');
+            
+            try {
+                const result = await callGoogleScript('getSupervisors');
+                
+                if (result.success && result.data) {
+                    supervisors = result.data;
+                } else {
+                    console.warn('Using sample supervisors data');
+                    supervisors = sampleSupervisors;
+                }
+            } catch (error) {
+                console.warn('Failed to load supervisors from Google Sheets, using sample data');
+                supervisors = sampleSupervisors;
+            }
+
+            const select = document.getElementById('supervisorSelect');
+            select.innerHTML = '<option value="">Select Supervisor</option>';
+            supervisors.forEach(supervisor => {
+                const option = document.createElement('option');
+                option.value = supervisor.name;
+                option.textContent = supervisor.name;
+                select.appendChild(option);
+            });
+            
+            hideLoadingMessage();
+        }
+
+        async function loadWorkers() {
+            try {
+                const result = await callGoogleScript('getWorkers');
+                
+                if (result.success && result.data) {
+                    workers = result.data;
+                } else {
+                    console.warn('Using sample workers data');
+                    workers = sampleWorkers;
+                }
+            } catch (error) {
+                console.warn('Failed to load workers from Google Sheets, using sample data');
+                workers = sampleWorkers;
+            }
+        }
+
+        function setCurrentDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+        }
+
+        function showLogin(shiftType) {
+            currentShiftType = shiftType;
+            document.getElementById('loginTitle').textContent = 
+                shiftType === 'start' ? 'Start Shift Authentication' : 'End Shift Authentication';
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('passcode').value = '';
+        }
+
+        function hideLogin() {
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('supervisorSelect').value = '';
+            document.getElementById('passcode').value = '';
+        }
+
+        function validateLogin() {
+            const supervisorName = document.getElementById('supervisorSelect').value;
+            const passcode = document.getElementById('passcode').value;
+
+            if (!supervisorName || !passcode) {
+                alert('Please select supervisor and enter passcode');
+                return;
+            }
+
+            const supervisor = supervisors.find(s => s.name === supervisorName);
+            if (!supervisor || supervisor.password !== passcode) {
+                alert('Invalid credentials. Please check your passcode.');
+                return;
+            }
+
+            currentSupervisor = supervisorName;
+            hideLogin();
+            
+            if (currentShiftType === 'start') {
+                showStartShiftInterface();
+            } else {
+                showEndShiftInterface();
+            }
+        }
+
+        function showStartShiftInterface() {
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('startShiftInterface').classList.remove('hidden');
+            document.getElementById('startSupervisor').value = currentSupervisor;
+            loadWorkersForSelection();
+        }
+
+        async function showEndShiftInterface() {
+            document.getElementById('mainMenu').classList.add('hidden');
+            document.getElementById('endShiftInterface').classList.remove('hidden');
+            document.getElementById('endSupervisor').value = currentSupervisor;
+            
+            // Load workers from today's start shift
+            await loadStartShiftWorkers();
+        }
+
+        async function loadStartShiftWorkers() {
+            try {
+                const date = document.getElementById('endDate').value;
+                const result = await callGoogleScript('getStartShiftWorkers', {
+                    date: date,
+                    supervisor: currentSupervisor
+                });
+                
+                if (result.success && result.data && result.data.length > 0) {
+                    workers = result.data;
+                } else {
+                    console.warn('No start shift workers found, using all workers');
+                    // Keep the full workers list if no start shift data found
+                }
+            } catch (error) {
+                console.warn('Failed to load start shift workers');
+            }
+        }
+
+        function loadWorkersForSelection() {
+            const container = document.getElementById('workersList');
+            container.innerHTML = '';
+            selectedWorkers = [];
+
+            workers.forEach(worker => {
+                const div = document.createElement('div');
+                div.className = 'worker-card p-4 rounded-lg cursor-pointer text-center font-medium';
+                div.textContent = worker;
+                div.onclick = () => toggleWorker(worker, div);
+                container.appendChild(div);
+            });
+
+            updateSubmitButton();
+        }
+
+        function toggleWorker(worker, element) {
+            const index = selectedWorkers.indexOf(worker);
+            if (index > -1) {
+                selectedWorkers.splice(index, 1);
+                element.classList.remove('selected');
+            } else {
+                selectedWorkers.push(worker);
+                element.classList.add('selected');
+            }
+            updateSubmitButton();
+        }
+
+        function updateSubmitButton() {
+            const button = document.getElementById('submitStartShift');
+            button.disabled = selectedWorkers.length === 0;
+        }
+
+        async function submitStartShift() {
+            if (selectedWorkers.length === 0) return;
+
+            showLoadingMessage('Saving start shift data...');
+
+            const data = {
+                supervisor: currentSupervisor,
+                date: document.getElementById('startDate').value,
+                workers: selectedWorkers,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const result = await callGoogleScript('saveStartShift', { data: data });
+                
+                if (result.success) {
+                    // Generate report
+                    const report = generateStartShiftReport(data);
+                    
+                    // Redirect to WhatsApp
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
+                    window.open(whatsappUrl, '_blank');
+
+                    alert('Start shift data submitted successfully!');
+                } else {
+                    alert('Error saving data: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error submitting data: ' + error.message);
+            }
+
+            hideLoadingMessage();
+            logout();
+        }
+
+        function generateStartShiftReport(data) {
+            return `${data.date} ${data.supervisor} ${data.workers.join(' ')}`;
+        }
+
+        function showWorkEntry() {
+            const workType = document.getElementById('workType').value;
+            if (workType) {
+                document.getElementById('workEntryForm').classList.remove('hidden');
+            }
+        }
+
+        function addWorkEntry() {
+            const length = parseFloat(document.getElementById('length').value) || 0;
+            const width = parseFloat(document.getElementById('width').value) || 0;
+            const height = parseFloat(document.getElementById('height').value) || 0;
+            const quantity = parseInt(document.getElementById('quantity').value) || 0;
+            const workType = document.getElementById('workType').value;
+            const description = document.getElementById('workDescription').value;
+
+            if (length <= 0 || width <= 0 || height <= 0 || quantity <= 0) {
+                alert('Please enter valid measurements');
+                return;
+            }
+
+            const volume = length * width * height * quantity;
+            const entry = {
+                type: workType,
+                description,
+                length,
+                width,
+                height,
+                quantity,
+                volume,
+                timestamp: new Date().toISOString()
+            };
+
+            workEntries.push(entry);
+            displayWorkEntries();
+            clearWorkEntryForm();
+        }
+
+        function displayWorkEntries() {
+            const container = document.getElementById('workEntries');
+            container.innerHTML = '';
+
+            workEntries.forEach((entry, index) => {
+                const div = document.createElement('div');
+                div.className = 'bg-white p-4 rounded-lg border border-gray-200';
+                div.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="font-semibold text-blue-600">${entry.type.toUpperCase()}</span>
+                            <span class="text-gray-600 ml-2">${entry.length}×${entry.width}×${entry.height} (Qty: ${entry.quantity})</span>
+                            <span class="font-bold text-gray-800 ml-2">= ${entry.volume.toFixed(2)} m³</span>
+                        </div>
+                        <button onclick="removeWorkEntry(${index})" class="text-red-500 hover:text-red-700 font-bold text-xl">×</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function removeWorkEntry(index) {
+            workEntries.splice(index, 1);
+            displayWorkEntries();
+        }
+
+        function clearWorkEntryForm() {
+            document.getElementById('length').value = '';
+            document.getElementById('width').value = '';
+            document.getElementById('height').value = '';
+            document.getElementById('quantity').value = '';
+        }
+
+        function submitWorkData() {
+            if (workEntries.length === 0) {
+                alert('Please add at least one work entry');
+                return;
+            }
+
+            // Show overtime section
+            document.getElementById('workEntryForm').classList.add('hidden');
+            document.getElementById('overtimeSection').classList.remove('hidden');
+            loadOvertimeWorkers();
+        }
+
+        function loadOvertimeWorkers() {
+            const container = document.getElementById('overtimeWorkers');
+            container.innerHTML = '';
+            overtimeHours = {};
+
+            // Use workers from start shift or all workers as fallback
+            const shiftWorkers = workers.length > 0 ? workers : sampleWorkers.slice(0, 6);
+
+            shiftWorkers.forEach(worker => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200';
+                div.innerHTML = `
+                    <span class="flex-1 font-medium text-gray-800">${worker}</span>
+                    <div class="flex items-center gap-3">
+                        <label class="text-sm font-semibold text-gray-700">Overtime Hours:</label>
+                        <input type="number" min="0" max="12" step="0.5" value="0" 
+                               class="input-corporate w-24 px-3 py-2 rounded text-gray-800 text-center"
+                               onchange="updateOvertimeHours('${worker}', this.value)">
+                    </div>
+                `;
+                container.appendChild(div);
+                overtimeHours[worker] = 0;
+            });
+        }
+
+        function updateOvertimeHours(worker, hours) {
+            overtimeHours[worker] = parseFloat(hours) || 0;
+        }
+
+        async function submitEndShift() {
+            showLoadingMessage('Saving end shift data...');
+
+            // Calculate totals
+            const totalErection = workEntries
+                .filter(entry => entry.type === 'erection')
+                .reduce((sum, entry) => sum + entry.volume, 0);
+
+            const totalDismantling = workEntries
+                .filter(entry => entry.type === 'dismantling')
+                .reduce((sum, entry) => sum + entry.volume, 0);
+
+            const regularHours = Object.keys(overtimeHours).length * 8; // 8 hours per worker
+            const totalOvertimeHours = Object.values(overtimeHours).reduce((sum, hours) => sum + hours, 0);
+            const totalManhours = regularHours + totalOvertimeHours;
+
+            const adjustedDismantling = totalDismantling / 2;
+            const totalVolume = totalErection + adjustedDismantling;
+            const productivity = totalManhours > 0 ? (totalVolume / totalManhours).toFixed(3) : 0;
+
+            const endShiftData = {
+                supervisor: currentSupervisor,
+                date: document.getElementById('endDate').value,
+                totalErection,
+                totalDismantling,
+                adjustedDismantling,
+                totalVolume,
+                totalManhours,
+                productivity,
+                workEntries,
+                overtimeHours,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const result = await callGoogleScript('saveEndShift', { data: endShiftData });
+                
+                if (result.success) {
+                    // Generate report
+                    const report = generateEndShiftReport(endShiftData);
+                    
+                    // Redirect to WhatsApp
+                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
+                    window.open(whatsappUrl, '_blank');
+
+                    alert('End shift data submitted successfully!');
+                } else {
+                    alert('Error saving data: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error submitting data: ' + error.message);
+            }
+
+            hideLoadingMessage();
+            logout();
+        }
+
+        function generateEndShiftReport(data) {
+            return `${data.supervisor} Total Erection ${data.totalErection.toFixed(2)} Total Dismantling ${data.adjustedDismantling.toFixed(2)} Total Manhours ${data.totalManhours} Productivity ${data.productivity}`;
+        }
+
+        function logout() {
+            // Reset all data
+            currentSupervisor = '';
+            currentShiftType = '';
+            selectedWorkers = [];
+            workEntries = [];
+            overtimeHours = {};
+
+            // Hide all interfaces and show main menu
+            document.getElementById('startShiftInterface').classList.add('hidden');
+            document.getElementById('endShiftInterface').classList.add('hidden');
+            document.getElementById('workEntryForm').classList.add('hidden');
+            document.getElementById('overtimeSection').classList.add('hidden');
+            document.getElementById('mainMenu').classList.remove('hidden');
+
+            // Reset forms
+            document.getElementById('workType').value = '';
+            document.getElementById('workDescription').value = '';
+            setCurrentDate();
+        }
+
+        // Initialize the app when page loads
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97267aa547969a89',t:'MTc1NTc0MTAyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

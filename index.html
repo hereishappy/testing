@@ -340,12 +340,31 @@
 
         // Load employees from Google Sheets
         async function loadEmployees() {
-            const result = await callAPI('getEmployees');
-            if (result.success) {
-                employees = result.employees;
-                populateEmployeeList();
-            } else {
-                console.error('Failed to load employees:', result.message);
+            console.log('Loading employees from Google Sheets...');
+            
+            try {
+                const result = await callAPI('getEmployees');
+                console.log('API Response:', result);
+                
+                if (result.success && result.employees && result.employees.length > 0) {
+                    employees = result.employees;
+                    console.log('Loaded employees:', employees);
+                    populateEmployeeList();
+                } else {
+                    console.warn('No employees returned from API, using fallback data');
+                    // Fallback to sample data
+                    employees = [
+                        'Ahmed Hassan', 'Mohammed Ali', 'Rajesh Kumar', 'David Smith', 
+                        'Carlos Rodriguez', 'James Wilson', 'Michael Brown', 'Robert Johnson',
+                        'William Davis', 'Richard Miller', 'Joseph Garcia', 'Thomas Martinez'
+                    ];
+                    populateEmployeeList();
+                    
+                    // Show warning to user
+                    alert('Using sample employee data. Please check your Google Sheets connection.');
+                }
+            } catch (error) {
+                console.error('Error loading employees:', error);
                 // Fallback to sample data
                 employees = [
                     'Ahmed Hassan', 'Mohammed Ali', 'Rajesh Kumar', 'David Smith', 
@@ -353,6 +372,8 @@
                     'William Davis', 'Richard Miller', 'Joseph Garcia', 'Thomas Martinez'
                 ];
                 populateEmployeeList();
+                
+                alert('Could not connect to Google Sheets. Using sample employee data.');
             }
         }
 
@@ -370,10 +391,23 @@
 
         // Populate employee list
         function populateEmployeeList() {
+            console.log('Populating employee list with:', employees);
             const container = document.getElementById('employeeList');
+            
+            if (!container) {
+                console.error('Employee list container not found!');
+                return;
+            }
+            
             container.innerHTML = '';
             
-            employees.forEach(emp => {
+            if (!employees || employees.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 text-center py-4">No employees found</div>';
+                return;
+            }
+            
+            employees.forEach((emp, index) => {
+                console.log(`Adding employee ${index + 1}:`, emp);
                 const div = document.createElement('div');
                 div.className = 'flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50';
                 div.innerHTML = `
@@ -383,6 +417,8 @@
                 `;
                 container.appendChild(div);
             });
+            
+            console.log('Employee list populated successfully');
         }
 
         // Login handlers
@@ -391,17 +427,31 @@
             const supervisor = this.querySelector('select').value;
             const passcode = this.querySelector('input[type="password"]').value;
             
+            // Show loading message
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+            
             const result = await callAPI('validateLogin', { supervisor, passcode });
             
             if (result.success) {
                 currentSupervisor = supervisor;
                 document.getElementById('lockedSupervisor').value = supervisor;
+                
+                // Load employees before showing interface
+                submitBtn.textContent = 'Loading employees...';
+                await loadEmployees();
+                
                 document.getElementById('loginContainer').classList.add('hidden');
                 document.getElementById('startShiftInterface').classList.remove('hidden');
-                await loadEmployees();
             } else {
-                alert('Invalid credentials');
+                alert('Invalid credentials: ' + (result.message || 'Please check your supervisor name and passcode'));
             }
+            
+            // Reset button
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
         });
 
         document.getElementById('endShiftLogin').addEventListener('submit', async function(e) {
@@ -409,15 +459,30 @@
             const supervisor = this.querySelector('select').value;
             const passcode = this.querySelector('input[type="password"]').value;
             
+            // Show loading message
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+            
             const result = await callAPI('validateLogin', { supervisor, passcode });
             
             if (result.success) {
                 currentSupervisor = supervisor;
+                
+                // Load employees for overtime section
+                submitBtn.textContent = 'Loading employees...';
+                await loadEmployees();
+                
                 document.getElementById('loginContainer').classList.add('hidden');
                 document.getElementById('endShiftInterface').classList.remove('hidden');
             } else {
-                alert('Invalid credentials');
+                alert('Invalid credentials: ' + (result.message || 'Please check your supervisor name and passcode'));
             }
+            
+            // Reset button
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
         });
 
         // Logout handlers
@@ -656,5 +721,5 @@
         updateTicker();
         setInterval(updateTicker, 30000); // Update every 30 seconds
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97306bd4813748fb',t:'MTc1NTg0NTI3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9730791df5dee565',t:'MTc1NTg0NTgxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

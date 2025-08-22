@@ -98,12 +98,8 @@
                 <form id="startShiftLogin" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Supervisor</label>
-                        <select class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
-                            <option value="">Select Supervisor</option>
-                            <option value="John Smith">John Smith</option>
-                            <option value="Sarah Johnson">Sarah Johnson</option>
-                            <option value="Mike Wilson">Mike Wilson</option>
-                            <option value="Lisa Brown">Lisa Brown</option>
+                        <select id="startSupervisorSelect" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
+                            <option value="">Loading supervisors...</option>
                         </select>
                     </div>
                     
@@ -133,12 +129,8 @@
                 <form id="endShiftLogin" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Supervisor</label>
-                        <select class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
-                            <option value="">Select Supervisor</option>
-                            <option value="John Smith">John Smith</option>
-                            <option value="Sarah Johnson">Sarah Johnson</option>
-                            <option value="Mike Wilson">Mike Wilson</option>
-                            <option value="Lisa Brown">Lisa Brown</option>
+                        <select id="endSupervisorSelect" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
+                            <option value="">Loading supervisors...</option>
                         </select>
                     </div>
                     
@@ -312,6 +304,7 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-f42gTZWoFZ_7WH7Z1imlARnvad_uX5ArpmC6-Rx8lYU45z6_aT7_Ui95r1l6BYaw/exec';
         
         let employees = [];
+        let supervisors = [];
         let currentSupervisor = '';
         let workEntries = [];
         let overtimeData = [];
@@ -338,43 +331,69 @@
             }
         }
 
+        // Load supervisors from Google Sheets
+        async function loadSupervisors() {
+            console.log('Loading supervisors from Google Sheets...');
+            
+            try {
+                const result = await callAPI('getSupervisors');
+                console.log('Supervisors API Response:', result);
+                
+                if (result.success && result.supervisors && result.supervisors.length > 0) {
+                    supervisors = result.supervisors;
+                    console.log('Loaded supervisors:', supervisors);
+                    populateSupervisorDropdowns();
+                } else {
+                    console.error('No supervisors returned from API');
+                    showError('Could not load supervisors from Google Sheets. Please check your connection.');
+                }
+            } catch (error) {
+                console.error('Error loading supervisors:', error);
+                showError('Could not connect to Google Sheets to load supervisors.');
+            }
+        }
+
         // Load employees from Google Sheets
         async function loadEmployees() {
             console.log('Loading employees from Google Sheets...');
             
             try {
                 const result = await callAPI('getEmployees');
-                console.log('API Response:', result);
+                console.log('Employees API Response:', result);
                 
                 if (result.success && result.employees && result.employees.length > 0) {
                     employees = result.employees;
                     console.log('Loaded employees:', employees);
                     populateEmployeeList();
                 } else {
-                    console.warn('No employees returned from API, using fallback data');
-                    // Fallback to sample data
-                    employees = [
-                        'Ahmed Hassan', 'Mohammed Ali', 'Rajesh Kumar', 'David Smith', 
-                        'Carlos Rodriguez', 'James Wilson', 'Michael Brown', 'Robert Johnson',
-                        'William Davis', 'Richard Miller', 'Joseph Garcia', 'Thomas Martinez'
-                    ];
-                    populateEmployeeList();
-                    
-                    // Show warning to user
-                    alert('Using sample employee data. Please check your Google Sheets connection.');
+                    console.error('No employees returned from API');
+                    showError('Could not load employees from Google Sheets. Please check your connection.');
                 }
             } catch (error) {
                 console.error('Error loading employees:', error);
-                // Fallback to sample data
-                employees = [
-                    'Ahmed Hassan', 'Mohammed Ali', 'Rajesh Kumar', 'David Smith', 
-                    'Carlos Rodriguez', 'James Wilson', 'Michael Brown', 'Robert Johnson',
-                    'William Davis', 'Richard Miller', 'Joseph Garcia', 'Thomas Martinez'
-                ];
-                populateEmployeeList();
-                
-                alert('Could not connect to Google Sheets. Using sample employee data.');
+                showError('Could not connect to Google Sheets to load employees.');
             }
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
+            errorDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-red-500 hover:text-red-700">×</button>
+                </div>
+            `;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                if (errorDiv.parentElement) {
+                    errorDiv.remove();
+                }
+            }, 10000);
         }
 
         // Update current date/time
@@ -388,6 +407,48 @@
 
         // Set today's date
         document.getElementById('shiftDate').valueAsDate = new Date();
+
+        // Initialize page - load supervisors on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSupervisors();
+        });
+
+        // Populate supervisor dropdowns
+        function populateSupervisorDropdowns() {
+            console.log('Populating supervisor dropdowns with:', supervisors);
+            
+            const startSelect = document.getElementById('startSupervisorSelect');
+            const endSelect = document.getElementById('endSupervisorSelect');
+            
+            if (!startSelect || !endSelect) {
+                console.error('Supervisor dropdown elements not found!');
+                return;
+            }
+            
+            // Clear existing options
+            startSelect.innerHTML = '<option value="">Select Supervisor</option>';
+            endSelect.innerHTML = '<option value="">Select Supervisor</option>';
+            
+            if (!supervisors || supervisors.length === 0) {
+                startSelect.innerHTML = '<option value="">No supervisors found</option>';
+                endSelect.innerHTML = '<option value="">No supervisors found</option>';
+                return;
+            }
+            
+            supervisors.forEach(supervisor => {
+                const startOption = document.createElement('option');
+                startOption.value = supervisor;
+                startOption.textContent = supervisor;
+                startSelect.appendChild(startOption);
+                
+                const endOption = document.createElement('option');
+                endOption.value = supervisor;
+                endOption.textContent = supervisor;
+                endSelect.appendChild(endOption);
+            });
+            
+            console.log('Supervisor dropdowns populated successfully');
+        }
 
         // Populate employee list
         function populateEmployeeList() {
@@ -424,8 +485,13 @@
         // Login handlers
         document.getElementById('startShiftLogin').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const supervisor = this.querySelector('select').value;
+            const supervisor = document.getElementById('startSupervisorSelect').value;
             const passcode = this.querySelector('input[type="password"]').value;
+            
+            if (!supervisor) {
+                alert('Please select a supervisor');
+                return;
+            }
             
             // Show loading message
             const submitBtn = this.querySelector('button[type="submit"]');
@@ -456,8 +522,13 @@
 
         document.getElementById('endShiftLogin').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const supervisor = this.querySelector('select').value;
+            const supervisor = document.getElementById('endSupervisorSelect').value;
             const passcode = this.querySelector('input[type="password"]').value;
+            
+            if (!supervisor) {
+                alert('Please select a supervisor');
+                return;
+            }
             
             // Show loading message
             const submitBtn = this.querySelector('button[type="submit"]');
@@ -721,5 +792,5 @@
         updateTicker();
         setInterval(updateTicker, 30000); // Update every 30 seconds
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9730791df5dee565',t:'MTc1NTg0NTgxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9730989bd5518032',t:'MTc1NTg0NzEwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

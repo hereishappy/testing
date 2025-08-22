@@ -318,12 +318,30 @@
         async function loadInitialData() {
             try {
                 // Load supervisors from Google Sheets
-                const supervisorResponse = await fetch(`${SCRIPT_URL}?action=getSupervisors`);
-                supervisors = await supervisorResponse.json();
+                const supervisorResponse = await fetch(`${SCRIPT_URL}?action=getSupervisors&t=${Date.now()}`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (supervisorResponse.ok) {
+                    const supervisorText = await supervisorResponse.text();
+                    supervisors = JSON.parse(supervisorText);
+                } else {
+                    throw new Error('Failed to load supervisors');
+                }
                 
                 // Load employees from Google Sheets
-                const employeeResponse = await fetch(`${SCRIPT_URL}?action=getEmployees`);
-                employees = await employeeResponse.json();
+                const employeeResponse = await fetch(`${SCRIPT_URL}?action=getEmployees&t=${Date.now()}`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (employeeResponse.ok) {
+                    const employeeText = await employeeResponse.text();
+                    employees = JSON.parse(employeeText);
+                } else {
+                    throw new Error('Failed to load employees');
+                }
                 
                 populateSupervisorDropdowns();
             } catch (error) {
@@ -347,6 +365,10 @@
         function populateSupervisorDropdowns() {
             const startSelect = document.getElementById('startSupervisor');
             const endSelect = document.getElementById('endSupervisor');
+            
+            // Clear existing options except the first one
+            startSelect.innerHTML = '<option value="">Select Supervisor</option>';
+            endSelect.innerHTML = '<option value="">Select Supervisor</option>';
             
             supervisors.forEach(supervisor => {
                 const option1 = new Option(supervisor.name, supervisor.name);
@@ -406,9 +428,18 @@
 
         async function validateLogin(supervisor, passcode) {
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=validateLogin&supervisor=${encodeURIComponent(supervisor)}&passcode=${encodeURIComponent(passcode)}`);
-                const result = await response.json();
-                return result.valid;
+                const response = await fetch(`${SCRIPT_URL}?action=validateLogin&supervisor=${encodeURIComponent(supervisor)}&passcode=${encodeURIComponent(passcode)}&t=${Date.now()}`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    const resultText = await response.text();
+                    const result = JSON.parse(resultText);
+                    return result.valid;
+                } else {
+                    throw new Error('Validation request failed');
+                }
             } catch (error) {
                 console.error('Error validating login:', error);
                 // Fallback to local validation
@@ -460,36 +491,45 @@
             const date = document.getElementById('shiftDate').value;
             
             try {
-                // Save to Google Sheets
+                // Create form data for POST request
+                const formData = new FormData();
+                formData.append('action', 'saveStartShift');
+                formData.append('date', date);
+                formData.append('supervisor', currentSupervisor);
+                formData.append('employees', JSON.stringify(selectedEmployees));
+                
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'saveStartShift',
-                        date: date,
-                        supervisor: currentSupervisor,
-                        employees: selectedEmployees
-                    })
+                    mode: 'cors',
+                    body: formData
                 });
                 
-                const result = await response.json();
-                
-                if (result.success) {
-                    const report = generateStartShiftReport(date, currentSupervisor, selectedEmployees);
+                if (response.ok) {
+                    const resultText = await response.text();
+                    const result = JSON.parse(resultText);
                     
-                    // Redirect to WhatsApp
-                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
-                    window.open(whatsappUrl, '_blank');
-                    
-                    logout();
+                    if (result.success) {
+                        const report = generateStartShiftReport(date, currentSupervisor, selectedEmployees);
+                        
+                        // Redirect to WhatsApp
+                        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
+                        window.open(whatsappUrl, '_blank');
+                        
+                        logout();
+                    } else {
+                        alert('Error saving data: ' + (result.error || 'Unknown error'));
+                    }
                 } else {
-                    alert('Error saving data. Please try again.');
+                    throw new Error('Request failed with status: ' + response.status);
                 }
             } catch (error) {
                 console.error('Error submitting start shift:', error);
-                alert('Error saving data. Please check your connection and try again.');
+                // Still generate report even if save fails
+                const report = generateStartShiftReport(date, currentSupervisor, selectedEmployees);
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
+                window.open(whatsappUrl, '_blank');
+                alert('Data may not have been saved to Google Sheets, but report was generated.');
+                logout();
             }
         }
 
@@ -612,38 +652,47 @@ EMP: ${employees.join(', ')}`;
             const productivity = (totalErection + (totalDismantling / 2)) / manhours;
 
             try {
-                // Save to Google Sheets
+                // Create form data for POST request
+                const formData = new FormData();
+                formData.append('action', 'saveEndShift');
+                formData.append('date', new Date().toLocaleDateString());
+                formData.append('supervisor', currentSupervisor);
+                formData.append('workEntries', JSON.stringify(workEntries));
+                formData.append('workerCount', workerCount);
+                formData.append('overtimeHours', JSON.stringify(overtimeHours));
+                
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'saveEndShift',
-                        date: new Date().toLocaleDateString(),
-                        supervisor: currentSupervisor,
-                        workEntries: workEntries,
-                        workerCount: workerCount,
-                        overtimeHours: overtimeHours
-                    })
+                    mode: 'cors',
+                    body: formData
                 });
                 
-                const result = await response.json();
-                
-                if (result.success) {
-                    const report = generateEndShiftReport(totalErection, totalDismantling, manhours, productivity);
+                if (response.ok) {
+                    const resultText = await response.text();
+                    const result = JSON.parse(resultText);
                     
-                    // Redirect to WhatsApp
-                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
-                    window.open(whatsappUrl, '_blank');
-                    
-                    logout();
+                    if (result.success) {
+                        const report = generateEndShiftReport(totalErection, totalDismantling, manhours, productivity);
+                        
+                        // Redirect to WhatsApp
+                        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
+                        window.open(whatsappUrl, '_blank');
+                        
+                        logout();
+                    } else {
+                        alert('Error saving data: ' + (result.error || 'Unknown error'));
+                    }
                 } else {
-                    alert('Error saving data. Please try again.');
+                    throw new Error('Request failed with status: ' + response.status);
                 }
             } catch (error) {
                 console.error('Error submitting end shift:', error);
-                alert('Error saving data. Please check your connection and try again.');
+                // Still generate report even if save fails
+                const report = generateEndShiftReport(totalErection, totalDismantling, manhours, productivity);
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
+                window.open(whatsappUrl, '_blank');
+                alert('Data may not have been saved to Google Sheets, but report was generated.');
+                logout();
             }
         }
 
@@ -697,5 +746,5 @@ Productivity: ${productivity.toFixed(3)}`;
             document.getElementById('safetyTicker').textContent = generateSafetyTicker();
         }, 60000); // Update every minute
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9730078ec17fd80f',t:'MTc1NTg0MTE2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97301885b5564463',t:'MTc1NTg0MTg1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

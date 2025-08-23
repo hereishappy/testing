@@ -265,9 +265,15 @@
             <div id="overtimeSection" class="hidden bg-white rounded-xl card-shadow p-8 border border-gray-100">
                 <h3 class="text-xl font-semibold text-gray-900 mb-6">Overtime Entry</h3>
                 
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Number of Workers</label>
-                    <input type="number" id="workerCount" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" min="1" placeholder="Enter number of workers">
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Shift Workers Quantity</label>
+                        <input type="number" id="startShiftWorkers" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" min="1" placeholder="Enter start shift workers quantity">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Number of Workers for Overtime</label>
+                        <input type="number" id="workerCount" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" min="0" placeholder="Enter number of workers for overtime">
+                    </div>
                 </div>
                 
                 <div id="overtimeEntries" class="space-y-4 mb-6">
@@ -607,9 +613,17 @@
             if (result.success) {
                 const report = `SHIFT START REPORT\n\nDate: ${date}\nSupervisor: ${currentSupervisor}\nWorkers Present (${selectedEmployees.length}):\n\n${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
                 
-                // Redirect to WhatsApp
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
+                // Redirect to WhatsApp Group
+                const whatsappUrl = `https://chat.whatsapp.com/HRhJ6sktodu3oZHa47ylU1`;
                 window.open(whatsappUrl, '_blank');
+                
+                // Copy report to clipboard for easy pasting
+                navigator.clipboard.writeText(report).then(() => {
+                    alert('Report copied to clipboard! You can now paste it in the WhatsApp group.');
+                }).catch(() => {
+                    // Fallback if clipboard API fails
+                    console.log('Report ready:', report);
+                });
                 
                 // Logout after submission
                 setTimeout(() => {
@@ -718,12 +732,13 @@
             // Prevent double submission
             if (this.disabled) return;
             
+            const startShiftWorkers = parseInt(document.getElementById('startShiftWorkers').value) || 0;
             const workerCount = parseInt(document.getElementById('workerCount').value) || 0;
             const employeeSelects = document.querySelectorAll('.employee-select');
             const overtimeInputs = document.querySelectorAll('.overtime-hours');
             
-            if (workerCount === 0) {
-                alert('Please enter number of workers');
+            if (startShiftWorkers === 0) {
+                alert('Please enter start shift workers quantity');
                 return;
             }
             
@@ -749,7 +764,8 @@
                 }
             }
             
-            const totalManhours = (workerCount * 8) + totalOvertime;
+            // New calculation: Start Shift Workers * 8 hours + Total Overtime Hours
+            const totalManhours = (startShiftWorkers * 8) + totalOvertime;
             
             let totalErection = 0;
             let totalDismantling = 0;
@@ -768,6 +784,7 @@
             const result = await callAPI('saveEndShift', {
                 date: new Date().toLocaleDateString(),
                 supervisor: currentSupervisor,
+                startShiftWorkers: startShiftWorkers,
                 workEntries: JSON.stringify(workEntries),
                 overtimeEntries: JSON.stringify(overtimeEntries),
                 totalErection: totalErection,
@@ -779,9 +796,17 @@
             if (result.success) {
                 const report = `Date: ${new Date().toLocaleDateString()}\nSupervisor: ${currentSupervisor}\nTotal Erection: ${totalErection.toFixed(2)} m³\nTotal Dismantling: ${totalDismantling.toFixed(2)} m³\nManhours: ${totalManhours}\nProductivity: ${productivity.toFixed(2)} m³/hr`;
                 
-                // Redirect to WhatsApp
-                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
+                // Redirect to WhatsApp Group
+                const whatsappUrl = `https://chat.whatsapp.com/HRhJ6sktodu3oZHa47ylU1`;
                 window.open(whatsappUrl, '_blank');
+                
+                // Copy report to clipboard for easy pasting
+                navigator.clipboard.writeText(report).then(() => {
+                    alert('Report copied to clipboard! You can now paste it in the WhatsApp group.');
+                }).catch(() => {
+                    // Fallback if clipboard API fails
+                    console.log('Report ready:', report);
+                });
                 
                 // Logout after submission
                 setTimeout(() => {
@@ -820,5 +845,5 @@
         updateTicker();
         setInterval(updateTicker, 30000); // Update every 30 seconds
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9737ff8593809a83',t:'MTc1NTkyNDcyMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97397a5900203f04',t:'MTc1NTk0MDIzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

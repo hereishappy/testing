@@ -190,7 +190,7 @@
                     <h2 class="text-2xl font-bold text-gray-900">End Shift - Work Details</h2>
                     <button id="logoutEnd" class="text-gray-500 hover:text-gray-700">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>
                     </button>
                 </div>
@@ -493,8 +493,11 @@
                 return;
             }
             
-            // Show loading message
+            // Prevent double submission
             const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn.disabled) return;
+            
+            // Show loading message
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Logging in...';
             submitBtn.disabled = true;
@@ -530,8 +533,11 @@
                 return;
             }
             
-            // Show loading message
+            // Prevent double submission
             const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn.disabled) return;
+            
+            // Show loading message
             const originalText = submitBtn.textContent;
             submitBtn.textContent = 'Logging in...';
             submitBtn.disabled = true;
@@ -573,6 +579,9 @@
 
         // Start shift submission
         document.getElementById('submitStartShift').addEventListener('click', async function() {
+            // Prevent double submission
+            if (this.disabled) return;
+            
             const selectedEmployees = Array.from(document.querySelectorAll('#employeeList input:checked'))
                 .map(cb => cb.value);
             
@@ -580,6 +589,11 @@
                 alert('Please select at least one employee');
                 return;
             }
+            
+            // Disable button immediately
+            const originalText = this.textContent;
+            this.textContent = 'Submitting...';
+            this.disabled = true;
             
             const date = document.getElementById('shiftDate').value;
             
@@ -603,6 +617,9 @@
                 }, 1000);
             } else {
                 alert('Error saving data: ' + result.message);
+                // Re-enable button on error
+                this.textContent = originalText;
+                this.disabled = false;
             }
         });
 
@@ -698,6 +715,9 @@
 
         // Submit end shift
         document.getElementById('submitEndShift').addEventListener('click', async function() {
+            // Prevent double submission
+            if (this.disabled) return;
+            
             const workerCount = parseInt(document.getElementById('workerCount').value) || 0;
             const employeeSelects = document.querySelectorAll('.employee-select');
             const overtimeInputs = document.querySelectorAll('.overtime-hours');
@@ -706,6 +726,11 @@
                 alert('Please enter number of workers');
                 return;
             }
+            
+            // Disable button immediately
+            const originalText = this.textContent;
+            this.textContent = 'Submitting...';
+            this.disabled = true;
             
             let totalOvertime = 0;
             let overtimeEntries = [];
@@ -764,6 +789,9 @@
                 }, 1000);
             } else {
                 alert('Error saving data: ' + result.message);
+                // Re-enable button on error
+                this.textContent = originalText;
+                this.disabled = false;
             }
         });
 
@@ -792,5 +820,5 @@
         updateTicker();
         setInterval(updateTicker, 30000); // Update every 30 seconds
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9730989bd5518032',t:'MTc1NTg0NzEwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9737f6ea65fc6ed7',t:'MTc1NTkyNDM2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

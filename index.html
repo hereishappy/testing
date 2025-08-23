@@ -772,7 +772,8 @@ ${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
             }
             
             // Calculation: Start Shift Workers * 8 hours + Total Overtime Hours
-            const totalManhours = (startShiftWorkers * 8) + totalOvertime;
+            const baseManhours = startShiftWorkers * 8;
+            const totalManhours = baseManhours + totalOvertime;
             
             let totalErection = 0;
             let totalDismantling = 0;
@@ -785,7 +786,8 @@ ${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
                 }
             });
             
-            const productivity = totalManhours > 0 ? (totalErection + (totalDismantling / 2)) / totalManhours : 0;
+            // New productivity calculation: (Total Erection + Total Dismantling) / Total Manhours
+            const productivity = totalManhours > 0 ? (totalErection + totalDismantling) / totalManhours : 0;
             
             // Save to Google Sheets first
             const currentDate = new Date().toISOString().split('T')[0];
@@ -803,7 +805,8 @@ ${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
             });
             
             if (result.success) {
-                const report = `Date: ${formattedDate}\nSupervisor: ${currentSupervisor}\nTotal Erection: ${totalErection.toFixed(2)} m³\nTotal Dismantling: ${totalDismantling.toFixed(2)} m³\nManhours: ${totalManhours}\nProductivity: ${productivity.toFixed(2)} m³/hr`;
+                // New report format as requested
+                const report = `Supervisor: ${currentSupervisor}\nTotal Erection: ${totalErection.toFixed(2)} m³\nTotal Dismantling: ${totalDismantling.toFixed(2)} m³\nOvertime: ${totalOvertime}\nManhours: ${baseManhours}\nTotal Manhours: ${totalManhours}\nProductivity: ${productivity.toFixed(2)} m³/hr`;
                 
                 // Redirect to WhatsApp
                 const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
@@ -846,5 +849,5 @@ ${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
         updateTicker();
         setInterval(updateTicker, 30000); // Update every 30 seconds
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9739cd1a6116ffa5',t:'MTc1NTk0MzYyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9739ec47112e987d',t:'MTc1NTk0NDkwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

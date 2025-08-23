@@ -408,6 +408,14 @@
             document.getElementById('currentDateTime').textContent = 
                 now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
         }
+
+        // Format date as "22 Aug 2025"
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+        }
         updateDateTime();
         setInterval(updateDateTime, 1000);
 
@@ -604,14 +612,16 @@
             const date = document.getElementById('shiftDate').value;
             
             // Save to Google Sheets
+            const formattedDate = formatDate(date);
             const result = await callAPI('saveStartShift', {
-                date: date,
+                date: formattedDate,
                 supervisor: currentSupervisor,
                 employees: JSON.stringify(selectedEmployees)
             });
             
             if (result.success) {
-                const report = `SHIFT START REPORT\n\nDate: ${date}\nSupervisor: ${currentSupervisor}\nWorkers Present (${selectedEmployees.length}):\n\n${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
+                const formattedDate = formatDate(date);
+                const report = `SHIFT START REPORT\n\nDate: ${formattedDate}\nSupervisor: ${currentSupervisor}\nWorkers Present (${selectedEmployees.length}):\n\n${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
                 
                 // Redirect to WhatsApp Group
                 const whatsappUrl = `https://chat.whatsapp.com/HRhJ6sktodu3oZHa47ylU1`;
@@ -781,8 +791,10 @@
             const productivity = (totalErection + (totalDismantling / 2)) / totalManhours;
             
             // Save to Google Sheets
+            const currentDate = new Date().toISOString().split('T')[0];
+            const formattedDate = formatDate(currentDate);
             const result = await callAPI('saveEndShift', {
-                date: new Date().toLocaleDateString(),
+                date: formattedDate,
                 supervisor: currentSupervisor,
                 startShiftWorkers: startShiftWorkers,
                 workEntries: JSON.stringify(workEntries),
@@ -794,7 +806,9 @@
             });
             
             if (result.success) {
-                const report = `Date: ${new Date().toLocaleDateString()}\nSupervisor: ${currentSupervisor}\nTotal Erection: ${totalErection.toFixed(2)} m³\nTotal Dismantling: ${totalDismantling.toFixed(2)} m³\nManhours: ${totalManhours}\nProductivity: ${productivity.toFixed(2)} m³/hr`;
+                const currentDate = new Date().toISOString().split('T')[0];
+                const formattedDate = formatDate(currentDate);
+                const report = `Date: ${formattedDate}\nSupervisor: ${currentSupervisor}\nTotal Erection: ${totalErection.toFixed(2)} m³\nTotal Dismantling: ${totalDismantling.toFixed(2)} m³\nManhours: ${totalManhours}\nProductivity: ${productivity.toFixed(2)} m³/hr`;
                 
                 // Redirect to WhatsApp Group
                 const whatsappUrl = `https://chat.whatsapp.com/HRhJ6sktodu3oZHa47ylU1`;
@@ -845,5 +859,5 @@
         updateTicker();
         setInterval(updateTicker, 30000); // Update every 30 seconds
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97397a5900203f04',t:'MTc1NTk0MDIzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973981d8d7bb3ada',t:'MTc1NTk0MDU0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

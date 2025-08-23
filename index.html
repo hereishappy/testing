@@ -623,13 +623,13 @@
                 const formattedDate = formatDate(date);
                 const report = `SHIFT START REPORT\n\nDate: ${formattedDate}\nSupervisor: ${currentSupervisor}\nWorkers Present (${selectedEmployees.length}):\n\n${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
                 
-                // Redirect to WhatsApp Group
-                const whatsappUrl = `https://chat.whatsapp.com/HRhJ6sktodu3oZHa47ylU1`;
+                // Redirect to WhatsApp
+                const whatsappUrl = `https://web.whatsapp.com/`;
                 window.open(whatsappUrl, '_blank');
                 
                 // Copy report to clipboard for easy pasting
                 navigator.clipboard.writeText(report).then(() => {
-                    alert('Report copied to clipboard! You can now paste it in the WhatsApp group.');
+                    alert('Report copied to clipboard! You can now paste it in WhatsApp.');
                 }).catch(() => {
                     // Fallback if clipboard API fails
                     console.log('Report ready:', report);
@@ -810,13 +810,13 @@
                 const formattedDate = formatDate(currentDate);
                 const report = `Date: ${formattedDate}\nSupervisor: ${currentSupervisor}\nTotal Erection: ${totalErection.toFixed(2)} m³\nTotal Dismantling: ${totalDismantling.toFixed(2)} m³\nManhours: ${totalManhours}\nProductivity: ${productivity.toFixed(2)} m³/hr`;
                 
-                // Redirect to WhatsApp Group
-                const whatsappUrl = `https://chat.whatsapp.com/HRhJ6sktodu3oZHa47ylU1`;
+                // Redirect to WhatsApp
+                const whatsappUrl = `https://web.whatsapp.com/`;
                 window.open(whatsappUrl, '_blank');
                 
                 // Copy report to clipboard for easy pasting
                 navigator.clipboard.writeText(report).then(() => {
-                    alert('Report copied to clipboard! You can now paste it in the WhatsApp group.');
+                    alert('Report copied to clipboard! You can now paste it in WhatsApp.');
                 }).catch(() => {
                     // Fallback if clipboard API fails
                     console.log('Report ready:', report);
@@ -859,5 +859,5 @@
         updateTicker();
         setInterval(updateTicker, 30000); // Update every 30 seconds
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973981d8d7bb3ada',t:'MTc1NTk0MDU0NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97398e49116bb081',t:'MTc1NTk0MTA1NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

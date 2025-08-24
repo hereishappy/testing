@@ -3,1103 +3,545 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Construction Dashboard</title>
+    <title>Worker Dashboard - Attendance & Productivity</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         
-        .ticker {
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
+        .calendar-day {
+            transition: all 0.2s ease;
         }
         
-        .ticker-content {
-            display: inline-block;
-            animation: scroll 30s linear infinite;
+        .calendar-day:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         
-        @keyframes scroll {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
+        .present { background: linear-gradient(135deg, #10b981, #059669); }
+        .absent { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .loading-shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
         }
         
-        .page {
-            display: none;
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
         
-        .page.active {
-            display: block;
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
         }
         
-        .nav-button {
-            transition: all 0.3s ease;
-        }
-        
-        .nav-button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <!-- Header Ticker -->
-    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2">
-        <div class="ticker">
-            <div class="ticker-content text-sm">
-                📍 Site Report: Foundation work 85% complete • Weather: 28°C Partly Cloudy, Mumbai • Wind: 12 km/h • Humidity: 65% • 
-                Field In-Charge: Rajesh Sharma reporting all safety protocols followed • 
-                Next inspection scheduled for 15th August • Material delivery on track • 
-                Quality check passed for Block A foundation
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <h1 class="text-xl font-semibold text-gray-900">Worker Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Refresh Data
+                    </button>
+                </div>
             </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8">
+                <button id="attendanceTab" class="tab-button border-b-2 border-blue-500 text-blue-600 py-2 px-1 text-sm font-medium">
+                    Attendance Calendar
+                </button>
+                <button id="productivityTab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-2 px-1 text-sm font-medium">
+                    Productivity Tracker
+                </button>
+            </nav>
         </div>
     </div>
 
-    <div class="container mx-auto px-6 py-6">
-        <!-- Navigation -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-800">Construction Dashboard</h1>
-                    <p class="text-gray-600">Project Management & Monitoring System</p>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="loading-shimmer w-16 h-16 rounded-full mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading dashboard data...</p>
+        </div>
+
+        <!-- Attendance View -->
+        <div id="attendanceView" class="hidden fade-in">
+            <div class="mb-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Worker Attendance</h2>
+                <div class="flex items-center space-x-4">
+                    <select id="monthSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                        <option value="2024-01">January 2024</option>
+                        <option value="2024-02">February 2024</option>
+                        <option value="2024-03">March 2024</option>
+                        <option value="2024-04">April 2024</option>
+                        <option value="2024-05">May 2024</option>
+                        <option value="2024-06">June 2024</option>
+                        <option value="2024-07">July 2024</option>
+                        <option value="2024-08" selected>August 2024</option>
+                        <option value="2024-09">September 2024</option>
+                        <option value="2024-10">October 2024</option>
+                        <option value="2024-11">November 2024</option>
+                        <option value="2024-12">December 2024</option>
+                    </select>
                 </div>
-                <div class="flex space-x-4">
-                    <button onclick="showPage('performance')" id="perfBtn" class="nav-button active px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-white shadow-lg">
-                        📊 Performance
-                    </button>
-                    <button onclick="showPage('attendance')" id="attBtn" class="nav-button px-6 py-3 rounded-lg font-semibold transition-all duration-300 bg-white shadow-lg text-gray-700 hover:bg-gray-50">
-                        📅 Attendance
-                    </button>
+            </div>
+            
+            <!-- Legend -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">Legend</h3>
+                <div class="flex flex-wrap gap-4 text-sm">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 present rounded mr-2"></div>
+                        <span>Present</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 absent rounded mr-2"></div>
+                        <span>Absent</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 present rounded mr-2"></div>
+                        <span class="text-xs bg-blue-100 text-blue-800 px-1 rounded">P4</span>
+                        <span class="ml-1">Present + 4hr OT</span>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Worker Cards Grid -->
+            <div id="workerGrid" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Worker cards will be populated here -->
             </div>
         </div>
 
-        <!-- Performance Page -->
-        <div id="performance" class="page active">
-            <!-- Summary Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Avg Productivity</h3>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">2.3</p>
-                    <p class="text-green-600 text-sm mt-1">↗ +12% from last week</p>
-                </div>
-                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Man Hours</h3>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">1,180</p>
-                    <p class="text-blue-600 text-sm mt-1">This month</p>
-                </div>
-                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">OT Hours</h3>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">65</p>
-                    <p class="text-orange-600 text-sm mt-1">4 days tracked</p>
-                </div>
-                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Efficiency</h3>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">87%</p>
-                    <p class="text-purple-600 text-sm mt-1">Target: 85%</p>
+        <!-- Productivity View -->
+        <div id="productivityView" class="hidden fade-in">
+            <div class="mb-6 flex justify-between items-center">
+                <h2 class="text-2xl font-bold text-gray-900">Productivity Tracker</h2>
+                <div class="flex items-center space-x-4">
+                    <input type="date" id="dateFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    <button id="clearFilter" class="text-gray-500 hover:text-gray-700 text-sm">Clear Filter</button>
                 </div>
             </div>
 
-            <!-- Performance Chart -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Daily Productivity Trend</h2>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">01 Aug</span>
-                            <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
-                                <div class="bg-green-500 h-3 rounded-full" style="width: 93%"></div>
-                            </div>
-                            <span class="text-sm font-semibold text-green-600">2.8</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">02 Aug</span>
-                            <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
-                                <div class="bg-yellow-500 h-3 rounded-full" style="width: 53%"></div>
-                            </div>
-                            <span class="text-sm font-semibold text-yellow-600">1.6</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">03 Aug</span>
-                            <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
-                                <div class="bg-red-500 h-3 rounded-full" style="width: 0%"></div>
-                            </div>
-                            <span class="text-sm font-semibold text-red-600">0.0</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">04 Aug</span>
-                            <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
-                                <div class="bg-green-500 h-3 rounded-full" style="width: 83%"></div>
-                            </div>
-                            <span class="text-sm font-semibold text-green-600">2.5</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h2 class="text-xl font-semibold text-gray-800 mb-6">Work Distribution</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <div class="flex justify-between mb-2">
-                                <span class="text-sm text-gray-600">Erection Work</span>
-                                <span class="text-sm font-semibold">1,519.30</span>
-                            </div>
-                            <div class="bg-gray-200 rounded-full h-2">
-                                <div class="bg-blue-500 h-2 rounded-full" style="width: 65%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between mb-2">
-                                <span class="text-sm text-gray-600">Dismantling</span>
-                                <span class="text-sm font-semibold">1,382.75</span>
-                            </div>
-                            <div class="bg-gray-200 rounded-full h-2">
-                                <div class="bg-orange-500 h-2 rounded-full" style="width: 59%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between mb-2">
-                                <span class="text-sm text-gray-600">Equivalent Work</span>
-                                <span class="text-sm font-semibold">2,210.68</span>
-                            </div>
-                            <div class="bg-gray-200 rounded-full h-2">
-                                <div class="bg-green-500 h-2 rounded-full" style="width: 95%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Detailed Performance Table -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-6">Daily Performance Details</h2>
+            <!-- Productivity Table -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="text-left py-3 px-4 font-semibold text-gray-700">Date</th>
-                                <th class="text-right py-3 px-4 font-semibold text-gray-700">Erection</th>
-                                <th class="text-right py-3 px-4 font-semibold text-gray-700">Dismantling</th>
-                                <th class="text-right py-3 px-4 font-semibold text-gray-700">Equivalent</th>
-                                <th class="text-right py-3 px-4 font-semibold text-gray-700">Man Hours</th>
-                                <th class="text-right py-3 px-4 font-semibold text-gray-700">OT Hours</th>
-                                <th class="text-right py-3 px-4 font-semibold text-gray-700">Productivity</th>
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Erection</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dismantling</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equivalent</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Man Hours</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OT Hours</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Productivity</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium">01-08-2025</td>
-                                <td class="py-3 px-4 text-right">473.30</td>
-                                <td class="py-3 px-4 text-right">959.50</td>
-                                <td class="py-3 px-4 text-right">953.05</td>
-                                <td class="py-3 px-4 text-right">296.00</td>
-                                <td class="py-3 px-4 text-right">40.00</td>
-                                <td class="py-3 px-4 text-right">
-                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">2.8</span>
-                                </td>
-                            </tr>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium">02-08-2025</td>
-                                <td class="py-3 px-4 text-right">391.00</td>
-                                <td class="py-3 px-4 text-right">126.00</td>
-                                <td class="py-3 px-4 text-right">454.00</td>
-                                <td class="py-3 px-4 text-right">280.00</td>
-                                <td class="py-3 px-4 text-right">4.00</td>
-                                <td class="py-3 px-4 text-right">
-                                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">1.6</span>
-                                </td>
-                            </tr>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium">03-08-2025</td>
-                                <td class="py-3 px-4 text-right">0.00</td>
-                                <td class="py-3 px-4 text-right">0.00</td>
-                                <td class="py-3 px-4 text-right">0.00</td>
-                                <td class="py-3 px-4 text-right">0.00</td>
-                                <td class="py-3 px-4 text-right">0.00</td>
-                                <td class="py-3 px-4 text-right">
-                                    <span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">-</span>
-                                </td>
-                            </tr>
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-3 px-4 font-medium">04-08-2025</td>
-                                <td class="py-3 px-4 text-right">655.00</td>
-                                <td class="py-3 px-4 text-right">297.25</td>
-                                <td class="py-3 px-4 text-right">803.63</td>
-                                <td class="py-3 px-4 text-right">304.00</td>
-                                <td class="py-3 px-4 text-right">21.00</td>
-                                <td class="py-3 px-4 text-right">
-                                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">2.5</span>
-                                </td>
-                            </tr>
+                        <tbody id="productivityTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Productivity data will be populated here -->
                         </tbody>
                     </table>
                 </div>
-            </div>
-        </div>
-
-        <!-- Attendance Page -->
-        <div id="attendance" class="page">
-            <!-- Attendance Summary -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Workers</h3>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">5</p>
-                    <p class="text-green-600 text-sm mt-1">Active employees</p>
-                </div>
-                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Present Today</h3>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">4</p>
-                    <p class="text-blue-600 text-sm mt-1">80% attendance</p>
-                </div>
-                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Avg OT Hours</h3>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">3.2</p>
-                    <p class="text-orange-600 text-sm mt-1">Per worker/day</p>
-                </div>
-                <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-                    <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide">Attendance Rate</h3>
-                    <p class="text-2xl font-bold text-gray-800 mt-2">92%</p>
-                    <p class="text-purple-600 text-sm mt-1">This month</p>
-                </div>
-            </div>
-
-            <!-- Workers Attendance Calendar -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-6">August 2025 - Worker Attendance</h2>
-                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <!-- Worker 1 -->
-                    <div class="border rounded-lg p-4 bg-gray-50">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                AK
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="font-semibold text-gray-800">AMAN KUMAR</h3>
-                                <p class="text-sm text-gray-600">Supervisor: MAHENDRA KUMAR</p>
-                                <p class="text-xs text-blue-600">Present: 28 days | OT: 96 hrs</p>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-xs">
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            <div class="text-center font-medium text-gray-500 py-1">M</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">W</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">F</div>
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            
-                            <!-- Week 1 -->
-                            <div></div><div></div><div></div><div></div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">1</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">2</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">3</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <!-- Week 2 -->
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">4</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">5</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">6</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">7</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">8</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">9</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">10</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <!-- Week 3 -->
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">11</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">12</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">13</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">14</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">15</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">16</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">17</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            
-                            <!-- Week 4 -->
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">18</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">19</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">20</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">21</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">22</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">23</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">24</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            
-                            <!-- Week 5 -->
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">25</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">26</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">27</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">28</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">29</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">30</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-gray-100 border border-gray-200 rounded p-1 text-center">
-                                <div class="font-medium text-gray-500">31</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Worker 2 -->
-                    <div class="border rounded-lg p-4 bg-gray-50">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                AM
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="font-semibold text-gray-800">ATUL MAHADEO</h3>
-                                <p class="text-sm text-gray-600">Supervisor: MAHENDRA KUMAR</p>
-                                <p class="text-xs text-blue-600">Present: 26 days | OT: 78 hrs</p>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-xs">
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            <div class="text-center font-medium text-gray-500 py-1">M</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">W</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">F</div>
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            
-                            <!-- Similar calendar structure with different attendance pattern -->
-                            <div></div><div></div><div></div><div></div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">1</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">2</div>
-                                <div class="text-green-600 text-xs">P1</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">3</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <!-- Continue with more days... -->
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">4</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">5</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">6</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">7</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">8</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">9</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">10</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            
-                            <!-- Add remaining days with similar pattern -->
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">11</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">12</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">13</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">14</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">15</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">16</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">17</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">18</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">19</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">20</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">21</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">22</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">23</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">24</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">25</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">26</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">27</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">28</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">29</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">30</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-gray-100 border border-gray-200 rounded p-1 text-center">
-                                <div class="font-medium text-gray-500">31</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Worker 3 -->
-                    <div class="border rounded-lg p-4 bg-gray-50">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                CK
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="font-semibold text-gray-800">CHANDAN KUMAR</h3>
-                                <p class="text-sm text-gray-600">Supervisor: MAHENDRA KUMAR</p>
-                                <p class="text-xs text-blue-600">Present: 29 days | OT: 87 hrs</p>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-xs">
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            <div class="text-center font-medium text-gray-500 py-1">M</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">W</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">F</div>
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            
-                            <div></div><div></div><div></div><div></div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">1</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">2</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">3</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <!-- Continue pattern for remaining days -->
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">4</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">5</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">6</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">7</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">8</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">9</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">10</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">11</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">12</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">13</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">14</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">15</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">16</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">17</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">18</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">19</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">20</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">21</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">22</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">23</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">24</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">25</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">26</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">27</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">28</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">29</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">30</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-gray-100 border border-gray-200 rounded p-1 text-center">
-                                <div class="font-medium text-gray-500">31</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Worker 4 -->
-                    <div class="border rounded-lg p-4 bg-gray-50">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                DY
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="font-semibold text-gray-800">DAULAT YADAV</h3>
-                                <p class="text-sm text-gray-600">Supervisor: HARKIRAT SINGH</p>
-                                <p class="text-xs text-blue-600">Present: 25 days | OT: 65 hrs</p>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-xs">
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            <div class="text-center font-medium text-gray-500 py-1">M</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">W</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">F</div>
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            
-                            <div></div><div></div><div></div><div></div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">1</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">2</div>
-                                <div class="text-green-600 text-xs">P1</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">3</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <!-- Continue with similar pattern -->
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">4</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">5</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">6</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">7</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">8</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">9</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">10</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">11</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">12</div>
-                                <div class="text-green-600 text-xs">P1</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">13</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">14</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">15</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">16</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">17</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">18</div>
-                                <div class="text-green-600 text-xs">P1</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">19</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">20</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">21</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">22</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">23</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">24</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">25</div>
-                                <div class="text-green-600 text-xs">P1</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">26</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">27</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">28</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">29</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">30</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-gray-100 border border-gray-200 rounded p-1 text-center">
-                                <div class="font-medium text-gray-500">31</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Worker 5 -->
-                    <div class="border rounded-lg p-4 bg-gray-50">
-                        <div class="flex items-center mb-4">
-                            <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white font-semibold">
-                                DD
-                            </div>
-                            <div class="ml-3">
-                                <h3 class="font-semibold text-gray-800">DEEPAK DAS</h3>
-                                <p class="text-sm text-gray-600">Supervisor: MAHENDRA KUMAR</p>
-                                <p class="text-xs text-blue-600">Present: 27 days | OT: 81 hrs</p>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-7 gap-1 text-xs">
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            <div class="text-center font-medium text-gray-500 py-1">M</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">W</div>
-                            <div class="text-center font-medium text-gray-500 py-1">T</div>
-                            <div class="text-center font-medium text-gray-500 py-1">F</div>
-                            <div class="text-center font-medium text-gray-500 py-1">S</div>
-                            
-                            <div></div><div></div><div></div><div></div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">1</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">2</div>
-                                <div class="text-green-600 text-xs">P1</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">3</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <!-- Continue with similar pattern -->
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">4</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">5</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">6</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">7</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">8</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">9</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">10</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">11</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">12</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">13</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">14</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">15</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">16</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">17</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">18</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">19</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">20</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">21</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">22</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">23</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">24</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">25</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">26</div>
-                                <div class="text-green-600 text-xs">P2</div>
-                            </div>
-                            <div class="bg-blue-100 border border-blue-300 rounded p-1 text-center">
-                                <div class="font-medium text-blue-800">27</div>
-                                <div class="text-blue-600 text-xs">P0</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">28</div>
-                                <div class="text-green-600 text-xs">P4</div>
-                            </div>
-                            <div class="bg-green-100 border border-green-300 rounded p-1 text-center">
-                                <div class="font-medium text-green-800">29</div>
-                                <div class="text-green-600 text-xs">P3</div>
-                            </div>
-                            <div class="bg-red-100 border border-red-300 rounded p-1 text-center">
-                                <div class="font-medium text-red-800">30</div>
-                                <div class="text-red-600 text-xs">A</div>
-                            </div>
-                            <div class="bg-gray-100 border border-gray-200 rounded p-1 text-center">
-                                <div class="font-medium text-gray-500">31</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Legend -->
-                <div class="mt-6 bg-gray-50 rounded-lg p-4">
-                    <h3 class="text-sm font-semibold text-gray-700 mb-3">Legend</h3>
-                    <div class="flex flex-wrap gap-4 text-xs">
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
-                            <span>Present with OT (P + OT Hours)</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 bg-blue-100 border border-blue-300 rounded mr-2"></div>
-                            <span>Present without OT (P0)</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 bg-red-100 border border-red-300 rounded mr-2"></div>
-                            <span>Absent (A)</span>
-                        </div>
-                        <div class="flex items-center">
-                            <div class="w-4 h-4 bg-gray-100 border border-gray-200 rounded mr-2"></div>
-                            <span>Future Date</span>
-                        </div>
-                    </div>
+                
+                <!-- Summary Footer -->
+                <div id="productivitySummary" class="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                    <!-- Summary will be populated here -->
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Footer Ticker -->
-    <div class="bg-gradient-to-r from-orange-600 to-red-600 text-white py-2 mt-8">
-        <div class="ticker">
-            <div class="ticker-content text-sm">
-                🦺 Safety Alert: Always wear hard hats in construction zones • 
-                🚧 Scaffolding inspection completed - all clear • 
-                ⚠️ AI Suggestion: Increase safety training frequency for new workers • 
-                🔧 Equipment maintenance scheduled for weekend • 
-                📋 Daily safety briefing at 8:00 AM sharp • 
-                🚨 Emergency contact: Site Manager +91-9876543210 • 
-                💡 Tip: Report any unsafe conditions immediately to supervisors
-            </div>
-        </div>
+    <!-- Tooltip -->
+    <div id="tooltip" class="absolute z-50 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 pointer-events-none transition-opacity duration-200 max-w-xs">
+        <div id="tooltipContent"></div>
+        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
     </div>
 
     <script>
-        function showPage(pageId) {
-            // Hide all pages
-            const pages = document.querySelectorAll('.page');
-            pages.forEach(page => page.classList.remove('active'));
+        // Global data storage
+        let attendanceData = [];
+        let productivityData = [];
+        let currentView = 'attendance';
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Tab switching
+            document.getElementById('attendanceTab').addEventListener('click', () => switchTab('attendance'));
+            document.getElementById('productivityTab').addEventListener('click', () => switchTab('productivity'));
             
-            // Show selected page
-            document.getElementById(pageId).classList.add('active');
+            // Refresh button
+            document.getElementById('refreshBtn').addEventListener('click', loadData);
             
-            // Update navigation buttons
-            const buttons = document.querySelectorAll('.nav-button');
-            buttons.forEach(btn => btn.classList.remove('active'));
+            // Month selector
+            document.getElementById('monthSelect').addEventListener('change', renderAttendanceView);
             
-            if (pageId === 'performance') {
-                document.getElementById('perfBtn').classList.add('active');
-            } else {
-                document.getElementById('attBtn').classList.add('active');
+            // Date filter
+            document.getElementById('dateFilter').addEventListener('change', renderProductivityView);
+            document.getElementById('clearFilter').addEventListener('click', () => {
+                document.getElementById('dateFilter').value = '';
+                renderProductivityView();
+            });
+        }
+
+        async function loadData() {
+            document.getElementById('loadingState').classList.remove('hidden');
+            document.getElementById('attendanceView').classList.add('hidden');
+            document.getElementById('productivityView').classList.add('hidden');
+
+            try {
+                // Load attendance data
+                const attendanceResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/gviz/tq?tqx=out:csv&sheet=START%20SHIFT');
+                const attendanceText = await attendanceResponse.text();
+                attendanceData = parseCSV(attendanceText);
+
+                // Load productivity data
+                const productivityResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/gviz/tq?tqx=out:csv&sheet=ALL%20OVER');
+                const productivityText = await productivityResponse.text();
+                productivityData = parseCSV(productivityText);
+
+                // Render current view
+                if (currentView === 'attendance') {
+                    renderAttendanceView();
+                } else {
+                    renderProductivityView();
+                }
+
+                document.getElementById('loadingState').classList.add('hidden');
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loadingState').innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <p class="text-red-600 font-medium">Failed to load data</p>
+                        <p class="text-gray-500 text-sm mt-1">Please check your internet connection and try again</p>
+                        <button onclick="loadData()" class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+                            Retry
+                        </button>
+                    </div>
+                `;
             }
         }
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+            
+            return lines.slice(1).map(line => {
+                const values = line.split(',').map(v => v.replace(/"/g, '').trim());
+                const obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = values[index] || '';
+                });
+                return obj;
+            });
+        }
+
+        function switchTab(tab) {
+            currentView = tab;
+            
+            // Update tab styles
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            if (tab === 'attendance') {
+                document.getElementById('attendanceTab').classList.add('border-blue-500', 'text-blue-600');
+                document.getElementById('attendanceTab').classList.remove('border-transparent', 'text-gray-500');
+                document.getElementById('attendanceView').classList.remove('hidden');
+                document.getElementById('productivityView').classList.add('hidden');
+                renderAttendanceView();
+            } else {
+                document.getElementById('productivityTab').classList.add('border-blue-500', 'text-blue-600');
+                document.getElementById('productivityTab').classList.remove('border-transparent', 'text-gray-500');
+                document.getElementById('productivityView').classList.remove('hidden');
+                document.getElementById('attendanceView').classList.add('hidden');
+                renderProductivityView();
+            }
+        }
+
+        function renderAttendanceView() {
+            const selectedMonth = document.getElementById('monthSelect').value;
+            const [year, month] = selectedMonth.split('-');
+            
+            // Group attendance data by worker
+            const workerData = {};
+            attendanceData.forEach(record => {
+                if (record['EMP NAME'] && record['Date']) {
+                    const empName = record['EMP NAME'];
+                    if (!workerData[empName]) {
+                        workerData[empName] = {
+                            name: empName,
+                            supervisor: record['Supervisor'] || 'N/A',
+                            attendance: {}
+                        };
+                    }
+                    
+                    const date = new Date(record['Date']);
+                    if (date.getFullYear() == year && (date.getMonth() + 1) == parseInt(month)) {
+                        const dayKey = date.getDate();
+                        workerData[empName].attendance[dayKey] = {
+                            present: true,
+                            supervisor: record['Supervisor'] || 'N/A',
+                            shiftHours: parseFloat(record['Shift Hours']) || 0,
+                            otHours: parseFloat(record['OT HOURS']) || 0
+                        };
+                    }
+                }
+            });
+
+            // Generate calendar for each worker
+            const workerGrid = document.getElementById('workerGrid');
+            workerGrid.innerHTML = '';
+
+            Object.values(workerData).forEach(worker => {
+                const workerCard = createWorkerCard(worker, year, month);
+                workerGrid.appendChild(workerCard);
+            });
+        }
+
+        function createWorkerCard(worker, year, month) {
+            const daysInMonth = new Date(year, month, 0).getDate();
+            const firstDay = new Date(year, month - 1, 1).getDay();
+            
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 p-6';
+            
+            card.innerHTML = `
+                <div class="mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">${worker.name}</h3>
+                    <p class="text-sm text-gray-600">Supervisor: ${worker.supervisor}</p>
+                </div>
+                
+                <div class="calendar">
+                    <div class="grid grid-cols-7 gap-1 mb-2 text-xs font-medium text-gray-500">
+                        <div class="text-center py-1">Su</div>
+                        <div class="text-center py-1">Mo</div>
+                        <div class="text-center py-1">Tu</div>
+                        <div class="text-center py-1">We</div>
+                        <div class="text-center py-1">Th</div>
+                        <div class="text-center py-1">Fr</div>
+                        <div class="text-center py-1">Sa</div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1" id="calendar-${worker.name.replace(/\s+/g, '')}">
+                        ${generateCalendarDays(worker, daysInMonth, firstDay)}
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function generateCalendarDays(worker, daysInMonth, firstDay) {
+            let html = '';
+            
+            // Empty cells for days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                html += '<div class="h-10"></div>';
+            }
+            
+            // Days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const attendance = worker.attendance[day];
+                let dayClass = 'calendar-day h-10 rounded flex flex-col items-center justify-center text-xs font-medium cursor-pointer relative';
+                let content = day.toString();
+                let otTag = '';
+                
+                if (attendance && attendance.present) {
+                    dayClass += ' present text-white';
+                    if (attendance.otHours >= 4) {
+                        otTag = '<div class="absolute -bottom-1 text-xs bg-blue-100 text-blue-800 px-1 rounded" style="font-size: 8px;">P4</div>';
+                    }
+                } else {
+                    dayClass += ' absent text-white';
+                }
+                
+                html += `
+                    <div class="${dayClass}" 
+                         onmouseover="showTooltip(event, '${worker.name}', ${day}, ${JSON.stringify(attendance).replace(/"/g, '&quot;')})"
+                         onmouseout="hideTooltip()">
+                        ${content}
+                        ${otTag}
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+
+        function renderProductivityView() {
+            const dateFilter = document.getElementById('dateFilter').value;
+            let filteredData = productivityData;
+            
+            if (dateFilter) {
+                filteredData = productivityData.filter(record => {
+                    const recordDate = new Date(record['DATE']);
+                    const filterDate = new Date(dateFilter);
+                    return recordDate.toDateString() === filterDate.toDateString();
+                });
+            }
+            
+            const tbody = document.getElementById('productivityTableBody');
+            tbody.innerHTML = '';
+            
+            let totals = {
+                erection: 0,
+                dismantling: 0,
+                equivalent: 0,
+                manhours: 0,
+                otHours: 0,
+                productivity: 0
+            };
+            
+            filteredData.forEach(record => {
+                const row = document.createElement('tr');
+                const isProductive = parseFloat(record['PRODUCTIVITY']) > 0;
+                
+                if (isProductive) {
+                    row.className = 'bg-green-50 hover:bg-green-100';
+                } else {
+                    row.className = 'bg-gray-50 hover:bg-gray-100';
+                }
+                
+                // Add to totals
+                totals.erection += parseFloat(record['ERECTION']) || 0;
+                totals.dismantling += parseFloat(record['DISMANTLING']) || 0;
+                totals.equivalent += parseFloat(record['EQUILVENT']) || 0;
+                totals.manhours += parseFloat(record['MANHOURS']) || 0;
+                totals.otHours += parseFloat(record['OT HOURS']) || 0;
+                totals.productivity += parseFloat(record['PRODUCTIVITY']) || 0;
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(record['DATE'])}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['ERECTION'] || '0'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['DISMANTLING'] || '0'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['EQUILVENT'] || '0'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['MANHOURS'] || '0'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['OT HOURS'] || '0'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${isProductive ? 'text-green-600' : 'text-gray-400'}">${record['PRODUCTIVITY'] || '0'}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+            
+            // Update summary
+            const summary = document.getElementById('productivitySummary');
+            const avgProductivity = filteredData.length > 0 ? (totals.productivity / filteredData.length).toFixed(2) : '0';
+            
+            summary.innerHTML = `
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 text-sm">
+                    <div>
+                        <span class="font-medium text-gray-900">Total Records:</span>
+                        <span class="text-gray-600 ml-1">${filteredData.length}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-900">Total Erection:</span>
+                        <span class="text-gray-600 ml-1">${totals.erection.toFixed(1)}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-900">Total Dismantling:</span>
+                        <span class="text-gray-600 ml-1">${totals.dismantling.toFixed(1)}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-900">Total Equivalent:</span>
+                        <span class="text-gray-600 ml-1">${totals.equivalent.toFixed(1)}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-900">Total Man Hours:</span>
+                        <span class="text-gray-600 ml-1">${totals.manhours.toFixed(1)}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-900">Total OT Hours:</span>
+                        <span class="text-gray-600 ml-1">${totals.otHours.toFixed(1)}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-900">Avg Productivity:</span>
+                        <span class="text-green-600 ml-1 font-semibold">${avgProductivity}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showTooltip(event, workerName, day, attendance) {
+            const tooltip = document.getElementById('tooltip');
+            const tooltipContent = document.getElementById('tooltipContent');
+            
+            if (attendance && attendance !== 'null') {
+                const data = JSON.parse(attendance.replace(/&quot;/g, '"'));
+                tooltipContent.innerHTML = `
+                    <div class="font-semibold">${workerName}</div>
+                    <div class="text-xs mt-1">
+                        <div>Date: ${day}</div>
+                        <div>Supervisor: ${data.supervisor}</div>
+                        <div>Shift Hours: ${data.shiftHours}</div>
+                        <div>OT Hours: ${data.otHours}</div>
+                        ${data.otHours >= 4 ? '<div class="text-blue-300">🏆 4+ Hour OT</div>' : ''}
+                    </div>
+                `;
+            } else {
+                tooltipContent.innerHTML = `
+                    <div class="font-semibold">${workerName}</div>
+                    <div class="text-xs mt-1">
+                        <div>Date: ${day}</div>
+                        <div class="text-red-300">❌ Absent</div>
+                    </div>
+                `;
+            }
+            
+            tooltip.style.left = event.pageX + 'px';
+            tooltip.style.top = (event.pageY - 60) + 'px';
+            tooltip.classList.remove('opacity-0');
+            tooltip.classList.add('opacity-100');
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.classList.remove('opacity-100');
+            tooltip.classList.add('opacity-0');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973f24bcb0c99a90',t:'MTc1NTk5OTY0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973f516240669a9c',t:'MTc1NjAwMTQ3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

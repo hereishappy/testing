@@ -1,308 +1,565 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Attendance Summary — START SHIFT</title>
-  <meta name="description" content="Search your name and auto-download your attendance summary as a JPEG." />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
-  <style>
-    :root{
-      --bg:#0f172a;          /* slate-900 */
-      --card:#0b1226;        /* deep slate */
-      --muted:#94a3b8;       /* slate-400 */
-      --text:#e2e8f0;        /* slate-200 */
-      --brand:#22c55e;       /* green-500 */
-      --brand-600:#16a34a;   /* green-600 */
-      --danger:#ef4444;      /* red-500 */
-      --accent:#38bdf8;      /* sky-400 */
-      --border: #1f2937;     /* gray-800 */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Attendance Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+```
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-      background: radial-gradient(1200px 800px at 80% -10%, #0b1226 10%, #0f172a 60%, #0a0f1f 100%);
-      color:var(--text);
+
+    .container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        padding: 40px;
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
     }
-    .container{max-width:900px;margin:0 auto;padding:24px}
-    header{display:flex;align-items:center;justify-content:space-between;margin:8px 0 24px}
-    .brand{display:flex;align-items:center;gap:12px}
-    .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--accent));display:grid;place-items:center;color:#001b0b;font-weight:800}
-    .title{font-size:clamp(18px,3vw,24px);font-weight:700;letter-spacing:0.3px}
-    .subtitle{font-size:14px;color:var(--muted)}.search-card{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:20px;padding:18px;backdrop-filter: blur(6px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.field{flex:1 1 260px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
-.field input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-size:16px}
-.btn{appearance:none;border:none;border-radius:14px;padding:12px 18px;font-weight:700;letter-spacing:.2px;cursor:pointer;transition:.2s background,.2s transform;display:inline-flex;align-items:center;gap:10px}
-.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-600));color:#04130b}
-.btn-primary:hover{transform:translateY(-1px)}
-.btn-secondary{background:#111827;color:var(--text);border:1px solid var(--border)}
 
-.hint{margin-top:10px;color:var(--muted);font-size:13px}
+    .logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        border-radius: 50%;
+        margin: 0 auto 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+    }
 
-/* Report card (what gets converted to JPEG) */
-.report-wrap{margin-top:28px}
-.report{display:none; background:linear-gradient(180deg,#0e152b, #0c1330 60%, #0b1226); border:1px solid var(--border);border-radius:24px;padding:24px;position:relative;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.45)}
-.r-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px dashed #1f2b46;padding-bottom:14px;margin-bottom:18px}
-.r-brand{display:flex;align-items:center;gap:12px}
-.r-logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--brand),var(--accent));display:grid;place-items:center;color:#001b0b;font-weight:900;font-size:18px}
-.badge{font-size:12px;color:#0c1a12;background:linear-gradient(135deg,var(--brand),var(--brand-600));padding:6px 10px;border-radius:999px;font-weight:800;letter-spacing:.3px}
+    h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+    }
 
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.stat{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:18px;padding:14px}
-.stat .label{font-size:12px;color:var(--muted);letter-spacing:.3px}
-.stat .value{font-size:26px;font-weight:800;margin-top:6px}
+    .subtitle {
+        color: #666;
+        margin-bottom: 40px;
+        font-size: 16px;
+    }
 
-.table{width:100%;border-collapse:collapse;margin-top:12px}
-.table th,.table td{border-bottom:1px dashed #1e2744;padding:10px 8px;text-align:left;font-size:14px}
-.table th{color:var(--muted);font-weight:600}
+    .search-section {
+        margin-bottom: 30px;
+    }
 
-.watermark{position:absolute;right:-40px;bottom:-40px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(56,189,248,.25), transparent 60%), radial-gradient(circle at 70% 70%, rgba(34,197,94,.25), transparent 60%)}
+    .search-input {
+        width: 100%;
+        padding: 15px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 50px;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
 
-.toast{display:none;position:fixed;right:16px;bottom:16px;background:#111827;color:var(--text);border:1px solid var(--border);border-radius:14px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-.err{color:var(--danger)}
+    .search-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
 
-@media (max-width:680px){
-  .grid{grid-template-columns:1fr}
-  .r-head{align-items:flex-start;gap:10px}
-}
+    .search-btn {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+    }
 
-  </style>
+    .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 30px rgba(102, 126, 234, 0.4);
+    }
+
+    .search-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .loading {
+        display: none;
+        color: #667eea;
+        margin: 20px 0;
+    }
+
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .error {
+        color: #e74c3c;
+        background: #ffeaea;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #e74c3c;
+    }
+
+    .success {
+        color: #27ae60;
+        background: #eafaf1;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #27ae60;
+    }
+
+    /* Report Styles */
+    .report-container {
+        display: none;
+        position: fixed;
+        top: -9999px;
+        left: -9999px;
+        background: white;
+        width: 800px;
+        padding: 60px;
+        font-family: Arial, sans-serif;
+    }
+
+    .report-header {
+        text-align: center;
+        margin-bottom: 50px;
+        border-bottom: 3px solid #2c3e50;
+        padding-bottom: 30px;
+    }
+
+    .company-name {
+        font-size: 32px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 10px;
+    }
+
+    .report-title {
+        font-size: 24px;
+        color: #34495e;
+        margin-bottom: 20px;
+    }
+
+    .report-date {
+        font-size: 14px;
+        color: #7f8c8d;
+    }
+
+    .employee-info {
+        background: #f8f9fa;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 40px;
+        border-left: 5px solid #3498db;
+    }
+
+    .employee-name {
+        font-size: 28px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+
+    .supervisor-info {
+        font-size: 16px;
+        color: #7f8c8d;
+        margin-bottom: 10px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 2px solid #ecf0f1;
+        border-radius: 15px;
+        padding: 30px;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .stat-value {
+        font-size: 36px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .present-days .stat-value {
+        color: #27ae60;
+    }
+
+    .overtime-hours .stat-value {
+        color: #e67e22;
+    }
+
+    .total-hours .stat-value {
+        color: #3498db;
+    }
+
+    .avg-hours .stat-value {
+        color: #9b59b6;
+    }
+
+    .stat-label {
+        font-size: 16px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 1px;
+    }
+
+    .summary-section {
+        background: #34495e;
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-top: 40px;
+    }
+
+    .summary-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .summary-text {
+        font-size: 16px;
+        line-height: 1.6;
+        text-align: center;
+    }
+
+    .report-footer {
+        margin-top: 50px;
+        padding-top: 30px;
+        border-top: 2px solid #ecf0f1;
+        text-align: center;
+        color: #7f8c8d;
+        font-size: 14px;
+    }
+</style>
+```
+
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true">SC</div>
-        <div>
-          <div class="title">Start Shift — Attendance Portal</div>
-          <div class="subtitle">Search your name • Get a pro report (JPEG)</div>
-        </div>
-      </div>
-      <button class="btn btn-secondary" id="btnDownloadLast" title="Download last report again" style="display:none">Download Again</button>
-    </header><section class="search-card">
-  <div class="row">
-    <label class="field" for="name">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21 21l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/></svg>
-      <input id="name" placeholder="Type your name (e.g., AMAN KUMAR)" autocomplete="name" />
-    </label>
-    <button class="btn btn-primary" id="btnSearch">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Get My Report
-    </button>
-  </div>
-  <div class="hint">Admin note: set <code>CSV_URL</code> to your Google Sheet’s published CSV or a raw CSV in this repo. If fetching fails, the built‑in sample below is used so the app still works.</div>
-  <div class="hint">Expected headers: <strong>Date</strong>, <strong>Supervisor</strong>, <strong>EMP NAME</strong>, <strong>Shift Hours</strong>, <strong>OT HOURS</strong>.</div>
-</section>
+    <div class="container">
+        <div class="logo">AR</div>
+        <h1>Attendance Report</h1>
+        <p class="subtitle">Enter your name to generate your attendance summary</p>
 
-<div class="report-wrap">
-  <div id="report" class="report" role="region" aria-live="polite" aria-label="Attendance summary report">
-    <div class="watermark" aria-hidden="true"></div>
-    <div class="r-head">
-      <div class="r-brand">
-        <div class="r-logo">SC</div>
-        <div>
-          <div class="title" id="rTitle">Attendance Summary</div>
-          <div class="subtitle" id="rSub">Start Shift • —</div>
-        </div>
-      </div>
-      <span class="badge" id="rBadge">AUG 2025</span>
+```
+    <div class="search-section">
+        <input type="text" 
+               id="employeeName" 
+               class="search-input" 
+               placeholder="Enter your full name..."
+               autocomplete="off">
+        <button id="searchBtn" class="search-btn">Generate Report</button>
     </div>
-    <div class="grid">
-      <div class="stat"><div class="label">Employee</div><div class="value" id="rName">—</div></div>
-      <div class="stat"><div class="label">Days Present</div><div class="value" id="rDays">0</div></div>
-      <div class="stat"><div class="label">Overtime Hours</div><div class="value" id="rOT">0</div></div>
+
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Fetching your attendance data...</p>
     </div>
-    <table class="table" id="rTable" aria-label="Attendance entries">
-      <thead><tr><th>Date</th><th>Supervisor</th><th>Shift Hours</th><th>OT Hours</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
+
+    <div id="message"></div>
 </div>
 
-  </div>  <div class="toast" id="toast">Report downloaded</div>  <script>
-    // ======= CONFIG =======
-    // 1) If using Google Sheets, publish the sheet (File → Share → Publish to web → Link → Sheet: START SHIFT → CSV)
-    //    Then paste the export URL below. It should look like:
-    //    https://docs.google.com/spreadsheets/d/<SHEET_ID>/export?format=csv&gid=<GID>
-    // 2) Or, commit a CSV file to your GitHub repo (e.g., data/start_shift.csv) and put the raw URL here.
-    const CSV_URL = ""; // <- set this. If left empty or fails, SAMPLE_CSV is used.
+<!-- Hidden Report Container -->
+<div id="reportContainer" class="report-container">
+    <div class="report-header">
+        <div class="company-name">COMPANY NAME</div>
+        <div class="report-title">Employee Attendance Summary</div>
+        <div class="report-date" id="reportDate"></div>
+    </div>
 
-    // Built-in sample fallback (from your message)
-    const SAMPLE_CSV = `Date,Supervisor,EMP NAME,Shift Hours,OT HOURS\n`
-      + `1 August 2025,MAHENDRA KUMAR,AMAN KUMAR,8,4\n`
-      + `1 August 2025,MAHENDRA KUMAR,ATUL MAHADEO,8,4\n`
-      + `1 August 2025,MAHENDRA KUMAR,CHANDAN KUMAR,8,4\n`
-      + `1 August 2025,HARKIRAT SINGH,DAULAT YADAV,8,\n`
-      + `1 August 2025,MAHENDRA KUMAR,DEEPAK DAS,8,4\n`
-      + `1 August 2025,MAHENDRA KUMAR,DEEPAK KUMAR,8,4\n`
-      + `1 August 2025,PINTU SAH,FOOL SINGH,8,\n`
-      + `1 August 2025,HARKIRAT SINGH,HARKIRAT,8,\n`
-      + `1 August 2025,HARKIRAT SINGH,KIRAN PASWAN,8,\n`
-      + `1 August 2025,MAHENDRA KUMAR,MAHENDRA KUMAR,8,4\n`
-      + `1 August 2025,HARKIRAT SINGH,MINTU,8,\n`
-      + `1 August 2025,HARKIRAT SINGH,MITLESH KUMAR,8,\n`
-      + `1 August 2025,PINTU SAH,NANDAN KUMAR,8,\n`
-      + `1 August 2025,HARKIRAT SINGH,NARESH KUMAR,8,`;
+    <div class="employee-info">
+        <div class="employee-name" id="reportEmpName"></div>
+        <div class="supervisor-info">Supervisor: <span id="reportSupervisor"></span></div>
+    </div>
 
-    // ======= UTILITIES =======
-    const qs = (s, el=document) => el.querySelector(s);
-    const qsa = (s, el=document) => Array.from(el.querySelectorAll(s));
-    const toNum = (v) => {
-      if (v === null || v === undefined) return 0;
-      if (typeof v === 'number') return v;
-      const s = String(v).trim();
-      if (!s) return 0;
-      const n = Number(s.replace(/[^0-9.\-]/g, ''));
-      return isFinite(n) ? n : 0;
-    };
-    const fmt = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
+    <div class="stats-grid">
+        <div class="stat-card present-days">
+            <div class="stat-value" id="presentDays">0</div>
+            <div class="stat-label">Present Days</div>
+        </div>
+        <div class="stat-card overtime-hours">
+            <div class="stat-value" id="overtimeHours">0</div>
+            <div class="stat-label">Overtime Hours</div>
+        </div>
+        <div class="stat-card total-hours">
+            <div class="stat-value" id="totalHours">0</div>
+            <div class="stat-label">Total Hours</div>
+        </div>
+        <div class="stat-card avg-hours">
+            <div class="stat-value" id="avgHours">0</div>
+            <div class="stat-label">Avg Hours/Day</div>
+        </div>
+    </div>
 
-    function detectDelimiter(line){
-      // Support commas or tabs automatically
-      const commas = (line.match(/,/g) || []).length;
-      const tabs = (line.match(/\t/g) || []).length;
-      return tabs > commas ? '\t' : ',';
+    <div class="summary-section">
+        <div class="summary-title">Performance Summary</div>
+        <div class="summary-text" id="summaryText"></div>
+    </div>
+
+    <div class="report-footer">
+        <p>Generated on <span id="generatedDate"></span> | This is an automated report</p>
+    </div>
+</div>
+
+<script>
+    let csvData = [];
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1727336003&single=true&output=csv';
+
+    // Function to parse CSV data
+    function parseCSV(csvText) {
+        const lines = csvText.trim().split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
+        const data = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim());
+            const row = {};
+            headers.forEach((header, index) => {
+                row[header] = values[index] || '';
+            });
+            data.push(row);
+        }
+        
+        return data;
     }
 
-    function parseCSV(text){
-      // Lightweight parser for simple CSV/TSV (no quoted commas inside fields in this dataset)
-      const firstLine = text.split(/\r?\n/)[0] || '';
-      const delim = detectDelimiter(firstLine);
-      const lines = text.split(/\r?\n/).filter(Boolean);
-      const headers = lines.shift().split(delim).map(h=>h.trim());
-      return lines.map(line => {
-        const parts = line.split(delim).map(p=>p.trim());
-        const obj = {};
-        headers.forEach((h,i)=> obj[h] = parts[i] ?? '');
-        return obj;
-      });
+    // Function to fetch CSV data
+    async function fetchCSVData() {
+        try {
+            const response = await fetch(csvUrl);
+            if (!response.ok) {
+                throw new Error('Failed to fetch data');
+            }
+            const csvText = await response.text();
+            csvData = parseCSV(csvText);
+            console.log('CSV data loaded:', csvData.length, 'records');
+        } catch (error) {
+            console.error('Error fetching CSV:', error);
+            throw error;
+        }
     }
 
-    async function loadData(){
-      if (!CSV_URL){
-        return parseCSV(SAMPLE_CSV);
-      }
-      try{
-        const res = await fetch(CSV_URL, { cache: 'no-store' });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const text = await res.text();
-        return parseCSV(text);
-      }catch(err){
-        console.warn('Failed to fetch CSV_URL, using SAMPLE_CSV. Reason:', err);
-        return parseCSV(SAMPLE_CSV);
-      }
+    // Function to search employee data
+    function searchEmployee(name) {
+        const searchName = name.trim().toLowerCase();
+        return csvData.filter(row => 
+            row['EMP NAME'] && row['EMP NAME'].toLowerCase().includes(searchName)
+        );
     }
 
-    function normalizeName(s){
-      return (s||'').toString().trim().replace(/\s+/g,' ').toUpperCase();
+    // Function to calculate attendance statistics
+    function calculateStats(employeeData) {
+        const presentDays = employeeData.length;
+        let totalShiftHours = 0;
+        let totalOvertimeHours = 0;
+        let supervisor = '';
+
+        employeeData.forEach(record => {
+            const shiftHours = parseFloat(record['Shift Hours']) || 0;
+            const otHours = parseFloat(record['OT HOURS']) || 0;
+            
+            totalShiftHours += shiftHours;
+            totalOvertimeHours += otHours;
+            
+            if (!supervisor && record['Supervisor']) {
+                supervisor = record['Supervisor'];
+            }
+        });
+
+        const totalHours = totalShiftHours + totalOvertimeHours;
+        const avgHours = presentDays > 0 ? (totalHours / presentDays).toFixed(1) : 0;
+
+        return {
+            presentDays,
+            totalShiftHours,
+            totalOvertimeHours,
+            totalHours,
+            avgHours,
+            supervisor
+        };
     }
 
-    function computeSummary(rows){
-      const dates = new Set();
-      let ot = 0, shift = 0;
-      rows.forEach(r=>{
-        const sh = toNum(r['Shift Hours']);
-        const oh = toNum(r['OT HOURS']);
-        if (sh > 0) dates.add((r['Date']||'').trim());
-        shift += sh;
-        ot += oh;
-      });
-      return { daysPresent: dates.size, totalOT: ot, totalShift: shift };
+    // Function to generate performance summary
+    function generateSummary(stats) {
+        let summary = `Excellent attendance record with ${stats.presentDays} working days completed. `;
+        
+        if (stats.totalOvertimeHours > 0) {
+            summary += `Contributed ${stats.totalOvertimeHours} overtime hours showing dedication and commitment. `;
+        }
+        
+        summary += `Maintaining an average of ${stats.avgHours} hours per day demonstrates consistent performance.`;
+        
+        return summary;
     }
 
-    function renderReport({empName, rows}){
-      const report = qs('#report');
-      const tbody = qs('#rTable tbody');
-      tbody.innerHTML = '';
+    // Function to generate report
+    function generateReport(employeeName, stats) {
+        const reportContainer = document.getElementById('reportContainer');
+        const now = new Date();
+        
+        // Update report content
+        document.getElementById('reportDate').textContent = now.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        document.getElementById('reportEmpName').textContent = employeeName.toUpperCase();
+        document.getElementById('reportSupervisor').textContent = stats.supervisor || 'N/A';
+        document.getElementById('presentDays').textContent = stats.presentDays;
+        document.getElementById('overtimeHours').textContent = stats.totalOvertimeHours;
+        document.getElementById('totalHours').textContent = stats.totalHours;
+        document.getElementById('avgHours').textContent = stats.avgHours;
+        document.getElementById('summaryText').textContent = generateSummary(stats);
+        document.getElementById('generatedDate').textContent = now.toLocaleString();
 
-      // Limit to latest 12 rows for the table (still shows totals above)
-      const limited = rows.slice(0, 12);
-      limited.forEach(r=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${r['Date']||''}</td><td>${r['Supervisor']||''}</td><td>${r['Shift Hours']||''}</td><td>${r['OT HOURS']||''}</td>`;
-        tbody.appendChild(tr);
-      });
+        // Show report container temporarily for screenshot
+        reportContainer.style.display = 'block';
+        reportContainer.style.position = 'absolute';
+        reportContainer.style.top = '0';
+        reportContainer.style.left = '0';
+        reportContainer.style.zIndex = '-1';
 
-      const { daysPresent, totalOT, totalShift } = computeSummary(rows);
-      qs('#rName').textContent = empName;
-      qs('#rDays').textContent = fmt.format(daysPresent);
-      qs('#rOT').textContent = fmt.format(totalOT);
+        // Generate screenshot
+        html2canvas(reportContainer, {
+            width: 800,
+            height: 1200,
+            backgroundColor: '#ffffff',
+            scale: 2
+        }).then(canvas => {
+            // Hide report container again
+            reportContainer.style.display = 'none';
+            reportContainer.style.position = 'fixed';
+            reportContainer.style.top = '-9999px';
+            reportContainer.style.left = '-9999px';
 
-      // Subhead and badge (month-year if detectable)
-      const dates = rows.map(r => (r['Date']||'').trim()).filter(Boolean);
-      const monthBadge = (()=>{
-        if (!dates.length) return '';
-        // Try to extract month name + year from first row
-        const m = dates[0].match(/([A-Za-z]+)\s+(\d{4})/);
-        return m ? (m[1].slice(0,3).toUpperCase() + ' ' + m[2]) : '';
-      })();
-      qs('#rBadge').textContent = monthBadge || 'SUMMARY';
-      qs('#rSub').textContent = `Start Shift • ${rows.length} entries • Shift Hours: ${fmt.format(totalShift)}`;
+            // Download the image
+            const link = document.createElement('a');
+            link.download = `${employeeName.replace(/\s+/g, '_')}_Attendance_Report.jpeg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.8);
+            link.click();
 
-      report.style.display = 'block';
+            showMessage('Report downloaded successfully!', 'success');
+        }).catch(error => {
+            console.error('Error generating report:', error);
+            reportContainer.style.display = 'none';
+            showMessage('Error generating report. Please try again.', 'error');
+        });
     }
 
-    async function generateAndDownload(empQuery){
-      const data = await loadData();
-      const target = normalizeName(empQuery);
-      if (!target){
-        showToast('Please enter a name.');
-        return;
-      }
-      // Filter rows for the employee
-      const rows = data.filter(r => normalizeName(r['EMP NAME']) === target);
-      if (!rows.length){
-        showToast('No records found for "' + empQuery + '"', true);
-        qs('#report').style.display = 'none';
-        return;
-      }
-      renderReport({ empName: empQuery.trim(), rows });
-      await downloadReportJPEG();
-      qs('#btnDownloadLast').style.display = 'inline-flex';
+    // Function to show messages
+    function showMessage(message, type) {
+        const messageEl = document.getElementById('message');
+        messageEl.innerHTML = `<div class="${type}">${message}</div>`;
+        setTimeout(() => {
+            messageEl.innerHTML = '';
+        }, 5000);
     }
 
-    async function downloadReportJPEG(){
-      const node = qs('#report');
-      // Give fonts/layout a frame to settle
-      await new Promise(r => setTimeout(r, 60));
-      const canvas = await html2canvas(node, { scale: 2, backgroundColor: null, useCORS: true });
-      const dataURL = canvas.toDataURL('image/jpeg', 0.95);
-      const nameText = normalizeName(qs('#rName').textContent).replace(/[^A-Z0-9]+/g,'_');
-      const a = document.createElement('a');
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = String(now.getMonth()+1).padStart(2,'0');
-      const d = String(now.getDate()).padStart(2,'0');
-      a.href = dataURL;
-      a.download = `${nameText || 'ATTENDANCE'}_${y}${m}${d}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      showToast('Report downloaded');
+    // Function to show loading
+    function showLoading(show) {
+        const loading = document.getElementById('loading');
+        const searchBtn = document.getElementById('searchBtn');
+        
+        loading.style.display = show ? 'block' : 'none';
+        searchBtn.disabled = show;
     }
 
-    function showToast(msg, error=false){
-      const t = qs('#toast');
-      t.textContent = msg;
-      t.style.borderColor = error ? 'var(--danger)' : 'var(--border)';
-      t.style.display = 'block';
-      clearTimeout(showToast._timer);
-      showToast._timer = setTimeout(()=>{ t.style.display = 'none'; }, 3000);
-    }
+    // Search button event listener
+    document.getElementById('searchBtn').addEventListener('click', async function() {
+        const employeeName = document.getElementById('employeeName').value.trim();
+        
+        if (!employeeName) {
+            showMessage('Please enter your name', 'error');
+            return;
+        }
 
-    // ======= EVENTS =======
-    qs('#btnSearch').addEventListener('click', () => {
-      const name = qs('#name').value;
-      generateAndDownload(name);
+        showLoading(true);
+
+        try {
+            // Fetch fresh data
+            await fetchCSVData();
+            
+            // Search for employee
+            const employeeData = searchEmployee(employeeName);
+            
+            if (employeeData.length === 0) {
+                showMessage('Employee not found. Please check the spelling and try again.', 'error');
+                showLoading(false);
+                return;
+            }
+
+            // Calculate statistics
+            const stats = calculateStats(employeeData);
+            
+            // Generate report
+            generateReport(employeeData[0]['EMP NAME'], stats);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage('Error fetching data. Please check your internet connection and try again.', 'error');
+        }
+        
+        showLoading(false);
     });
-    qs('#name').addEventListener('keydown', (e)=>{
-      if (e.key === 'Enter') qs('#btnSearch').click();
-    });
-    qs('#btnDownloadLast').addEventListener('click', downloadReportJPEG);
 
-    // Optional: prefill for demo
-    // qs('#name').value = 'AMAN KUMAR';
-  </script></body>
+    // Enter key support
+    document.getElementById('employeeName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('searchBtn').click();
+        }
+    });
+
+    // Load initial data
+    fetchCSVData().catch(error => {
+        console.error('Initial data load failed:', error);
+    });
+</script>
+```
+
+</body>
 </html>

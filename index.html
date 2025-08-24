@@ -94,18 +94,7 @@
                 <h2 class="text-2xl font-bold text-gray-900">Worker Attendance</h2>
                 <div class="flex items-center space-x-4">
                     <select id="monthSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <option value="2024-01">January 2024</option>
-                        <option value="2024-02">February 2024</option>
-                        <option value="2024-03">March 2024</option>
-                        <option value="2024-04">April 2024</option>
-                        <option value="2024-05">May 2024</option>
-                        <option value="2024-06">June 2024</option>
-                        <option value="2024-07">July 2024</option>
-                        <option value="2024-08" selected>August 2024</option>
-                        <option value="2024-09">September 2024</option>
-                        <option value="2024-10">October 2024</option>
-                        <option value="2024-11">November 2024</option>
-                        <option value="2024-12">December 2024</option>
+                        <!-- Options will be populated dynamically based on available data -->
                     </select>
                 </div>
             </div>
@@ -218,54 +207,39 @@
             document.getElementById('productivityView').classList.add('hidden');
 
             try {
-                // Try to load real data first with proper CSV export URLs
-                const attendanceResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/export?format=csv&gid=0', {
+                // Load attendance data from "START SHIFT" sheet
+                const attendanceResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/gviz/tq?tqx=out:csv&sheet=START%20SHIFT', {
                     mode: 'cors',
                     headers: {
-                        'Accept': 'text/csv,text/plain,*/*'
+                        'Accept': 'text/csv,text/plain,*/*',
+                        'Cache-Control': 'no-cache'
                     }
                 });
                 
                 if (!attendanceResponse.ok) {
-                    throw new Error('Failed to fetch attendance data');
+                    throw new Error(`Failed to fetch attendance data: ${attendanceResponse.status} ${attendanceResponse.statusText}`);
                 }
                 
                 const attendanceText = await attendanceResponse.text();
+                console.log('Attendance data loaded:', attendanceText.substring(0, 200) + '...');
                 attendanceData = parseCSV(attendanceText);
 
-                // For the second sheet, we need to find the correct gid (sheet ID)
-                // Let's try a few common approaches
-                let productivityText = '';
-                const productivityUrls = [
-                    'https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/export?format=csv&gid=1',
-                    'https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/export?format=csv&gid=2',
-                    'https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/export?format=csv'
-                ];
-                
-                let productivityLoaded = false;
-                for (const url of productivityUrls) {
-                    try {
-                        const productivityResponse = await fetch(url, {
-                            mode: 'cors',
-                            headers: {
-                                'Accept': 'text/csv,text/plain,*/*'
-                            }
-                        });
-                        
-                        if (productivityResponse.ok) {
-                            productivityText = await productivityResponse.text();
-                            productivityData = parseCSV(productivityText);
-                            productivityLoaded = true;
-                            break;
-                        }
-                    } catch (e) {
-                        continue;
+                // Load productivity data from "ALL OVER" sheet
+                const productivityResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/gviz/tq?tqx=out:csv&sheet=ALL%20OVER', {
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'text/csv,text/plain,*/*',
+                        'Cache-Control': 'no-cache'
                     }
+                });
+                
+                if (!productivityResponse.ok) {
+                    throw new Error(`Failed to fetch productivity data: ${productivityResponse.status} ${productivityResponse.statusText}`);
                 }
                 
-                if (!productivityLoaded) {
-                    throw new Error('Failed to fetch productivity data from all attempted URLs');
-                }
+                const productivityText = await productivityResponse.text();
+                console.log('Productivity data loaded:', productivityText.substring(0, 200) + '...');
+                productivityData = parseCSV(productivityText);
 
                 // Show success message
                 showNotification('✅ Data loaded successfully from Google Sheets!', 'success');
@@ -277,6 +251,9 @@
                 loadSampleData();
                 showNotification('⚠️ Using sample data - Google Sheets connection failed', 'warning');
             }
+
+            // Populate month selector with available data
+            populateMonthSelector();
 
             // Render current view
             if (currentView === 'attendance') {
@@ -353,17 +330,137 @@
         }
 
         function parseCSV(text) {
-            const lines = text.trim().split('\n');
-            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+            if (!text || text.trim() === '') {
+                console.error('Empty CSV data received');
+                return [];
+            }
             
-            return lines.slice(1).map(line => {
+            const lines = text.trim().split('\n');
+            if (lines.length < 2) {
+                console.error('CSV data has insufficient rows');
+                return [];
+            }
+            
+            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+            console.log('CSV Headers found:', headers);
+            
+            const data = lines.slice(1).map((line, index) => {
+                if (!line.trim()) return null; // Skip empty lines
+                
                 const values = line.split(',').map(v => v.replace(/"/g, '').trim());
                 const obj = {};
-                headers.forEach((header, index) => {
-                    obj[header] = values[index] || '';
+                headers.forEach((header, headerIndex) => {
+                    obj[header] = values[headerIndex] || '';
                 });
                 return obj;
+            }).filter(row => row !== null); // Remove null entries
+            
+            console.log(`Parsed ${data.length} rows from CSV`);
+            console.log('Sample data:', data.slice(0, 3));
+            return data;
+        }
+
+        function parseDate(dateString) {
+            if (!dateString || dateString.trim() === '') return null;
+            
+            // Try multiple date formats commonly used in Google Sheets
+            const formats = [
+                // Standard formats
+                /^(\d{4})-(\d{1,2})-(\d{1,2})$/,  // 2024-8-15 or 2024-08-15
+                /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // 8/15/2024 or 08/15/2024
+                /^(\d{1,2})-(\d{1,2})-(\d{4})$/,  // 8-15-2024 or 08-15-2024
+                /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/, // 2024/8/15 or 2024/08/15
+            ];
+            
+            const str = dateString.trim();
+            
+            // Try YYYY-MM-DD format
+            let match = str.match(formats[0]);
+            if (match) {
+                return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+            }
+            
+            // Try MM/DD/YYYY format
+            match = str.match(formats[1]);
+            if (match) {
+                return new Date(parseInt(match[3]), parseInt(match[1]) - 1, parseInt(match[2]));
+            }
+            
+            // Try MM-DD-YYYY format
+            match = str.match(formats[2]);
+            if (match) {
+                return new Date(parseInt(match[3]), parseInt(match[1]) - 1, parseInt(match[2]));
+            }
+            
+            // Try YYYY/MM/DD format
+            match = str.match(formats[3]);
+            if (match) {
+                return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+            }
+            
+            // Try JavaScript's built-in Date parsing as fallback
+            const fallbackDate = new Date(str);
+            if (!isNaN(fallbackDate.getTime())) {
+                return fallbackDate;
+            }
+            
+            console.warn('Could not parse date:', dateString);
+            return null;
+        }
+
+        function populateMonthSelector() {
+            const monthSelect = document.getElementById('monthSelect');
+            const availableMonths = new Set();
+            
+            // Extract all unique year-month combinations from attendance data
+            attendanceData.forEach(record => {
+                if (record['Date']) {
+                    const date = parseDate(record['Date']);
+                    if (date && !isNaN(date.getTime())) {
+                        const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        availableMonths.add(yearMonth);
+                    }
+                }
             });
+            
+            // Convert to sorted array
+            const sortedMonths = Array.from(availableMonths).sort();
+            
+            // Clear existing options
+            monthSelect.innerHTML = '';
+            
+            // Add options for available months
+            const monthNames = [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+            ];
+            
+            sortedMonths.forEach((yearMonth, index) => {
+                const [year, month] = yearMonth.split('-');
+                const monthName = monthNames[parseInt(month) - 1];
+                const option = document.createElement('option');
+                option.value = yearMonth;
+                option.textContent = `${monthName} ${year}`;
+                
+                // Select the most recent month by default
+                if (index === sortedMonths.length - 1) {
+                    option.selected = true;
+                }
+                
+                monthSelect.appendChild(option);
+            });
+            
+            // If no data available, add current month as fallback
+            if (sortedMonths.length === 0) {
+                const now = new Date();
+                const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                const currentMonthName = monthNames[now.getMonth()];
+                const option = document.createElement('option');
+                option.value = currentYearMonth;
+                option.textContent = `${currentMonthName} ${now.getFullYear()}`;
+                option.selected = true;
+                monthSelect.appendChild(option);
+            }
         }
 
         function switchTab(tab) {
@@ -394,9 +491,15 @@
             const selectedMonth = document.getElementById('monthSelect').value;
             const [year, month] = selectedMonth.split('-');
             
+            console.log(`Rendering attendance for ${year}-${month}`);
+            
             // Group attendance data by worker
             const workerData = {};
+            let processedRecords = 0;
+            let validDates = 0;
+            
             attendanceData.forEach(record => {
+                processedRecords++;
                 if (record['EMP NAME'] && record['Date']) {
                     const empName = record['EMP NAME'];
                     if (!workerData[empName]) {
@@ -407,22 +510,45 @@
                         };
                     }
                     
-                    const date = new Date(record['Date']);
-                    if (date.getFullYear() == year && (date.getMonth() + 1) == parseInt(month)) {
-                        const dayKey = date.getDate();
-                        workerData[empName].attendance[dayKey] = {
-                            present: true,
-                            supervisor: record['Supervisor'] || 'N/A',
-                            shiftHours: parseFloat(record['Shift Hours']) || 0,
-                            otHours: parseFloat(record['OT HOURS']) || 0
-                        };
+                    const date = parseDate(record['Date']);
+                    if (date && !isNaN(date.getTime())) {
+                        validDates++;
+                        if (date.getFullYear() == year && (date.getMonth() + 1) == parseInt(month)) {
+                            const dayKey = date.getDate();
+                            workerData[empName].attendance[dayKey] = {
+                                present: true,
+                                supervisor: record['Supervisor'] || 'N/A',
+                                shiftHours: parseFloat(record['Shift Hours']) || 0,
+                                otHours: parseFloat(record['OT HOURS']) || 0,
+                                rawDate: record['Date'] // Keep original for debugging
+                            };
+                        }
+                    } else {
+                        console.warn('Invalid date found:', record['Date']);
                     }
                 }
             });
 
+            console.log(`Processed ${processedRecords} records, ${validDates} valid dates, ${Object.keys(workerData).length} workers`);
+
             // Generate calendar for each worker
             const workerGrid = document.getElementById('workerGrid');
             workerGrid.innerHTML = '';
+
+            if (Object.keys(workerData).length === 0) {
+                workerGrid.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <div class="text-gray-500 text-lg mb-2">No attendance data found</div>
+                        <div class="text-gray-400 text-sm">
+                            ${processedRecords > 0 ? 
+                                `Processed ${processedRecords} records but none matched the selected month` : 
+                                'No attendance records available'
+                            }
+                        </div>
+                    </div>
+                `;
+                return;
+            }
 
             Object.values(workerData).forEach(worker => {
                 const workerCard = createWorkerCard(worker, year, month);
@@ -505,9 +631,9 @@
             
             if (dateFilter) {
                 filteredData = productivityData.filter(record => {
-                    const recordDate = new Date(record['DATE']);
+                    const recordDate = parseDate(record['DATE']);
                     const filterDate = new Date(dateFilter);
-                    return recordDate.toDateString() === filterDate.toDateString();
+                    return recordDate && recordDate.toDateString() === filterDate.toDateString();
                 });
             }
             
@@ -640,5 +766,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973f57a0e1a4d9c7',t:'MTc1NjAwMTczMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973f6737536b3f8a',t:'MTc1NjAwMjM2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

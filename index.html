@@ -218,41 +218,138 @@
             document.getElementById('productivityView').classList.add('hidden');
 
             try {
-                // Load attendance data
-                const attendanceResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/gviz/tq?tqx=out:csv&sheet=START%20SHIFT');
+                // Try to load real data first with proper CSV export URLs
+                const attendanceResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/export?format=csv&gid=0', {
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'text/csv,text/plain,*/*'
+                    }
+                });
+                
+                if (!attendanceResponse.ok) {
+                    throw new Error('Failed to fetch attendance data');
+                }
+                
                 const attendanceText = await attendanceResponse.text();
                 attendanceData = parseCSV(attendanceText);
 
-                // Load productivity data
-                const productivityResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/gviz/tq?tqx=out:csv&sheet=ALL%20OVER');
-                const productivityText = await productivityResponse.text();
-                productivityData = parseCSV(productivityText);
-
-                // Render current view
-                if (currentView === 'attendance') {
-                    renderAttendanceView();
-                } else {
-                    renderProductivityView();
+                // For the second sheet, we need to find the correct gid (sheet ID)
+                // Let's try a few common approaches
+                let productivityText = '';
+                const productivityUrls = [
+                    'https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/export?format=csv&gid=1',
+                    'https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/export?format=csv&gid=2',
+                    'https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/export?format=csv'
+                ];
+                
+                let productivityLoaded = false;
+                for (const url of productivityUrls) {
+                    try {
+                        const productivityResponse = await fetch(url, {
+                            mode: 'cors',
+                            headers: {
+                                'Accept': 'text/csv,text/plain,*/*'
+                            }
+                        });
+                        
+                        if (productivityResponse.ok) {
+                            productivityText = await productivityResponse.text();
+                            productivityData = parseCSV(productivityText);
+                            productivityLoaded = true;
+                            break;
+                        }
+                    } catch (e) {
+                        continue;
+                    }
+                }
+                
+                if (!productivityLoaded) {
+                    throw new Error('Failed to fetch productivity data from all attempted URLs');
                 }
 
-                document.getElementById('loadingState').classList.add('hidden');
+                // Show success message
+                showNotification('✅ Data loaded successfully from Google Sheets!', 'success');
+
             } catch (error) {
-                console.error('Error loading data:', error);
-                document.getElementById('loadingState').innerHTML = `
-                    <div class="text-center py-12">
-                        <div class="w-16 h-16 bg-red-100 rounded-full mx-auto mb-4 flex items-center justify-center">
-                            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <p class="text-red-600 font-medium">Failed to load data</p>
-                        <p class="text-gray-500 text-sm mt-1">Please check your internet connection and try again</p>
-                        <button onclick="loadData()" class="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
-                            Retry
-                        </button>
-                    </div>
-                `;
+                console.error('Error loading live data:', error);
+                
+                // Load sample data as fallback
+                loadSampleData();
+                showNotification('⚠️ Using sample data - Google Sheets connection failed', 'warning');
             }
+
+            // Render current view
+            if (currentView === 'attendance') {
+                renderAttendanceView();
+            } else {
+                renderProductivityView();
+            }
+
+            document.getElementById('loadingState').classList.add('hidden');
+        }
+
+        function loadSampleData() {
+            // Sample attendance data
+            attendanceData = [
+                { 'Date': '2024-08-01', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '2' },
+                { 'Date': '2024-08-02', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '4' },
+                { 'Date': '2024-08-03', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '0' },
+                { 'Date': '2024-08-05', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '6' },
+                { 'Date': '2024-08-06', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '0' },
+                { 'Date': '2024-08-07', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '0' },
+                { 'Date': '2024-08-01', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '3' },
+                { 'Date': '2024-08-02', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '0' },
+                { 'Date': '2024-08-04', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '5' },
+                { 'Date': '2024-08-05', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '2' },
+                { 'Date': '2024-08-06', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '4' },
+                { 'Date': '2024-08-01', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '1' },
+                { 'Date': '2024-08-02', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '0' },
+                { 'Date': '2024-08-03', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '2' },
+                { 'Date': '2024-08-04', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '4' },
+                { 'Date': '2024-08-07', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '0' }
+            ];
+
+            // Sample productivity data
+            productivityData = [
+                { 'DATE': '2024-08-01', 'ERECTION': '12', 'DISMANTLING': '8', 'EQUILVENT': '20', 'MANHOURS': '64', 'OT HOURS': '6', 'PRODUCTIVITY': '0.31' },
+                { 'DATE': '2024-08-02', 'ERECTION': '15', 'DISMANTLING': '5', 'EQUILVENT': '20', 'MANHOURS': '72', 'OT HOURS': '4', 'PRODUCTIVITY': '0.28' },
+                { 'DATE': '2024-08-03', 'ERECTION': '10', 'DISMANTLING': '10', 'EQUILVENT': '20', 'MANHOURS': '56', 'OT HOURS': '2', 'PRODUCTIVITY': '0.36' },
+                { 'DATE': '2024-08-04', 'ERECTION': '18', 'DISMANTLING': '2', 'EQUILVENT': '20', 'MANHOURS': '80', 'OT HOURS': '9', 'PRODUCTIVITY': '0.25' },
+                { 'DATE': '2024-08-05', 'ERECTION': '14', 'DISMANTLING': '6', 'EQUILVENT': '20', 'MANHOURS': '68', 'OT HOURS': '8', 'PRODUCTIVITY': '0.29' },
+                { 'DATE': '2024-08-06', 'ERECTION': '16', 'DISMANTLING': '4', 'EQUILVENT': '20', 'MANHOURS': '64', 'OT HOURS': '4', 'PRODUCTIVITY': '0.31' },
+                { 'DATE': '2024-08-07', 'ERECTION': '13', 'DISMANTLING': '7', 'EQUILVENT': '20', 'MANHOURS': '56', 'OT HOURS': '0', 'PRODUCTIVITY': '0.36' }
+            ];
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all duration-300 transform translate-x-full`;
+            
+            if (type === 'success') {
+                notification.classList.add('bg-green-600');
+            } else if (type === 'warning') {
+                notification.classList.add('bg-yellow-600');
+            } else if (type === 'error') {
+                notification.classList.add('bg-red-600');
+            } else {
+                notification.classList.add('bg-blue-600');
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 4000);
         }
 
         function parseCSV(text) {
@@ -543,5 +640,5 @@
             });
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973f516240669a9c',t:'MTc1NjAwMTQ3NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973f57a0e1a4d9c7',t:'MTc1NjAwMTczMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

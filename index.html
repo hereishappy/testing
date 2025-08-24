@@ -1,128 +1,147 @@
-import React, { useEffect, useMemo, useState } from "react"; import Papa from "papaparse"; import { format, parse, isSameMonth, startOfMonth, endOfMonth, eachDayOfInterval, getMonth, getYear } from "date-fns"; import { Card, CardContent } from "@/components/ui/card"; import { Input } from "@/components/ui/input"; import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; import { Button } from "@/components/ui/button"; import { Badge } from "@/components/ui/badge"; import { motion } from "framer-motion"; import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Legend } from "recharts"; import { Search } from "lucide-react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Attendance & Productivity Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background:#f9f9f9; }
+    h1 { margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(250px,1fr)); gap: 16px; }
+    .card { background:white; border-radius:12px; padding:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    .calendar { display:grid; grid-template-columns: repeat(7,1fr); gap:4px; margin-top:8px; }
+    .day { aspect-ratio:1/1; font-size:12px; border-radius:8px; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+    .present { background:#a7f3d0; } /* green light */
+    .ot { background:#16a34a; color:white; } /* dark green */
+    .absent { background:#fecaca; } /* red */
+    .header { font-weight:bold; margin-bottom:6px; }
+    canvas { background:white; border-radius:12px; padding:8px; }
+  </style>
+</head>
+<body>
+  <h1>Attendance & Productivity Dashboard</h1>
+  <p>Data live from Google Sheets (START SHIFT & ALL OVER)</p>
 
-// ====== CONFIG: Your live CSV links (from the Sheets you shared) ====== const FILE_ID = "1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ"; const START_SHIFT_CSV = https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?tqx=out:csv&sheet=START%20SHIFT; const ALL_OVER_CSV = https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?tqx=out:csv&sheet=ALL%20OVER;
+  <h2>Worker Attendance</h2>
+  <div id="attendance" class="grid"></div>
 
-// ====== Utilities ====== function parseDateSmart(value) { if (!value) return null; const v = String(value).trim(); // Try patterns in order const patterns = [ { fmt: "d MMMM yyyy" }, // 1 August 2025 { fmt: "dd-MM-yyyy" }, // 01-08-2025 { fmt: "d-M-yyyy" }, { fmt: "yyyy-MM-dd" }, ]; for (const p of patterns) { try { const dt = parse(v, p.fmt, new Date()); if (!isNaN(dt)) return dt; } catch (e) {} } // If v is a number (Google sometimes gives Excel date serials), attempt Date const n = Number(v); if (!isNaN(n)) { // Excel serial date (assuming 1899-12-30 origin) const epoch = new Date(1899, 11, 30); const dt = new Date(epoch.getTime() + n * 86400000); return isNaN(dt) ? null : dt; } // Fallback: Date constructor const d = new Date(v); return isNaN(d) ? null : d; }
+  <h2>Daily Productivity</h2>
+  <canvas id="productivityChart" height="120"></canvas>
 
-function toKeyDate(d) { return format(d, "yyyy-MM-dd"); }
+<script>
+const FILE_ID = "1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ";
+const START_SHIFT_CSV = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?tqx=out:csv&sheet=START%20SHIFT`;
+const ALL_OVER_CSV = `https://docs.google.com/spreadsheets/d/${FILE_ID}/gviz/tq?tqx=out:csv&sheet=ALL%20OVER`;
 
-function classNames(...xs) { return xs.filter(Boolean).join(" "); }
-
-// ====== CSV Fetcher ====== async function fetchCSV(url) { return new Promise((resolve, reject) => { Papa.parse(url, { download: true, header: true, dynamicTyping: true, skipEmptyLines: true, complete: (results) => resolve(results.data), error: reject, }); }); }
-
-// ====== Calendar Cell Component ====== function DayCell({ day, status }) { // status: "absent" | { present: true, ot: number } const isAbsent = status === "absent"; const isPresent = status && status.present; const ot = isPresent ? Number(status.ot || 0) : 0;
-
-const base = "aspect-square rounded-xl border text-xs sm:text-sm flex flex-col items-center justify-center select-none"; const styles = isAbsent ? "bg-red-100 border-red-200 text-red-700" : isPresent && ot > 0 ? "bg-green-600 border-green-700 text-white" : isPresent ? "bg-emerald-100 border-emerald-200 text-emerald-800" : "bg-gray-50 border-gray-200 text-gray-400"; // outside-month or no data
-
-return ( <div className={classNames(base, styles)}> <div className="font-semibold leading-none">{format(day, "d")}</div> {isPresent && ( <div className="mt-0.5 leading-none font-bold"> {ot > 0 ? P${ot} : "P"} </div> )} {isAbsent && <div className="mt-0.5 leading-none font-bold">A</div>} </div> ); }
-
-function MonthGrid({ monthDate, getStatus }) { const start = startOfMonth(monthDate); const end = endOfMonth(monthDate); const days = eachDayOfInterval({ start, end });
-
-// Pad the grid so weeks align Mon-Sun (use Sun-Sat if you prefer) const firstWeekday = start.getDay(); // 0=Sun const padStart = (firstWeekday + 6) % 7; // make Monday=0 const paddedDays = [ ...Array(padStart).fill(null), ...days, ];
-
-return ( <div className="grid grid-cols-7 gap-2"> {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((wd) => ( <div key={wd} className="text-xs text-muted-foreground text-center mb-1"> {wd} </div> ))} {paddedDays.map((d, idx) => ( <div key={idx}> {d ? <DayCell day={d} status={getStatus(d)} /> : <div />} </div> ))} </div> ); }
-
-// ====== Main Dashboard Component ====== export default function Dashboard() { const [attendance, setAttendance] = useState([]); // rows from START SHIFT const [productivity, setProductivity] = useState([]); // rows from ALL OVER const [loading, setLoading] = useState(true); const [error, setError] = useState(null);
-
-const [query, setQuery] = useState(""); const [month, setMonth] = useState(null); // 0-11 const [year, setYear] = useState(null);
-
-useEffect(() => { let mounted = true; (async () => { try { setLoading(true); const [att, prod] = await Promise.all([ fetchCSV(START_SHIFT_CSV), fetchCSV(ALL_OVER_CSV), ]); if (!mounted) return; setAttendance(att); setProductivity(prod);
-
-// Determine default month/year from latest attendance date
-    const dates = att.map((r) => parseDateSmart(r.Date || r.DATE || r.date)).filter(Boolean);
-    const latest = dates.length ? dates.sort((a, b) => b - a)[0] : new Date();
-    setMonth(getMonth(latest));
-    setYear(getYear(latest));
-  } catch (e) {
-    console.error(e);
-    setError("Failed to load data. Check sharing settings or sheet names.");
-  } finally {
-    setLoading(false);
+function parseDate(d) {
+  if (!d) return null;
+  let tryFormats = [ "d MMMM yyyy", "dd-MM-yyyy", "d-M-yyyy" ];
+  // Quick parse fallback
+  let parts = d.split(/[- ]/);
+  if (parts.length >= 3) {
+    let maybe = new Date(d);
+    if (!isNaN(maybe)) return maybe;
   }
-})();
-return () => {
-  mounted = false;
-};
+  return new Date(d);
+}
 
-}, []);
+function fetchCSV(url) {
+  return new Promise((resolve,reject)=>{
+    Papa.parse(url,{
+      download:true,
+      header:true,
+      skipEmptyLines:true,
+      complete: res => resolve(res.data),
+      error: reject
+    })
+  });
+}
 
-// Normalize attendance: map employee -> dateKey -> { present, ot } const attendanceIndex = useMemo(() => { const idx = new Map(); for (const r of attendance) { const name = (r["EMP NAME"] || r["Emp Name"] || r["EMP_NAME"] || r["Name"] || "").toString().trim(); const dt = parseDateSmart(r.Date || r.DATE || r.date); if (!name || !dt) continue; const dateKey = toKeyDate(dt); const ot = Number(r["OT HOURS"] ?? r["OT_HOURS"] ?? r["OT"] ?? 0) || 0; const shift = Number(r["Shift Hours"] ?? r["SHIFT HOURS"] ?? r["Shift_Hours"] ?? 0) || 0; if (!idx.has(name)) idx.set(name, new Map()); const m = idx.get(name); const prev = m.get(dateKey) || { present: false, ot: 0 }; const newOt = (prev.ot || 0) + (ot || 0); m.set(dateKey, { present: (shift > 0) || true, ot: newOt }); // any row = present } return idx; }, [attendance]);
+function makeCalendar(worker, records) {
+  const div = document.createElement("div");
+  div.className = "card";
+  div.innerHTML = `<div class="header">${worker}</div><div class="calendar"></div>`;
+  const cal = div.querySelector(".calendar");
 
-const employeeNames = useMemo(() => { const names = Array.from(attendanceIndex.keys()); names.sort((a, b) => a.localeCompare(b)); if (!query) return names; const q = query.toLowerCase(); return names.filter((n) => n.toLowerCase().includes(q)); }, [attendanceIndex, query]);
+  // Assume single month (use first record month)
+  const dates = Object.keys(records).map(d=>new Date(d));
+  if (!dates.length) return div;
+  const ref = dates[0];
+  const month = ref.getMonth();
+  const year = ref.getFullYear();
 
-// Build productivity chart data const prodSeries = useMemo(() => { const out = []; for (const r of productivity) { const dt = parseDateSmart(r.DATE || r.Date || r.date); if (!dt) continue; out.push({ date: format(dt, "dd-MMM"), productivity: Number(r.PRODUCTIVITY ?? r.Productivity ?? 0) || 0, erection: Number(r.ERECTION ?? 0) || 0, dismantling: Number(r.DISMANTLING ?? 0) || 0, manhours: Number(r.MANHOURS ?? 0) || 0, ot: Number(r["OT HOURS"] ?? r.OT ?? 0) || 0, }); } return out; }, [productivity]);
+  let start = new Date(year, month, 1);
+  let end = new Date(year, month+1, 0);
 
-const monthDate = useMemo(() => { const m = month ?? getMonth(new Date()); const y = year ?? getYear(new Date()); return new Date(y, m, 1); }, [month, year]);
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
+    let key = d.toISOString().slice(0,10);
+    let cell = document.createElement("div");
+    cell.className = "day";
+    cell.textContent = d.getDate();
+    if (records[key]) {
+      let ot = records[key];
+      if (ot > 0) {
+        cell.classList.add("day","ot");
+        cell.innerHTML = d.getDate()+"<br>P"+ot;
+      } else {
+        cell.classList.add("day","present");
+        cell.innerHTML = d.getDate()+"<br>P";
+      }
+    } else {
+      cell.classList.add("day","absent");
+    }
+    cal.appendChild(cell);
+  }
+  return div;
+}
 
-function getStatusFor(name) { const map = attendanceIndex.get(name) || new Map(); return (day) => { if (!isSameMonth(day, monthDate)) return null; // outside display const key = toKeyDate(day); const rec = map.get(key); if (!rec) return "absent"; return rec; }; }
+async function init() {
+  let attendance = await fetchCSV(START_SHIFT_CSV);
+  let productivity = await fetchCSV(ALL_OVER_CSV);
 
-const months = [ "January","February","March","April","May","June","July","August","September","October","November","December" ];
+  // Attendance index by worker
+  let index = {};
+  attendance.forEach(r=>{
+    let name = r["EMP NAME"] || r["Emp Name"] || "";
+    let date = parseDate(r.Date || r.DATE);
+    if (!name || !date) return;
+    let key = date.toISOString().slice(0,10);
+    if (!index[name]) index[name] = {};
+    index[name][key] = Number(r["OT HOURS"]||0);
+  });
 
-const yearOptions = useMemo(() => { const years = new Set(); for (const r of attendance) { const d = parseDateSmart(r.Date || r.DATE || r.date); if (d) years.add(getYear(d)); } if (years.size === 0) years.add(getYear(new Date())); return Array.from(years).sort((a,b)=>a-b); }, [attendance]);
+  let container = document.getElementById("attendance");
+  Object.keys(index).sort().forEach(name=>{
+    container.appendChild(makeCalendar(name,index[name]));
+  });
 
-if (loading) { return ( <div className="min-h-screen flex items-center justify-center"> <div className="text-sm text-muted-foreground">Loading dashboard…</div> </div> ); } if (error) { return ( <div className="min-h-screen flex items-center justify-center"> <div className="text-red-600 text-sm">{error}</div> </div> ); }
+  // Productivity chart
+  let labels = [];
+  let dataProd = [];
+  productivity.forEach(r=>{
+    let d = parseDate(r.DATE);
+    if (!d) return;
+    labels.push(d.toISOString().slice(0,10));
+    dataProd.push(Number(r.PRODUCTIVITY||0));
+  });
 
-return ( <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6"> <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4"> <div> <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Attendance & Productivity Dashboard</h1> <p className="text-sm text-muted-foreground mt-1">Live from Google Sheets · START SHIFT & ALL OVER</p> </div> <div className="flex gap-2 items-center"> <div className="flex-1 md:w-64 relative"> <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" /> <Input placeholder="Search worker…" className="pl-8" value={query} onChange={(e)=>setQuery(e.target.value)} /> </div> <Select value={month !== null ? String(month) : undefined} onValueChange={(v)=>setMonth(Number(v))}> <SelectTrigger className="w-[140px]"><SelectValue placeholder="Month" /></SelectTrigger> <SelectContent> {months.map((m, i)=> ( <SelectItem key={m} value={String(i)}>{m}</SelectItem> ))} </SelectContent> </Select> <Select value={year !== null ? String(year) : undefined} onValueChange={(v)=>setYear(Number(v))}> <SelectTrigger className="w-[100px]"><SelectValue placeholder="Year" /></SelectTrigger> <SelectContent> {yearOptions.map((y)=> ( <SelectItem key={y} value={String(y)}>{y}</SelectItem> ))} </SelectContent> </Select> <Button variant="outline" onClick={()=>{ setQuery(""); }}>Clear</Button> </div> </div>
+  new Chart(document.getElementById("productivityChart"), {
+    type:'line',
+    data:{
+      labels:labels,
+      datasets:[{
+        label:'Productivity',
+        data:dataProd,
+        borderColor:'blue',
+        backgroundColor:'rgba(0,0,255,0.2)'
+      }]
+    },
+    options:{ responsive:true, maintainAspectRatio:false }
+  });
+}
 
-{/* Legend */}
-  <div className="flex flex-wrap items-center gap-3">
-    <div className="flex items-center gap-2 text-xs"><span className="h-4 w-4 rounded bg-green-600 inline-block" /> Present + OT (e.g., P4)</div>
-    <div className="flex items-center gap-2 text-xs"><span className="h-4 w-4 rounded bg-emerald-100 border border-emerald-200 inline-block" /> Present (no OT)</div>
-    <div className="flex items-center gap-2 text-xs"><span className="h-4 w-4 rounded bg-red-100 border border-red-200 inline-block" /> Absent</div>
-  </div>
-
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <Card className="lg:col-span-2">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Worker Attendance · {months[getMonth(monthDate)]} {getYear(monthDate)}</h2>
-          <Badge variant="secondary">{employeeNames.length} workers</Badge>
-        </div>
-        {/* Worker cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {employeeNames.map((name) => (
-            <motion.div key={name} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="font-semibold mb-3 truncate" title={name}>{name}</div>
-                  <MonthGrid monthDate={monthDate} getStatus={getStatusFor(name)} />
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-
-    <Card>
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Daily Productivity</h2>
-          <Badge variant="secondary">ALL OVER</Badge>
-        </div>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedProdChart data={prodSeries} />
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
-  </div>
-
-  <Card>
-    <CardContent className="p-4 sm:p-6 space-y-3">
-      <h3 className="text-base font-semibold">Tips</h3>
-      <ul className="text-sm list-disc pl-5 text-muted-foreground space-y-1">
-        <li>Make sure the Google Sheet is shared as <strong>Anyone with the link → Viewer</strong> so the CSV can load.</li>
-        <li>To change which month is shown by default, just change the data or use the Month/Year pickers above.</li>
-        <li>OT cells show <strong>P#</strong> (e.g., <strong>P4</strong>) under the date; absent days are red.</li>
-      </ul>
-    </CardContent>
-  </Card>
-</div>
-
-); }
-
-function ComposedProdChart({ data }) { // If no data, render empty state if (!data || data.length === 0) { return ( <div className="flex items-center justify-center h-full text-sm text-muted-foreground">No productivity data</div> ); } return ( <> <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}> <CartesianGrid strokeDasharray="3 3" /> <XAxis dataKey="date" /> <YAxis yAxisId="left" /> <YAxis yAxisId="right" orientation="right" /> <Tooltip /> <Legend /> <Bar yAxisId="left" dataKey="erection" name="Erection" /> <Bar yAxisId="left" dataKey="dismantling" name="Dismantling" /> <Line yAxisId="right" type="monotone" dataKey="productivity" name="Productivity" /> </BarChart> </> ); }
-
-    
+init();
+</script>
+</body>
+</html>

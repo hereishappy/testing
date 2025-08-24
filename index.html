@@ -1,770 +1,308 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Worker Dashboard - Attendance & Productivity</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        
-        .calendar-day {
-            transition: all 0.2s ease;
-        }
-        
-        .calendar-day:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        
-        .present { background: linear-gradient(135deg, #10b981, #059669); }
-        .absent { background: linear-gradient(135deg, #ef4444, #dc2626); }
-        .loading-shimmer {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attendance Summary — START SHIFT</title>
+  <meta name="description" content="Search your name and auto-download your attendance summary as a JPEG." />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+  <style>
+    :root{
+      --bg:#0f172a;          /* slate-900 */
+      --card:#0b1226;        /* deep slate */
+      --muted:#94a3b8;       /* slate-400 */
+      --text:#e2e8f0;        /* slate-200 */
+      --brand:#22c55e;       /* green-500 */
+      --brand-600:#16a34a;   /* green-600 */
+      --danger:#ef4444;      /* red-500 */
+      --accent:#38bdf8;      /* sky-400 */
+      --border: #1f2937;     /* gray-800 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 80% -10%, #0b1226 10%, #0f172a 60%, #0a0f1f 100%);
+      color:var(--text);
+    }
+    .container{max-width:900px;margin:0 auto;padding:24px}
+    header{display:flex;align-items:center;justify-content:space-between;margin:8px 0 24px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--accent));display:grid;place-items:center;color:#001b0b;font-weight:800}
+    .title{font-size:clamp(18px,3vw,24px);font-weight:700;letter-spacing:0.3px}
+    .subtitle{font-size:14px;color:var(--muted)}.search-card{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:20px;padding:18px;backdrop-filter: blur(6px);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.field{flex:1 1 260px;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+.field input{width:100%;background:transparent;border:none;outline:none;color:var(--text);font-size:16px}
+.btn{appearance:none;border:none;border-radius:14px;padding:12px 18px;font-weight:700;letter-spacing:.2px;cursor:pointer;transition:.2s background,.2s transform;display:inline-flex;align-items:center;gap:10px}
+.btn-primary{background:linear-gradient(135deg,var(--brand),var(--brand-600));color:#04130b}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn-secondary{background:#111827;color:var(--text);border:1px solid var(--border)}
+
+.hint{margin-top:10px;color:var(--muted);font-size:13px}
+
+/* Report card (what gets converted to JPEG) */
+.report-wrap{margin-top:28px}
+.report{display:none; background:linear-gradient(180deg,#0e152b, #0c1330 60%, #0b1226); border:1px solid var(--border);border-radius:24px;padding:24px;position:relative;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,.45)}
+.r-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px dashed #1f2b46;padding-bottom:14px;margin-bottom:18px}
+.r-brand{display:flex;align-items:center;gap:12px}
+.r-logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--brand),var(--accent));display:grid;place-items:center;color:#001b0b;font-weight:900;font-size:18px}
+.badge{font-size:12px;color:#0c1a12;background:linear-gradient(135deg,var(--brand),var(--brand-600));padding:6px 10px;border-radius:999px;font-weight:800;letter-spacing:.3px}
+
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.stat{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:18px;padding:14px}
+.stat .label{font-size:12px;color:var(--muted);letter-spacing:.3px}
+.stat .value{font-size:26px;font-weight:800;margin-top:6px}
+
+.table{width:100%;border-collapse:collapse;margin-top:12px}
+.table th,.table td{border-bottom:1px dashed #1e2744;padding:10px 8px;text-align:left;font-size:14px}
+.table th{color:var(--muted);font-weight:600}
+
+.watermark{position:absolute;right:-40px;bottom:-40px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 30% 30%, rgba(56,189,248,.25), transparent 60%), radial-gradient(circle at 70% 70%, rgba(34,197,94,.25), transparent 60%)}
+
+.toast{display:none;position:fixed;right:16px;bottom:16px;background:#111827;color:var(--text);border:1px solid var(--border);border-radius:14px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.err{color:var(--danger)}
+
+@media (max-width:680px){
+  .grid{grid-template-columns:1fr}
+  .r-head{align-items:flex-start;gap:10px}
+}
+
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <h1 class="text-xl font-semibold text-gray-900">Worker Dashboard</h1>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                        </svg>
-                        Refresh Data
-                    </button>
-                </div>
-            </div>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">SC</div>
+        <div>
+          <div class="title">Start Shift — Attendance Portal</div>
+          <div class="subtitle">Search your name • Get a pro report (JPEG)</div>
         </div>
-    </header>
+      </div>
+      <button class="btn btn-secondary" id="btnDownloadLast" title="Download last report again" style="display:none">Download Again</button>
+    </header><section class="search-card">
+  <div class="row">
+    <label class="field" for="name">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21 21l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/></svg>
+      <input id="name" placeholder="Type your name (e.g., AMAN KUMAR)" autocomplete="name" />
+    </label>
+    <button class="btn btn-primary" id="btnSearch">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Get My Report
+    </button>
+  </div>
+  <div class="hint">Admin note: set <code>CSV_URL</code> to your Google Sheet’s published CSV or a raw CSV in this repo. If fetching fails, the built‑in sample below is used so the app still works.</div>
+  <div class="hint">Expected headers: <strong>Date</strong>, <strong>Supervisor</strong>, <strong>EMP NAME</strong>, <strong>Shift Hours</strong>, <strong>OT HOURS</strong>.</div>
+</section>
 
-    <!-- Navigation Tabs -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div class="border-b border-gray-200">
-            <nav class="-mb-px flex space-x-8">
-                <button id="attendanceTab" class="tab-button border-b-2 border-blue-500 text-blue-600 py-2 px-1 text-sm font-medium">
-                    Attendance Calendar
-                </button>
-                <button id="productivityTab" class="tab-button border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-2 px-1 text-sm font-medium">
-                    Productivity Tracker
-                </button>
-            </nav>
+<div class="report-wrap">
+  <div id="report" class="report" role="region" aria-live="polite" aria-label="Attendance summary report">
+    <div class="watermark" aria-hidden="true"></div>
+    <div class="r-head">
+      <div class="r-brand">
+        <div class="r-logo">SC</div>
+        <div>
+          <div class="title" id="rTitle">Attendance Summary</div>
+          <div class="subtitle" id="rSub">Start Shift • —</div>
         </div>
+      </div>
+      <span class="badge" id="rBadge">AUG 2025</span>
     </div>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <!-- Loading State -->
-        <div id="loadingState" class="text-center py-12">
-            <div class="loading-shimmer w-16 h-16 rounded-full mx-auto mb-4"></div>
-            <p class="text-gray-600">Loading dashboard data...</p>
-        </div>
-
-        <!-- Attendance View -->
-        <div id="attendanceView" class="hidden fade-in">
-            <div class="mb-6 flex justify-between items-center">
-                <h2 class="text-2xl font-bold text-gray-900">Worker Attendance</h2>
-                <div class="flex items-center space-x-4">
-                    <select id="monthSelect" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                        <!-- Options will be populated dynamically based on available data -->
-                    </select>
-                </div>
-            </div>
-            
-            <!-- Legend -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-                <h3 class="text-sm font-medium text-gray-900 mb-3">Legend</h3>
-                <div class="flex flex-wrap gap-4 text-sm">
-                    <div class="flex items-center">
-                        <div class="w-4 h-4 present rounded mr-2"></div>
-                        <span>Present</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-4 h-4 absent rounded mr-2"></div>
-                        <span>Absent</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-4 h-4 present rounded mr-2"></div>
-                        <span class="text-xs bg-blue-100 text-blue-800 px-1 rounded">P4</span>
-                        <span class="ml-1">Present + 4hr OT</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Worker Cards Grid -->
-            <div id="workerGrid" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                <!-- Worker cards will be populated here -->
-            </div>
-        </div>
-
-        <!-- Productivity View -->
-        <div id="productivityView" class="hidden fade-in">
-            <div class="mb-6 flex justify-between items-center">
-                <h2 class="text-2xl font-bold text-gray-900">Productivity Tracker</h2>
-                <div class="flex items-center space-x-4">
-                    <input type="date" id="dateFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
-                    <button id="clearFilter" class="text-gray-500 hover:text-gray-700 text-sm">Clear Filter</button>
-                </div>
-            </div>
-
-            <!-- Productivity Table -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Erection</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dismantling</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equivalent</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Man Hours</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OT Hours</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Productivity</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productivityTableBody" class="bg-white divide-y divide-gray-200">
-                            <!-- Productivity data will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-                
-                <!-- Summary Footer -->
-                <div id="productivitySummary" class="bg-gray-50 px-6 py-4 border-t border-gray-200">
-                    <!-- Summary will be populated here -->
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Tooltip -->
-    <div id="tooltip" class="absolute z-50 bg-gray-900 text-white text-xs rounded-lg px-3 py-2 opacity-0 pointer-events-none transition-opacity duration-200 max-w-xs">
-        <div id="tooltipContent"></div>
-        <div class="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+    <div class="grid">
+      <div class="stat"><div class="label">Employee</div><div class="value" id="rName">—</div></div>
+      <div class="stat"><div class="label">Days Present</div><div class="value" id="rDays">0</div></div>
+      <div class="stat"><div class="label">Overtime Hours</div><div class="value" id="rOT">0</div></div>
     </div>
+    <table class="table" id="rTable" aria-label="Attendance entries">
+      <thead><tr><th>Date</th><th>Supervisor</th><th>Shift Hours</th><th>OT Hours</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
 
-    <script>
-        // Global data storage
-        let attendanceData = [];
-        let productivityData = [];
-        let currentView = 'attendance';
+  </div>  <div class="toast" id="toast">Report downloaded</div>  <script>
+    // ======= CONFIG =======
+    // 1) If using Google Sheets, publish the sheet (File → Share → Publish to web → Link → Sheet: START SHIFT → CSV)
+    //    Then paste the export URL below. It should look like:
+    //    https://docs.google.com/spreadsheets/d/<SHEET_ID>/export?format=csv&gid=<GID>
+    // 2) Or, commit a CSV file to your GitHub repo (e.g., data/start_shift.csv) and put the raw URL here.
+    const CSV_URL = ""; // <- set this. If left empty or fails, SAMPLE_CSV is used.
 
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
-            loadData();
-            setupEventListeners();
-        });
+    // Built-in sample fallback (from your message)
+    const SAMPLE_CSV = `Date,Supervisor,EMP NAME,Shift Hours,OT HOURS\n`
+      + `1 August 2025,MAHENDRA KUMAR,AMAN KUMAR,8,4\n`
+      + `1 August 2025,MAHENDRA KUMAR,ATUL MAHADEO,8,4\n`
+      + `1 August 2025,MAHENDRA KUMAR,CHANDAN KUMAR,8,4\n`
+      + `1 August 2025,HARKIRAT SINGH,DAULAT YADAV,8,\n`
+      + `1 August 2025,MAHENDRA KUMAR,DEEPAK DAS,8,4\n`
+      + `1 August 2025,MAHENDRA KUMAR,DEEPAK KUMAR,8,4\n`
+      + `1 August 2025,PINTU SAH,FOOL SINGH,8,\n`
+      + `1 August 2025,HARKIRAT SINGH,HARKIRAT,8,\n`
+      + `1 August 2025,HARKIRAT SINGH,KIRAN PASWAN,8,\n`
+      + `1 August 2025,MAHENDRA KUMAR,MAHENDRA KUMAR,8,4\n`
+      + `1 August 2025,HARKIRAT SINGH,MINTU,8,\n`
+      + `1 August 2025,HARKIRAT SINGH,MITLESH KUMAR,8,\n`
+      + `1 August 2025,PINTU SAH,NANDAN KUMAR,8,\n`
+      + `1 August 2025,HARKIRAT SINGH,NARESH KUMAR,8,`;
 
-        function setupEventListeners() {
-            // Tab switching
-            document.getElementById('attendanceTab').addEventListener('click', () => switchTab('attendance'));
-            document.getElementById('productivityTab').addEventListener('click', () => switchTab('productivity'));
-            
-            // Refresh button
-            document.getElementById('refreshBtn').addEventListener('click', loadData);
-            
-            // Month selector
-            document.getElementById('monthSelect').addEventListener('change', renderAttendanceView);
-            
-            // Date filter
-            document.getElementById('dateFilter').addEventListener('change', renderProductivityView);
-            document.getElementById('clearFilter').addEventListener('click', () => {
-                document.getElementById('dateFilter').value = '';
-                renderProductivityView();
-            });
-        }
+    // ======= UTILITIES =======
+    const qs = (s, el=document) => el.querySelector(s);
+    const qsa = (s, el=document) => Array.from(el.querySelectorAll(s));
+    const toNum = (v) => {
+      if (v === null || v === undefined) return 0;
+      if (typeof v === 'number') return v;
+      const s = String(v).trim();
+      if (!s) return 0;
+      const n = Number(s.replace(/[^0-9.\-]/g, ''));
+      return isFinite(n) ? n : 0;
+    };
+    const fmt = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
 
-        async function loadData() {
-            document.getElementById('loadingState').classList.remove('hidden');
-            document.getElementById('attendanceView').classList.add('hidden');
-            document.getElementById('productivityView').classList.add('hidden');
+    function detectDelimiter(line){
+      // Support commas or tabs automatically
+      const commas = (line.match(/,/g) || []).length;
+      const tabs = (line.match(/\t/g) || []).length;
+      return tabs > commas ? '\t' : ',';
+    }
 
-            try {
-                // Load attendance data from "START SHIFT" sheet
-                const attendanceResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/gviz/tq?tqx=out:csv&sheet=START%20SHIFT', {
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'text/csv,text/plain,*/*',
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                
-                if (!attendanceResponse.ok) {
-                    throw new Error(`Failed to fetch attendance data: ${attendanceResponse.status} ${attendanceResponse.statusText}`);
-                }
-                
-                const attendanceText = await attendanceResponse.text();
-                console.log('Attendance data loaded:', attendanceText.substring(0, 200) + '...');
-                attendanceData = parseCSV(attendanceText);
+    function parseCSV(text){
+      // Lightweight parser for simple CSV/TSV (no quoted commas inside fields in this dataset)
+      const firstLine = text.split(/\r?\n/)[0] || '';
+      const delim = detectDelimiter(firstLine);
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      const headers = lines.shift().split(delim).map(h=>h.trim());
+      return lines.map(line => {
+        const parts = line.split(delim).map(p=>p.trim());
+        const obj = {};
+        headers.forEach((h,i)=> obj[h] = parts[i] ?? '');
+        return obj;
+      });
+    }
 
-                // Load productivity data from "ALL OVER" sheet
-                const productivityResponse = await fetch('https://docs.google.com/spreadsheets/d/1I6gAbz5LMEr8im1mOw8CxMaAP41zXO-qhbEaU7dcqyQ/gviz/tq?tqx=out:csv&sheet=ALL%20OVER', {
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'text/csv,text/plain,*/*',
-                        'Cache-Control': 'no-cache'
-                    }
-                });
-                
-                if (!productivityResponse.ok) {
-                    throw new Error(`Failed to fetch productivity data: ${productivityResponse.status} ${productivityResponse.statusText}`);
-                }
-                
-                const productivityText = await productivityResponse.text();
-                console.log('Productivity data loaded:', productivityText.substring(0, 200) + '...');
-                productivityData = parseCSV(productivityText);
+    async function loadData(){
+      if (!CSV_URL){
+        return parseCSV(SAMPLE_CSV);
+      }
+      try{
+        const res = await fetch(CSV_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        return parseCSV(text);
+      }catch(err){
+        console.warn('Failed to fetch CSV_URL, using SAMPLE_CSV. Reason:', err);
+        return parseCSV(SAMPLE_CSV);
+      }
+    }
 
-                // Show success message
-                showNotification('✅ Data loaded successfully from Google Sheets!', 'success');
+    function normalizeName(s){
+      return (s||'').toString().trim().replace(/\s+/g,' ').toUpperCase();
+    }
 
-            } catch (error) {
-                console.error('Error loading live data:', error);
-                
-                // Load sample data as fallback
-                loadSampleData();
-                showNotification('⚠️ Using sample data - Google Sheets connection failed', 'warning');
-            }
+    function computeSummary(rows){
+      const dates = new Set();
+      let ot = 0, shift = 0;
+      rows.forEach(r=>{
+        const sh = toNum(r['Shift Hours']);
+        const oh = toNum(r['OT HOURS']);
+        if (sh > 0) dates.add((r['Date']||'').trim());
+        shift += sh;
+        ot += oh;
+      });
+      return { daysPresent: dates.size, totalOT: ot, totalShift: shift };
+    }
 
-            // Populate month selector with available data
-            populateMonthSelector();
+    function renderReport({empName, rows}){
+      const report = qs('#report');
+      const tbody = qs('#rTable tbody');
+      tbody.innerHTML = '';
 
-            // Render current view
-            if (currentView === 'attendance') {
-                renderAttendanceView();
-            } else {
-                renderProductivityView();
-            }
+      // Limit to latest 12 rows for the table (still shows totals above)
+      const limited = rows.slice(0, 12);
+      limited.forEach(r=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r['Date']||''}</td><td>${r['Supervisor']||''}</td><td>${r['Shift Hours']||''}</td><td>${r['OT HOURS']||''}</td>`;
+        tbody.appendChild(tr);
+      });
 
-            document.getElementById('loadingState').classList.add('hidden');
-        }
+      const { daysPresent, totalOT, totalShift } = computeSummary(rows);
+      qs('#rName').textContent = empName;
+      qs('#rDays').textContent = fmt.format(daysPresent);
+      qs('#rOT').textContent = fmt.format(totalOT);
 
-        function loadSampleData() {
-            // Sample attendance data
-            attendanceData = [
-                { 'Date': '2024-08-01', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '2' },
-                { 'Date': '2024-08-02', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '4' },
-                { 'Date': '2024-08-03', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '0' },
-                { 'Date': '2024-08-05', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '6' },
-                { 'Date': '2024-08-06', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '0' },
-                { 'Date': '2024-08-07', 'Supervisor': 'MAHENDRA KUMAR', 'EMP NAME': 'AMAN KUMAR', 'Shift Hours': '8', 'OT HOURS': '0' },
-                { 'Date': '2024-08-01', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '3' },
-                { 'Date': '2024-08-02', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '0' },
-                { 'Date': '2024-08-04', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '5' },
-                { 'Date': '2024-08-05', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '2' },
-                { 'Date': '2024-08-06', 'Supervisor': 'RAJESH SINGH', 'EMP NAME': 'PRIYA SHARMA', 'Shift Hours': '8', 'OT HOURS': '4' },
-                { 'Date': '2024-08-01', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '1' },
-                { 'Date': '2024-08-02', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '0' },
-                { 'Date': '2024-08-03', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '2' },
-                { 'Date': '2024-08-04', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '4' },
-                { 'Date': '2024-08-07', 'Supervisor': 'SURESH PATEL', 'EMP NAME': 'VIKRAM GUPTA', 'Shift Hours': '8', 'OT HOURS': '0' }
-            ];
+      // Subhead and badge (month-year if detectable)
+      const dates = rows.map(r => (r['Date']||'').trim()).filter(Boolean);
+      const monthBadge = (()=>{
+        if (!dates.length) return '';
+        // Try to extract month name + year from first row
+        const m = dates[0].match(/([A-Za-z]+)\s+(\d{4})/);
+        return m ? (m[1].slice(0,3).toUpperCase() + ' ' + m[2]) : '';
+      })();
+      qs('#rBadge').textContent = monthBadge || 'SUMMARY';
+      qs('#rSub').textContent = `Start Shift • ${rows.length} entries • Shift Hours: ${fmt.format(totalShift)}`;
 
-            // Sample productivity data
-            productivityData = [
-                { 'DATE': '2024-08-01', 'ERECTION': '12', 'DISMANTLING': '8', 'EQUILVENT': '20', 'MANHOURS': '64', 'OT HOURS': '6', 'PRODUCTIVITY': '0.31' },
-                { 'DATE': '2024-08-02', 'ERECTION': '15', 'DISMANTLING': '5', 'EQUILVENT': '20', 'MANHOURS': '72', 'OT HOURS': '4', 'PRODUCTIVITY': '0.28' },
-                { 'DATE': '2024-08-03', 'ERECTION': '10', 'DISMANTLING': '10', 'EQUILVENT': '20', 'MANHOURS': '56', 'OT HOURS': '2', 'PRODUCTIVITY': '0.36' },
-                { 'DATE': '2024-08-04', 'ERECTION': '18', 'DISMANTLING': '2', 'EQUILVENT': '20', 'MANHOURS': '80', 'OT HOURS': '9', 'PRODUCTIVITY': '0.25' },
-                { 'DATE': '2024-08-05', 'ERECTION': '14', 'DISMANTLING': '6', 'EQUILVENT': '20', 'MANHOURS': '68', 'OT HOURS': '8', 'PRODUCTIVITY': '0.29' },
-                { 'DATE': '2024-08-06', 'ERECTION': '16', 'DISMANTLING': '4', 'EQUILVENT': '20', 'MANHOURS': '64', 'OT HOURS': '4', 'PRODUCTIVITY': '0.31' },
-                { 'DATE': '2024-08-07', 'ERECTION': '13', 'DISMANTLING': '7', 'EQUILVENT': '20', 'MANHOURS': '56', 'OT HOURS': '0', 'PRODUCTIVITY': '0.36' }
-            ];
-        }
+      report.style.display = 'block';
+    }
 
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium transition-all duration-300 transform translate-x-full`;
-            
-            if (type === 'success') {
-                notification.classList.add('bg-green-600');
-            } else if (type === 'warning') {
-                notification.classList.add('bg-yellow-600');
-            } else if (type === 'error') {
-                notification.classList.add('bg-red-600');
-            } else {
-                notification.classList.add('bg-blue-600');
-            }
-            
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 100);
-            
-            // Auto remove after 4 seconds
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 4000);
-        }
+    async function generateAndDownload(empQuery){
+      const data = await loadData();
+      const target = normalizeName(empQuery);
+      if (!target){
+        showToast('Please enter a name.');
+        return;
+      }
+      // Filter rows for the employee
+      const rows = data.filter(r => normalizeName(r['EMP NAME']) === target);
+      if (!rows.length){
+        showToast('No records found for "' + empQuery + '"', true);
+        qs('#report').style.display = 'none';
+        return;
+      }
+      renderReport({ empName: empQuery.trim(), rows });
+      await downloadReportJPEG();
+      qs('#btnDownloadLast').style.display = 'inline-flex';
+    }
 
-        function parseCSV(text) {
-            if (!text || text.trim() === '') {
-                console.error('Empty CSV data received');
-                return [];
-            }
-            
-            const lines = text.trim().split('\n');
-            if (lines.length < 2) {
-                console.error('CSV data has insufficient rows');
-                return [];
-            }
-            
-            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-            console.log('CSV Headers found:', headers);
-            
-            const data = lines.slice(1).map((line, index) => {
-                if (!line.trim()) return null; // Skip empty lines
-                
-                const values = line.split(',').map(v => v.replace(/"/g, '').trim());
-                const obj = {};
-                headers.forEach((header, headerIndex) => {
-                    obj[header] = values[headerIndex] || '';
-                });
-                return obj;
-            }).filter(row => row !== null); // Remove null entries
-            
-            console.log(`Parsed ${data.length} rows from CSV`);
-            console.log('Sample data:', data.slice(0, 3));
-            return data;
-        }
+    async function downloadReportJPEG(){
+      const node = qs('#report');
+      // Give fonts/layout a frame to settle
+      await new Promise(r => setTimeout(r, 60));
+      const canvas = await html2canvas(node, { scale: 2, backgroundColor: null, useCORS: true });
+      const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+      const nameText = normalizeName(qs('#rName').textContent).replace(/[^A-Z0-9]+/g,'_');
+      const a = document.createElement('a');
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth()+1).padStart(2,'0');
+      const d = String(now.getDate()).padStart(2,'0');
+      a.href = dataURL;
+      a.download = `${nameText || 'ATTENDANCE'}_${y}${m}${d}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast('Report downloaded');
+    }
 
-        function parseDate(dateString) {
-            if (!dateString || dateString.trim() === '') return null;
-            
-            // Try multiple date formats commonly used in Google Sheets
-            const formats = [
-                // Standard formats
-                /^(\d{4})-(\d{1,2})-(\d{1,2})$/,  // 2024-8-15 or 2024-08-15
-                /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/, // 8/15/2024 or 08/15/2024
-                /^(\d{1,2})-(\d{1,2})-(\d{4})$/,  // 8-15-2024 or 08-15-2024
-                /^(\d{4})\/(\d{1,2})\/(\d{1,2})$/, // 2024/8/15 or 2024/08/15
-            ];
-            
-            const str = dateString.trim();
-            
-            // Try YYYY-MM-DD format
-            let match = str.match(formats[0]);
-            if (match) {
-                return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
-            }
-            
-            // Try MM/DD/YYYY format
-            match = str.match(formats[1]);
-            if (match) {
-                return new Date(parseInt(match[3]), parseInt(match[1]) - 1, parseInt(match[2]));
-            }
-            
-            // Try MM-DD-YYYY format
-            match = str.match(formats[2]);
-            if (match) {
-                return new Date(parseInt(match[3]), parseInt(match[1]) - 1, parseInt(match[2]));
-            }
-            
-            // Try YYYY/MM/DD format
-            match = str.match(formats[3]);
-            if (match) {
-                return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
-            }
-            
-            // Try JavaScript's built-in Date parsing as fallback
-            const fallbackDate = new Date(str);
-            if (!isNaN(fallbackDate.getTime())) {
-                return fallbackDate;
-            }
-            
-            console.warn('Could not parse date:', dateString);
-            return null;
-        }
+    function showToast(msg, error=false){
+      const t = qs('#toast');
+      t.textContent = msg;
+      t.style.borderColor = error ? 'var(--danger)' : 'var(--border)';
+      t.style.display = 'block';
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(()=>{ t.style.display = 'none'; }, 3000);
+    }
 
-        function populateMonthSelector() {
-            const monthSelect = document.getElementById('monthSelect');
-            const availableMonths = new Set();
-            
-            // Extract all unique year-month combinations from attendance data
-            attendanceData.forEach(record => {
-                if (record['Date']) {
-                    const date = parseDate(record['Date']);
-                    if (date && !isNaN(date.getTime())) {
-                        const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                        availableMonths.add(yearMonth);
-                    }
-                }
-            });
-            
-            // Convert to sorted array
-            const sortedMonths = Array.from(availableMonths).sort();
-            
-            // Clear existing options
-            monthSelect.innerHTML = '';
-            
-            // Add options for available months
-            const monthNames = [
-                'January', 'February', 'March', 'April', 'May', 'June',
-                'July', 'August', 'September', 'October', 'November', 'December'
-            ];
-            
-            sortedMonths.forEach((yearMonth, index) => {
-                const [year, month] = yearMonth.split('-');
-                const monthName = monthNames[parseInt(month) - 1];
-                const option = document.createElement('option');
-                option.value = yearMonth;
-                option.textContent = `${monthName} ${year}`;
-                
-                // Select the most recent month by default
-                if (index === sortedMonths.length - 1) {
-                    option.selected = true;
-                }
-                
-                monthSelect.appendChild(option);
-            });
-            
-            // If no data available, add current month as fallback
-            if (sortedMonths.length === 0) {
-                const now = new Date();
-                const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                const currentMonthName = monthNames[now.getMonth()];
-                const option = document.createElement('option');
-                option.value = currentYearMonth;
-                option.textContent = `${currentMonthName} ${now.getFullYear()}`;
-                option.selected = true;
-                monthSelect.appendChild(option);
-            }
-        }
+    // ======= EVENTS =======
+    qs('#btnSearch').addEventListener('click', () => {
+      const name = qs('#name').value;
+      generateAndDownload(name);
+    });
+    qs('#name').addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter') qs('#btnSearch').click();
+    });
+    qs('#btnDownloadLast').addEventListener('click', downloadReportJPEG);
 
-        function switchTab(tab) {
-            currentView = tab;
-            
-            // Update tab styles
-            document.querySelectorAll('.tab-button').forEach(btn => {
-                btn.classList.remove('border-blue-500', 'text-blue-600');
-                btn.classList.add('border-transparent', 'text-gray-500');
-            });
-            
-            if (tab === 'attendance') {
-                document.getElementById('attendanceTab').classList.add('border-blue-500', 'text-blue-600');
-                document.getElementById('attendanceTab').classList.remove('border-transparent', 'text-gray-500');
-                document.getElementById('attendanceView').classList.remove('hidden');
-                document.getElementById('productivityView').classList.add('hidden');
-                renderAttendanceView();
-            } else {
-                document.getElementById('productivityTab').classList.add('border-blue-500', 'text-blue-600');
-                document.getElementById('productivityTab').classList.remove('border-transparent', 'text-gray-500');
-                document.getElementById('productivityView').classList.remove('hidden');
-                document.getElementById('attendanceView').classList.add('hidden');
-                renderProductivityView();
-            }
-        }
-
-        function renderAttendanceView() {
-            const selectedMonth = document.getElementById('monthSelect').value;
-            const [year, month] = selectedMonth.split('-');
-            
-            console.log(`Rendering attendance for ${year}-${month}`);
-            
-            // Group attendance data by worker
-            const workerData = {};
-            let processedRecords = 0;
-            let validDates = 0;
-            
-            attendanceData.forEach(record => {
-                processedRecords++;
-                if (record['EMP NAME'] && record['Date']) {
-                    const empName = record['EMP NAME'];
-                    if (!workerData[empName]) {
-                        workerData[empName] = {
-                            name: empName,
-                            supervisor: record['Supervisor'] || 'N/A',
-                            attendance: {}
-                        };
-                    }
-                    
-                    const date = parseDate(record['Date']);
-                    if (date && !isNaN(date.getTime())) {
-                        validDates++;
-                        if (date.getFullYear() == year && (date.getMonth() + 1) == parseInt(month)) {
-                            const dayKey = date.getDate();
-                            workerData[empName].attendance[dayKey] = {
-                                present: true,
-                                supervisor: record['Supervisor'] || 'N/A',
-                                shiftHours: parseFloat(record['Shift Hours']) || 0,
-                                otHours: parseFloat(record['OT HOURS']) || 0,
-                                rawDate: record['Date'] // Keep original for debugging
-                            };
-                        }
-                    } else {
-                        console.warn('Invalid date found:', record['Date']);
-                    }
-                }
-            });
-
-            console.log(`Processed ${processedRecords} records, ${validDates} valid dates, ${Object.keys(workerData).length} workers`);
-
-            // Generate calendar for each worker
-            const workerGrid = document.getElementById('workerGrid');
-            workerGrid.innerHTML = '';
-
-            if (Object.keys(workerData).length === 0) {
-                workerGrid.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <div class="text-gray-500 text-lg mb-2">No attendance data found</div>
-                        <div class="text-gray-400 text-sm">
-                            ${processedRecords > 0 ? 
-                                `Processed ${processedRecords} records but none matched the selected month` : 
-                                'No attendance records available'
-                            }
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            Object.values(workerData).forEach(worker => {
-                const workerCard = createWorkerCard(worker, year, month);
-                workerGrid.appendChild(workerCard);
-            });
-        }
-
-        function createWorkerCard(worker, year, month) {
-            const daysInMonth = new Date(year, month, 0).getDate();
-            const firstDay = new Date(year, month - 1, 1).getDay();
-            
-            const card = document.createElement('div');
-            card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 p-6';
-            
-            card.innerHTML = `
-                <div class="mb-4">
-                    <h3 class="text-lg font-semibold text-gray-900">${worker.name}</h3>
-                    <p class="text-sm text-gray-600">Supervisor: ${worker.supervisor}</p>
-                </div>
-                
-                <div class="calendar">
-                    <div class="grid grid-cols-7 gap-1 mb-2 text-xs font-medium text-gray-500">
-                        <div class="text-center py-1">Su</div>
-                        <div class="text-center py-1">Mo</div>
-                        <div class="text-center py-1">Tu</div>
-                        <div class="text-center py-1">We</div>
-                        <div class="text-center py-1">Th</div>
-                        <div class="text-center py-1">Fr</div>
-                        <div class="text-center py-1">Sa</div>
-                    </div>
-                    <div class="grid grid-cols-7 gap-1" id="calendar-${worker.name.replace(/\s+/g, '')}">
-                        ${generateCalendarDays(worker, daysInMonth, firstDay)}
-                    </div>
-                </div>
-            `;
-            
-            return card;
-        }
-
-        function generateCalendarDays(worker, daysInMonth, firstDay) {
-            let html = '';
-            
-            // Empty cells for days before month starts
-            for (let i = 0; i < firstDay; i++) {
-                html += '<div class="h-10"></div>';
-            }
-            
-            // Days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const attendance = worker.attendance[day];
-                let dayClass = 'calendar-day h-10 rounded flex flex-col items-center justify-center text-xs font-medium cursor-pointer relative';
-                let content = day.toString();
-                let otTag = '';
-                
-                if (attendance && attendance.present) {
-                    dayClass += ' present text-white';
-                    if (attendance.otHours >= 4) {
-                        otTag = '<div class="absolute -bottom-1 text-xs bg-blue-100 text-blue-800 px-1 rounded" style="font-size: 8px;">P4</div>';
-                    }
-                } else {
-                    dayClass += ' absent text-white';
-                }
-                
-                html += `
-                    <div class="${dayClass}" 
-                         onmouseover="showTooltip(event, '${worker.name}', ${day}, ${JSON.stringify(attendance).replace(/"/g, '&quot;')})"
-                         onmouseout="hideTooltip()">
-                        ${content}
-                        ${otTag}
-                    </div>
-                `;
-            }
-            
-            return html;
-        }
-
-        function renderProductivityView() {
-            const dateFilter = document.getElementById('dateFilter').value;
-            let filteredData = productivityData;
-            
-            if (dateFilter) {
-                filteredData = productivityData.filter(record => {
-                    const recordDate = parseDate(record['DATE']);
-                    const filterDate = new Date(dateFilter);
-                    return recordDate && recordDate.toDateString() === filterDate.toDateString();
-                });
-            }
-            
-            const tbody = document.getElementById('productivityTableBody');
-            tbody.innerHTML = '';
-            
-            let totals = {
-                erection: 0,
-                dismantling: 0,
-                equivalent: 0,
-                manhours: 0,
-                otHours: 0,
-                productivity: 0
-            };
-            
-            filteredData.forEach(record => {
-                const row = document.createElement('tr');
-                const isProductive = parseFloat(record['PRODUCTIVITY']) > 0;
-                
-                if (isProductive) {
-                    row.className = 'bg-green-50 hover:bg-green-100';
-                } else {
-                    row.className = 'bg-gray-50 hover:bg-gray-100';
-                }
-                
-                // Add to totals
-                totals.erection += parseFloat(record['ERECTION']) || 0;
-                totals.dismantling += parseFloat(record['DISMANTLING']) || 0;
-                totals.equivalent += parseFloat(record['EQUILVENT']) || 0;
-                totals.manhours += parseFloat(record['MANHOURS']) || 0;
-                totals.otHours += parseFloat(record['OT HOURS']) || 0;
-                totals.productivity += parseFloat(record['PRODUCTIVITY']) || 0;
-                
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formatDate(record['DATE'])}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['ERECTION'] || '0'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['DISMANTLING'] || '0'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['EQUILVENT'] || '0'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['MANHOURS'] || '0'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${record['OT HOURS'] || '0'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium ${isProductive ? 'text-green-600' : 'text-gray-400'}">${record['PRODUCTIVITY'] || '0'}</td>
-                `;
-                
-                tbody.appendChild(row);
-            });
-            
-            // Update summary
-            const summary = document.getElementById('productivitySummary');
-            const avgProductivity = filteredData.length > 0 ? (totals.productivity / filteredData.length).toFixed(2) : '0';
-            
-            summary.innerHTML = `
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 text-sm">
-                    <div>
-                        <span class="font-medium text-gray-900">Total Records:</span>
-                        <span class="text-gray-600 ml-1">${filteredData.length}</span>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-900">Total Erection:</span>
-                        <span class="text-gray-600 ml-1">${totals.erection.toFixed(1)}</span>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-900">Total Dismantling:</span>
-                        <span class="text-gray-600 ml-1">${totals.dismantling.toFixed(1)}</span>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-900">Total Equivalent:</span>
-                        <span class="text-gray-600 ml-1">${totals.equivalent.toFixed(1)}</span>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-900">Total Man Hours:</span>
-                        <span class="text-gray-600 ml-1">${totals.manhours.toFixed(1)}</span>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-900">Total OT Hours:</span>
-                        <span class="text-gray-600 ml-1">${totals.otHours.toFixed(1)}</span>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-900">Avg Productivity:</span>
-                        <span class="text-green-600 ml-1 font-semibold">${avgProductivity}</span>
-                    </div>
-                </div>
-            `;
-        }
-
-        function showTooltip(event, workerName, day, attendance) {
-            const tooltip = document.getElementById('tooltip');
-            const tooltipContent = document.getElementById('tooltipContent');
-            
-            if (attendance && attendance !== 'null') {
-                const data = JSON.parse(attendance.replace(/&quot;/g, '"'));
-                tooltipContent.innerHTML = `
-                    <div class="font-semibold">${workerName}</div>
-                    <div class="text-xs mt-1">
-                        <div>Date: ${day}</div>
-                        <div>Supervisor: ${data.supervisor}</div>
-                        <div>Shift Hours: ${data.shiftHours}</div>
-                        <div>OT Hours: ${data.otHours}</div>
-                        ${data.otHours >= 4 ? '<div class="text-blue-300">🏆 4+ Hour OT</div>' : ''}
-                    </div>
-                `;
-            } else {
-                tooltipContent.innerHTML = `
-                    <div class="font-semibold">${workerName}</div>
-                    <div class="text-xs mt-1">
-                        <div>Date: ${day}</div>
-                        <div class="text-red-300">❌ Absent</div>
-                    </div>
-                `;
-            }
-            
-            tooltip.style.left = event.pageX + 'px';
-            tooltip.style.top = (event.pageY - 60) + 'px';
-            tooltip.classList.remove('opacity-0');
-            tooltip.classList.add('opacity-100');
-        }
-
-        function hideTooltip() {
-            const tooltip = document.getElementById('tooltip');
-            tooltip.classList.remove('opacity-100');
-            tooltip.classList.add('opacity-0');
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-            });
-        }
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'973f6737536b3f8a',t:'MTc1NjAwMjM2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+    // Optional: prefill for demo
+    // qs('#name').value = 'AMAN KUMAR';
+  </script></body>
 </html>

@@ -3,533 +3,487 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supervisor Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Supervisor Work Dashboard</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .loading-spinner {
-            border: 3px solid #f3f4f6;
-            border-top: 3px solid #3b82f6;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            animation: spin 1s linear infinite;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
-        .card-hover {
-            transition: all 0.3s ease;
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .last-updated {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .supervisor-filter {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .supervisor-filter select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .refresh-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #218838;
+        }
+
+        .refresh-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 15px 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 70vh;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: #343a40;
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tr:hover {
+            background: #e3f2fd;
+        }
+
+        .date-cell {
+            font-weight: 600;
+            color: #2c3e50;
+            min-width: 100px;
+        }
+
+        .supervisor-cell {
+            font-weight: 600;
+            color: #e74c3c;
+            min-width: 120px;
+        }
+
+        .work-type-cell {
+            background: #e8f5e8;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-weight: 500;
+            min-width: 100px;
+        }
+
+        .description-cell {
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+
+        .number-cell {
+            text-align: right;
+            font-weight: 600;
+            color: #495057;
+            min-width: 80px;
+        }
+
+        .volume-cell {
+            background: #fff3cd;
+            border-radius: 4px;
+            padding: 4px 8px;
+            text-align: right;
+            font-weight: 600;
+            color: #856404;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .supervisor-filter {
+                min-width: auto;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 8px 6px;
+            }
+
+            .description-cell {
+                max-width: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            th, td {
+                padding: 6px 4px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .controls {
+                padding: 15px;
+            }
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
-    <div class="container mx-auto px-4 py-6 max-w-6xl">
-        <!-- Header -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Supervisor Dashboard</h1>
-                    <p class="text-gray-600 mt-1">Live erection and dismantling data</p>
-                </div>
-                <div class="flex items-center gap-3">
-                    <div id="lastUpdate" class="text-sm text-gray-500"></div>
-                    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-                        <span id="refreshIcon">🔄</span>
-                        Refresh
-                    </button>
-                </div>
-            </div>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Supervisor Work Dashboard</h1>
+            <div class="last-updated" id="lastUpdated">Last updated: Never</div>
         </div>
 
-        <!-- Loading State -->
-        <div id="loadingState" class="bg-white rounded-xl shadow-lg p-8 text-center">
-            <div class="loading-spinner mx-auto mb-4"></div>
-            <p class="text-gray-600">Loading supervisor data...</p>
-        </div>
-
-        <!-- Error State -->
-        <div id="errorState" class="bg-red-50 border border-red-200 rounded-xl p-6 hidden">
-            <div class="flex items-center gap-3 mb-3">
-                <span class="text-red-500 text-xl">⚠️</span>
-                <h3 class="text-red-800 font-semibold">Error Loading Data</h3>
+        <div class="controls">
+            <div class="supervisor-filter">
+                <select id="supervisorFilter">
+                    <option value="">All Supervisors</option>
+                </select>
             </div>
-            <p class="text-red-700 mb-4">Unable to fetch data from the spreadsheet. Please check the connection and try again.</p>
-            <button onclick="loadData()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                Try Again
+            <button class="refresh-btn" id="refreshBtn" onclick="loadData()">
+                🔄 Refresh Data
             </button>
         </div>
 
-        <!-- Summary Cards -->
-        <div id="summaryCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 hidden">
-            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm font-medium">Total Supervisors</p>
-                        <p id="totalSupervisors" class="text-2xl font-bold text-gray-800">0</p>
-                    </div>
-                    <div class="bg-blue-100 p-3 rounded-lg">
-                        <span class="text-blue-600 text-xl">👥</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm font-medium">Total Erections</p>
-                        <p id="totalErections" class="text-2xl font-bold text-green-600">0</p>
-                    </div>
-                    <div class="bg-green-100 p-3 rounded-lg">
-                        <span class="text-green-600 text-xl">🏗️</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm font-medium">Total Dismantling</p>
-                        <p id="totalDismantling" class="text-2xl font-bold text-orange-600">0</p>
-                    </div>
-                    <div class="bg-orange-100 p-3 rounded-lg">
-                        <span class="text-orange-600 text-xl">🔧</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm font-medium">Last Updated</p>
-                        <p id="updateTime" class="text-sm font-medium text-gray-800">Just now</p>
-                    </div>
-                    <div class="bg-purple-100 p-3 rounded-lg">
-                        <span class="text-purple-600 text-xl">⏰</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <div class="status" id="status" style="display: none;"></div>
 
-        <!-- Supervisor Detail Modal -->
-        <div id="supervisorModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 id="modalSupervisorName" class="text-2xl font-bold">Supervisor Details</h2>
-                            <p class="text-blue-100 mt-1">Complete activity breakdown</p>
-                        </div>
-                        <button id="closeModal" class="text-white hover:text-gray-200 text-2xl font-bold p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition-colors">
-                            ×
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-                    <!-- Summary Stats -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                            <div class="text-green-600 text-2xl mb-2">🏗️</div>
-                            <div class="text-2xl font-bold text-green-600" id="modalTotalErection">0</div>
-                            <div class="text-sm text-green-700">Total Erection</div>
-                        </div>
-                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
-                            <div class="text-orange-600 text-2xl mb-2">🔧</div>
-                            <div class="text-2xl font-bold text-orange-600" id="modalTotalDismantling">0</div>
-                            <div class="text-sm text-orange-700">Total Dismantling</div>
-                        </div>
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                            <div class="text-blue-600 text-2xl mb-2">📊</div>
-                            <div class="text-2xl font-bold text-blue-600" id="modalTotalTasks">0</div>
-                            <div class="text-sm text-blue-700">Total Tasks</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Data Table -->
-                    <div class="bg-gray-50 rounded-lg overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="bg-gray-100">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">DATE</th>
-                                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">SUPERVISOR NAME</th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">SUM OF ERECTION</th>
-                                        <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">SUM OF DISMANTLING</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="modalTableBody" class="divide-y divide-gray-200">
-                                    <!-- Table rows will be populated here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Supervisor Cards -->
-        <div id="supervisorGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
-            <!-- Supervisor cards will be populated here -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Supervisor</th>
+                        <th>Work Type</th>
+                        <th>Description</th>
+                        <th>Length</th>
+                        <th>Width</th>
+                        <th>Height</th>
+                        <th>Quantity</th>
+                        <th>Volume</th>
+                        <th>Erection</th>
+                        <th>Dismantling</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTable">
+                    <tr>
+                        <td colspan="11" class="no-data">Click "Refresh Data" to load live data from Google Sheets</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1765901480&single=true&output=csv';
-        
-        let supervisorData = [];
-        let autoRefreshInterval;
+        let allData = [];
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1765901480&single=true&output=csv';
 
-        // Parse CSV data
-        function parseCSV(csvText) {
-            const lines = csvText.trim().split('\n');
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr || dateStr.trim() === '') return 'N/A';
+            
+            // Try to parse various date formats
+            let date;
+            
+            // Check if it's already in a good format
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    // Assume MM/DD/YYYY or DD/MM/YYYY
+                    date = new Date(dateStr);
+                }
+            } else if (dateStr.includes('-')) {
+                date = new Date(dateStr);
+            } else {
+                // Try to parse as is
+                date = new Date(dateStr);
+            }
+            
+            // Validate date
+            if (isNaN(date.getTime())) {
+                return dateStr; // Return original if can't parse
+            }
+            
+            // Format as DD/MM/YYYY
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            
+            return `${day}/${month}/${year}`;
+        }
+
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
             const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
             const data = [];
-            
-            console.log('CSV Headers:', headers); // Debug log
-            
+
             for (let i = 1; i < lines.length; i++) {
-                // Handle CSV parsing more carefully for quoted values
-                const line = lines[i];
+                const line = lines[i].trim();
+                if (line === '') continue;
+
                 const values = [];
                 let current = '';
                 let inQuotes = false;
-                
+
                 for (let j = 0; j < line.length; j++) {
                     const char = line[j];
                     if (char === '"') {
                         inQuotes = !inQuotes;
                     } else if (char === ',' && !inQuotes) {
-                        values.push(current.trim());
+                        values.push(current.trim().replace(/"/g, ''));
                         current = '';
                     } else {
                         current += char;
                     }
                 }
-                values.push(current.trim()); // Add the last value
-                
-                if (values.length >= headers.length && values[0]) {
+                values.push(current.trim().replace(/"/g, ''));
+
+                if (values.length >= headers.length) {
                     const row = {};
                     headers.forEach((header, index) => {
                         row[header] = values[index] || '';
                     });
                     
-                    // Debug log for Sunil Chauhan
-                    if (row['Supervisor'] && row['Supervisor'].toLowerCase().includes('sunil')) {
-                        console.log('Sunil Chauhan row:', row);
+                    // Validate required fields
+                    if (row.Date || row.Supervisor) {
+                        data.push(row);
                     }
-                    
-                    data.push(row);
                 }
             }
-            
-            console.log('Total parsed rows:', data.length); // Debug log
+
             return data;
         }
 
-        // Process supervisor data
-        function processSupervisorData(rawData) {
-            const supervisorMap = new Map();
+        function populateSupervisorFilter(data) {
+            const supervisors = [...new Set(data.map(row => row.Supervisor).filter(s => s))].sort();
+            const select = document.getElementById('supervisorFilter');
             
-            rawData.forEach((row, index) => {
-                const date = row['Date'] || '';
-                const supervisor = row['Supervisor'] || '';
-                
-                // Try different column names for erection and dismantling
-                let erection = 0;
-                let dismantling = 0;
-                
-                // Check various possible column names
-                const erectionColumns = ['Erection', 'ERECTION', 'erection', 'Erection Volume', 'Volume'];
-                const dismantlingColumns = ['Dismantling', 'DISMANTLING', 'dismantling', 'Dismantling Volume'];
-                
-                for (const col of erectionColumns) {
-                    if (row[col] !== undefined && row[col] !== '') {
-                        erection = parseInt(row[col]) || 0;
-                        break;
-                    }
-                }
-                
-                for (const col of dismantlingColumns) {
-                    if (row[col] !== undefined && row[col] !== '') {
-                        dismantling = parseInt(row[col]) || 0;
-                        break;
-                    }
-                }
-                
-                // Debug log for Sunil Chauhan
-                if (supervisor && supervisor.toLowerCase().includes('sunil')) {
-                    console.log(`Row ${index + 1} - Sunil data:`, {
-                        date,
-                        supervisor,
-                        erection,
-                        dismantling,
-                        rawRow: row
-                    });
-                }
-                
-                if (supervisor) {
-                    if (!supervisorMap.has(supervisor)) {
-                        supervisorMap.set(supervisor, {
-                            name: supervisor,
-                            totalErection: 0,
-                            totalDismantling: 0,
-                            lastDate: date,
-                            entries: []
-                        });
-                    }
-                    
-                    const supervisorData = supervisorMap.get(supervisor);
-                    supervisorData.totalErection += erection;
-                    supervisorData.totalDismantling += dismantling;
-                    supervisorData.entries.push({ date, erection, dismantling });
-                    
-                    // Update last date if this entry is more recent
-                    if (date > supervisorData.lastDate) {
-                        supervisorData.lastDate = date;
-                    }
-                }
+            // Clear existing options except "All Supervisors"
+            select.innerHTML = '<option value="">All Supervisors</option>';
+            
+            supervisors.forEach(supervisor => {
+                const option = document.createElement('option');
+                option.value = supervisor;
+                option.textContent = supervisor;
+                select.appendChild(option);
             });
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('dataTable');
             
-            // Debug log for Sunil Chauhan final totals
-            const sunilData = supervisorMap.get('SUNIL CHAUHAN') || supervisorMap.get('Sunil Chauhan');
-            if (sunilData) {
-                console.log('Sunil Chauhan final totals:', sunilData);
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="no-data">No data available for selected supervisor</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(row => `
+                <tr>
+                    <td class="date-cell">${formatDate(row.Date)}</td>
+                    <td class="supervisor-cell">${row.Supervisor || 'N/A'}</td>
+                    <td class="work-type-cell">${row['Work Type'] || 'N/A'}</td>
+                    <td class="description-cell">${row.Description || 'N/A'}</td>
+                    <td class="number-cell">${row.Length || '0'}</td>
+                    <td class="number-cell">${row.Width || '0'}</td>
+                    <td class="number-cell">${row.Height || '0'}</td>
+                    <td class="number-cell">${row.Quantity || '0'}</td>
+                    <td class="volume-cell">${row.Volume || '0'}</td>
+                    <td class="number-cell">${row.Erection || '0'}</td>
+                    <td class="number-cell">${row.Dismantling || '0'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterData() {
+            const selectedSupervisor = document.getElementById('supervisorFilter').value;
+            
+            let filteredData = allData;
+            if (selectedSupervisor) {
+                filteredData = allData.filter(row => row.Supervisor === selectedSupervisor);
             }
             
-            return Array.from(supervisorMap.values());
+            renderTable(filteredData);
         }
 
-        // Create supervisor card
-        function createSupervisorCard(supervisor) {
-            const total = supervisor.totalErection + supervisor.totalDismantling;
-            const erectionPercentage = total > 0 ? (supervisor.totalErection / total * 100).toFixed(1) : 0;
-            
-            return `
-                <div class="bg-white rounded-xl shadow-lg p-6 card-hover cursor-pointer transition-all" onclick="openSupervisorModal('${supervisor.name}')">
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="flex-1">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-1">${supervisor.name}</h3>
-                            <p class="text-sm text-gray-500">Last activity: ${supervisor.lastDate || 'N/A'}</p>
-                        </div>
-                        <div class="bg-blue-100 p-2 rounded-lg">
-                            <span class="text-blue-600 text-lg">👷</span>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="text-green-600">🏗️</span>
-                                <span class="text-sm font-medium text-gray-700">Erection</span>
-                            </div>
-                            <span class="text-lg font-bold text-green-600">${supervisor.totalErection}</span>
-                        </div>
-                        
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <span class="text-orange-600">🔧</span>
-                                <span class="text-sm font-medium text-gray-700">Dismantling</span>
-                            </div>
-                            <span class="text-lg font-bold text-orange-600">${supervisor.totalDismantling}</span>
-                        </div>
-                        
-                        <div class="pt-2 border-t border-gray-100">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-medium text-gray-700">Total Tasks</span>
-                                <span class="text-lg font-bold text-gray-800">${total}</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="bg-gradient-to-r from-green-500 to-orange-500 h-2 rounded-full" 
-                                     style="width: ${erectionPercentage}%"></div>
-                            </div>
-                            <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>${erectionPercentage}% Erection</span>
-                                <span>${(100 - erectionPercentage).toFixed(1)}% Dismantling</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4 pt-3 border-t border-gray-100">
-                        <p class="text-xs text-blue-600 font-medium text-center">Click to view detailed breakdown</p>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Update summary cards
-        function updateSummaryCards(data) {
-            const totalSupervisors = data.length;
-            const totalErections = data.reduce((sum, s) => sum + s.totalErection, 0);
-            const totalDismantling = data.reduce((sum, s) => sum + s.totalDismantling, 0);
-            
-            document.getElementById('totalSupervisors').textContent = totalSupervisors;
-            document.getElementById('totalErections').textContent = totalErections;
-            document.getElementById('totalDismantling').textContent = totalDismantling;
-            document.getElementById('updateTime').textContent = new Date().toLocaleTimeString();
-        }
-
-        // Load and display data
         async function loadData() {
-            const loadingState = document.getElementById('loadingState');
-            const errorState = document.getElementById('errorState');
-            const summaryCards = document.getElementById('summaryCards');
-            const supervisorGrid = document.getElementById('supervisorGrid');
-            const refreshIcon = document.getElementById('refreshIcon');
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.disabled = true;
+            refreshBtn.textContent = '🔄 Loading...';
             
-            // Show loading state
-            loadingState.classList.remove('hidden');
-            errorState.classList.add('hidden');
-            summaryCards.classList.add('hidden');
-            supervisorGrid.classList.add('hidden');
-            refreshIcon.textContent = '⏳';
-            
+            showStatus('Loading live data from Google Sheets...', 'loading');
+
             try {
-                const response = await fetch(CSV_URL);
-                if (!response.ok) throw new Error('Network response was not ok');
+                const response = await fetch(csvUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const csvText = await response.text();
-                const rawData = parseCSV(csvText);
-                supervisorData = processSupervisorData(rawData);
                 
-                // Sort supervisors by total tasks (descending)
-                supervisorData.sort((a, b) => 
-                    (b.totalErection + b.totalDismantling) - (a.totalErection + a.totalDismantling)
-                );
+                if (!csvText.trim()) {
+                    throw new Error('Empty response from Google Sheets');
+                }
+
+                allData = parseCSV(csvText);
                 
-                // Update UI
-                updateSummaryCards(supervisorData);
+                if (allData.length === 0) {
+                    throw new Error('No valid data found in the spreadsheet');
+                }
+
+                populateSupervisorFilter(allData);
+                filterData();
                 
-                supervisorGrid.innerHTML = supervisorData
-                    .map(supervisor => createSupervisorCard(supervisor))
-                    .join('');
+                // Update last updated time
+                const now = new Date();
+                document.getElementById('lastUpdated').textContent = 
+                    `Last updated: ${now.toLocaleString()}`;
                 
-                // Show data
-                loadingState.classList.add('hidden');
-                summaryCards.classList.remove('hidden');
-                supervisorGrid.classList.remove('hidden');
-                
-                // Update last update time
-                document.getElementById('lastUpdate').textContent = 
-                    `Last updated: ${new Date().toLocaleTimeString()}`;
-                
+                showStatus(`✅ Successfully loaded ${allData.length} records`, 'success');
+
             } catch (error) {
                 console.error('Error loading data:', error);
-                loadingState.classList.add('hidden');
-                errorState.classList.remove('hidden');
+                showStatus(`❌ Error loading data: ${error.message}`, 'error');
+                
+                document.getElementById('dataTable').innerHTML = 
+                    '<tr><td colspan="11" class="no-data">Failed to load data. Please check your internet connection and try again.</td></tr>';
             } finally {
-                refreshIcon.textContent = '🔄';
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = '🔄 Refresh Data';
             }
         }
 
-        // Auto refresh every 30 seconds
-        function startAutoRefresh() {
-            autoRefreshInterval = setInterval(loadData, 30000);
-        }
+        // Set up event listeners
+        document.getElementById('supervisorFilter').addEventListener('change', filterData);
 
-        function stopAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
-        }
+        // Auto-refresh every 5 minutes
+        setInterval(loadData, 5 * 60 * 1000);
 
-        // Modal functions
-        function openSupervisorModal(supervisorName) {
-            const supervisor = supervisorData.find(s => s.name === supervisorName);
-            if (!supervisor) return;
-            
-            // Update modal header
-            document.getElementById('modalSupervisorName').textContent = supervisor.name;
-            
-            // Update summary stats
-            document.getElementById('modalTotalErection').textContent = supervisor.totalErection;
-            document.getElementById('modalTotalDismantling').textContent = supervisor.totalDismantling;
-            document.getElementById('modalTotalTasks').textContent = supervisor.totalErection + supervisor.totalDismantling;
-            
-            // Populate table
-            const tableBody = document.getElementById('modalTableBody');
-            tableBody.innerHTML = supervisor.entries
-                .sort((a, b) => {
-                    // Handle empty dates
-                    if (!a.date && !b.date) return 0;
-                    if (!a.date) return 1;
-                    if (!b.date) return -1;
-                    
-                    // Parse dates properly and sort newest first
-                    const dateA = new Date(a.date);
-                    const dateB = new Date(b.date);
-                    
-                    // If dates are invalid, fall back to string comparison
-                    if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
-                        return b.date.localeCompare(a.date);
-                    }
-                    
-                    return dateB - dateA; // Newest first
-                }) // Sort by date descending
-                .map(entry => `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm text-gray-900">${entry.date || 'N/A'}</td>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-900">${supervisor.name}</td>
-                        <td class="px-4 py-3 text-sm text-center">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                ${entry.erection}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 text-sm text-center">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                ${entry.dismantling}
-                            </span>
-                        </td>
-                    </tr>
-                `).join('');
-            
-            // Show modal
-            document.getElementById('supervisorModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
-        }
-        
-        function closeSupervisorModal() {
-            document.getElementById('supervisorModal').classList.add('hidden');
-            document.body.style.overflow = 'auto'; // Restore scrolling
-        }
-
-        // Event listeners
-        document.getElementById('refreshBtn').addEventListener('click', loadData);
-        document.getElementById('closeModal').addEventListener('click', closeSupervisorModal);
-        
-        // Close modal when clicking outside
-        document.getElementById('supervisorModal').addEventListener('click', (e) => {
-            if (e.target.id === 'supervisorModal') {
-                closeSupervisorModal();
-            }
-        });
-        
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeSupervisorModal();
-            }
-        });
-
-        // Handle page visibility for auto-refresh
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                stopAutoRefresh();
-            } else {
-                startAutoRefresh();
-                loadData(); // Refresh when page becomes visible
-            }
-        });
-
-        // Initial load
-        loadData();
-        startAutoRefresh();
+        // Load data on page load
+        window.addEventListener('load', loadData);
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'974ac28267846ee3',t:'MTc1NjEyMTQ1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'974ae23c17b73f7e',t:'MTc1NjEyMjc1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

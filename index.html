@@ -1,23 +1,9 @@
-// Function to generate performance summary
-function generateSummary(stats) {
-let summary = `Excellent attendance record with ${stats.presentDays} working days completed. `;
-
-```
-        if (stats.totalOvertimeHours > 0) {
-            summary += `Contributed ${stats.totalOvertimeHours} overtime hours showing dedication and commitment. `;
-        }
-        
-        summary += `Total working hours: ${stats.totalHours} demonstrating consistent performance and reliability.`;
-        
-        return summary;
-    }<!DOCTYPE html>
-```
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Attendance Report</title>
+    <title>Employee Attendance Report System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
@@ -26,1161 +12,906 @@ let summary = `Excellent attendance record with ${stats.presentDays} working day
             box-sizing: border-box;
         }
 
-```
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
-
-    .container {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-        padding: 40px;
-        width: 100%;
-        max-width: 500px;
-        text-align: center;
-    }
-
-    .logo {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        border-radius: 50%;
-        margin: 0 auto 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 24px;
-        font-weight: bold;
-    }
-
-    h1 {
-        color: #333;
-        margin-bottom: 10px;
-        font-size: 28px;
-    }
-
-    .subtitle {
-        color: #666;
-        margin-bottom: 40px;
-        font-size: 16px;
-    }
-
-    .search-section {
-        margin-bottom: 30px;
-    }
-
-    .search-input {
-        width: 100%;
-        padding: 15px 20px;
-        border: 2px solid #e0e0e0;
-        border-radius: 50px;
-        font-size: 16px;
-        outline: none;
-        transition: all 0.3s ease;
-        margin-bottom: 20px;
-    }
-
-    .search-input:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .search-btn {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        color: white;
-        border: none;
-        padding: 15px 40px;
-        border-radius: 50px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-    }
-
-    .search-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 30px rgba(102, 126, 234, 0.4);
-    }
-
-    .search-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .loading {
-        display: none;
-        color: #667eea;
-        margin: 20px 0;
-    }
-
-    .spinner {
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #667eea;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 10px;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .error {
-        color: #e74c3c;
-        background: #ffeaea;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 20px 0;
-        border-left: 4px solid #e74c3c;
-    }
-
-    .success {
-        color: #27ae60;
-        background: #eafaf1;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 20px 0;
-        border-left: 4px solid #27ae60;
-    }
-
-    .summary-section {
-        display: none;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        padding: 30px;
-        margin-top: 30px;
-        border-left: 6px solid #3498db;
-    }
-
-    .summary-header {
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .summary-title {
-        font-size: 24px;
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
-
-    .employee-name-display {
-        font-size: 20px;
-        color: #3498db;
-        font-weight: 600;
-    }
-
-    .stats-summary {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-    }
-
-    .stat-item {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    }
-
-    .stat-value-summary {
-        font-size: 28px;
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
-
-    .stat-label-summary {
-        font-size: 14px;
-        opacity: 0.9;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 30px;
-    }
-
-    .download-btn {
-        background: linear-gradient(45deg, #27ae60, #2ecc71);
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 50px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 20px rgba(39, 174, 96, 0.3);
-    }
-
-    .download-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 30px rgba(39, 174, 96, 0.4);
-    }
-
-    .grievance-btn {
-        background: linear-gradient(45deg, #e74c3c, #c0392b);
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 50px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 20px rgba(231, 76, 60, 0.3);
-    }
-
-    .grievance-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 30px rgba(231, 76, 60, 0.4);
-    }
-
-    .grievance-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .grievance-content {
-        background: white;
-        padding: 40px;
-        border-radius: 20px;
-        width: 90%;
-        max-width: 500px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-
-    .grievance-title {
-        font-size: 24px;
-        font-weight: bold;
-        color: #2c3e50;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-
-    .grievance-subtitle {
-        color: #7f8c8d;
-        text-align: center;
-        margin-bottom: 30px;
-        line-height: 1.5;
-    }
-
-    .form-group {
-        margin-bottom: 20px;
-    }
-
-    .form-label {
-        display: block;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 8px;
-    }
-
-    .form-input, .form-textarea {
-        width: 100%;
-        padding: 12px 15px;
-        border: 2px solid #e0e0e0;
-        border-radius: 10px;
-        font-size: 16px;
-        outline: none;
-        transition: border-color 0.3s ease;
-    }
-
-    .form-input:focus, .form-textarea:focus {
-        border-color: #3498db;
-    }
-
-    .form-textarea {
-        resize: vertical;
-        min-height: 100px;
-    }
-
-    .modal-buttons {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        margin-top: 30px;
-    }
-
-    .modal-btn {
-        padding: 12px 25px;
-        border: none;
-        border-radius: 25px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .submit-btn {
-        background: linear-gradient(45deg, #e74c3c, #c0392b);
-        color: white;
-    }
-
-    .cancel-btn {
-        background: #95a5a6;
-        color: white;
-    }
-
-    .modal-btn:hover {
-        transform: translateY(-2px);
-    }
-
-    /* Report Styles */
-    .report-container {
-        display: none;
-        position: fixed;
-        top: -9999px;
-        left: -9999px;
-        background: white;
-        width: 800px;
-        padding: 60px;
-        font-family: Arial, sans-serif;
-    }
-
-    .report-header {
-        text-align: center;
-        margin-bottom: 50px;
-        border-bottom: 3px solid #2c3e50;
-        padding-bottom: 30px;
-    }
-
-    .company-name {
-        font-size: 32px;
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 10px;
-    }
-
-    .report-title {
-        font-size: 24px;
-        color: #34495e;
-        margin-bottom: 20px;
-    }
-
-    .report-date {
-        font-size: 14px;
-        color: #7f8c8d;
-    }
-
-    .employee-info {
-        background: #f8f9fa;
-        padding: 30px;
-        border-radius: 10px;
-        margin-bottom: 40px;
-        border-left: 5px solid #3498db;
-    }
-
-    .employee-name {
-        font-size: 28px;
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 15px;
-    }
-
-    .supervisor-info {
-        font-size: 16px;
-        color: #7f8c8d;
-        margin-bottom: 10px;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 30px;
-        margin-bottom: 40px;
-    }
-
-    .stat-card {
-        background: white;
-        border: 2px solid #ecf0f1;
-        border-radius: 15px;
-        padding: 30px;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .stat-value {
-        font-size: 36px;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    .present-days .stat-value {
-        color: #27ae60;
-    }
-
-    .overtime-hours .stat-value {
-        color: #e67e22;
-    }
-
-    .total-hours .stat-value {
-        color: #3498db;
-    }
-
-    .stat-label {
-        font-size: 16px;
-        color: #7f8c8d;
-        text-transform: uppercase;
-        font-weight: 600;
-        letter-spacing: 1px;
-    }
-
-    .attendance-calendar {
-        background: white;
-        border-radius: 15px;
-        padding: 40px;
-        margin-bottom: 40px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .calendar-title {
-        font-size: 24px;
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 35px;
-        text-align: center;
-        border-bottom: 3px solid #ecf0f1;
-        padding-bottom: 20px;
-    }
-
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 4px;
-        background: #ecf0f1;
-        border-radius: 15px;
-        padding: 4px;
-    }
-
-    .calendar-header {
-        background: #34495e;
-        color: white;
-        padding: 20px 12px;
-        text-align: center;
-        font-weight: bold;
-        font-size: 16px;
-    }
-
-    .calendar-header:first-child {
-        border-top-left-radius: 12px;
-    }
-
-    .calendar-header:last-child {
-        border-top-right-radius: 12px;
-    }
-
-    .calendar-day {
-        background: #f8f9fa;
-        padding: 15px 8px;
-        text-align: center;
-        min-height: 100px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        font-size: 14px;
-        position: relative;
-    }
-
-    .calendar-day.present {
-        background: #d5f4e6;
-        border-left: 6px solid #27ae60;
-    }
-
-    .calendar-day.overtime {
-        background: #ffeaa7;
-        border-left: 6px solid #e67e22;
-    }
-
-    .calendar-day.present.overtime {
-        background: linear-gradient(45deg, #d5f4e6 50%, #ffeaa7 50%);
-        border-left: 6px solid #f39c12;
-    }
-
-    .day-number {
-        font-weight: bold;
-        color: #2c3e50;
-        margin-bottom: 6px;
-        font-size: 16px;
-    }
-
-    .day-hours {
-        font-size: 12px;
-        color: #7f8c8d;
-        line-height: 1.3;
-    }
-
-    .ot-hours {
-        color: #e67e22;
-        font-weight: bold;
-    }
-
-    .legend {
-        display: flex;
-        justify-content: center;
-        gap: 30px;
-        margin-top: 25px;
-        flex-wrap: wrap;
-    }
-
-    .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 16px;
-        color: #7f8c8d;
-    }
-
-    .legend-color {
-        width: 20px;
-        height: 20px;
-        border-radius: 6px;
-    }
-
-    .legend-present {
-        background: #d5f4e6;
-        border-left: 6px solid #27ae60;
-    }
-
-    .legend-overtime {
-        background: #ffeaa7;
-        border-left: 6px solid #e67e22;
-    }
-
-    .legend-both {
-        background: linear-gradient(45deg, #d5f4e6 50%, #ffeaa7 50%);
-        border-left: 6px solid #f39c12;
-    }
-
-    .instructions-section {
-        background: #fff3cd;
-        border: 2px solid #ffeaa7;
-        border-radius: 15px;
-        padding: 25px;
-        margin-top: 40px;
-        color: #856404;
-    }
-
-    .instructions-title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 15px;
-        text-align: center;
-        color: #721c24;
-    }
-
-    .instructions-text {
-        font-size: 16px;
-        line-height: 1.6;
-        text-align: center;
-    }
-
-    .summary-section {
-        background: #34495e;
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
-        margin-top: 40px;
-    }
-
-    .summary-title {
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        text-align: center;
-    }
-
-    .summary-text {
-        font-size: 16px;
-        line-height: 1.6;
-        text-align: center;
-    }
-
-    .report-footer {
-        margin-top: 50px;
-        padding-top: 30px;
-        border-top: 2px solid #ecf0f1;
-        text-align: center;
-        color: #7f8c8d;
-        font-size: 14px;
-    }
-</style>
-```
-
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-section {
+            padding: 40px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-container {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .summary-section {
+            padding: 40px;
+            display: none;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .summary-card h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .summary-card p {
+            opacity: 0.9;
+        }
+
+        .calendar-container {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 3px solid #1f2937;
+        }
+
+        .calendar-header h2 {
+            color: #1f2937;
+            font-size: 2rem;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .employee-name {
+            color: #374151;
+            font-size: 1.4rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            margin-bottom: 25px;
+            border: 2px solid #1f2937;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .calendar-day-header {
+            background: #1f2937;
+            color: white;
+            padding: 18px 8px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            background: #ffffff;
+            border: none;
+            min-height: 100px;
+            padding: 12px;
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .calendar-day.present {
+            background: #10b981;
+            color: white;
+            box-shadow: inset 0 0 0 2px #059669;
+        }
+
+        .calendar-day.absent {
+            background: #f9fafb;
+            color: #9ca3af;
+            border-right: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .calendar-day:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .calendar-day.clickable {
+            cursor: pointer;
+        }
+
+        .calendar-day.clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .day-number {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .calendar-day.present .day-number {
+            color: white;
+        }
+
+        .calendar-day.absent .day-number {
+            color: #6b7280;
+        }
+
+        .day-info {
+            font-size: 0.75rem;
+            line-height: 1.3;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .overtime-badge {
+            background: #f59e0b;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            margin-top: 4px;
+            display: inline-block;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .grievance-btn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .grievance-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .instructions p {
+            color: #856404;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+
+        .report-container {
+            display: none;
+            background: white;
+            padding: 40px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .grievance-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .grievance-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #1f2937;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-header p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .grievance-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .grievance-option {
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .grievance-option:hover {
+            background: #e5e7eb;
+            border-color: #667eea;
+        }
+
+        .grievance-option.selected {
+            background: #eff6ff;
+            border-color: #667eea;
+            color: #1d4ed8;
+        }
+
+        .grievance-option h4 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .grievance-option p {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn.primary {
+            background: #10b981;
+            color: white;
+        }
+
+        .modal-btn.primary:hover {
+            background: #059669;
+        }
+
+        .modal-btn.secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .modal-btn.secondary:hover {
+            background: #e5e7eb;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-grid {
+                font-size: 0.8rem;
+            }
+            
+            .calendar-day {
+                min-height: 60px;
+                padding: 5px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .search-btn, .download-btn, .grievance-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo">AR</div>
-        <h1>Attendance Report</h1>
-        <p class="subtitle">Enter your name to generate your attendance summary</p>
-
-```
-    <div class="search-section">
-        <input type="text" 
-               id="employeeName" 
-               class="search-input" 
-               placeholder="Enter your full name..."
-               autocomplete="off">
-        <button id="searchBtn" class="search-btn">Generate Report</button>
-    </div>
-
-    <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <p>Fetching your attendance data...</p>
-    </div>
-
-    <div id="message"></div>
-</div>
-
-<!-- Summary Section -->
-<div id="summarySection" class="summary-section">
-    <div class="summary-header">
-        <div class="summary-title">आपका उपस्थिति सारांश (Your Attendance Summary)</div>
-        <div class="employee-name-display" id="employeeNameDisplay"></div>
-    </div>
-
-    <div class="stats-summary">
-        <div class="stat-item">
-            <div class="stat-value-summary" id="summaryPresentDays">0</div>
-            <div class="stat-label-summary">उपस्थित दिन<br>Present Days</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-value-summary" id="summaryOvertimeHours">0</div>
-            <div class="stat-label-summary">ओवरटाइम घंटे<br>Overtime Hours</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-value-summary" id="summaryTotalHours">0</div>
-            <div class="stat-label-summary">कुल घंटे<br>Total Hours</div>
-        </div>
-    </div>
-
-    <div class="action-buttons">
-        <button id="downloadBtn" class="download-btn">📥 रिपोर्ट डाउनलोड करें (Download Report)</button>
-        <button id="grievanceBtn" class="grievance-btn">📝 शिकायत दर्ज करें (File Grievance)</button>
-    </div>
-</div>
-
-<!-- Grievance Modal -->
-<div id="grievanceModal" class="grievance-modal">
-    <div class="grievance-content">
-        <div class="grievance-title">शिकायत फॉर्म (Grievance Form)</div>
-        <div class="grievance-subtitle">
-            यदि आपकी उपस्थिति या ओवरटाइम में कोई समस्या है तो कृपया नीचे विवरण भरें<br>
-            <em>If there's any issue with your attendance or overtime, please fill the details below</em>
+        <div class="header">
+            <h1>Employee Attendance Report</h1>
+            <p>Generate your monthly attendance summary</p>
         </div>
 
-        <form id="grievanceForm">
-            <div class="form-group">
-                <label class="form-label">समस्या का प्रकार (Issue Type):</label>
-                <select id="issueType" class="form-input">
-                    <option value="">समस्या चुनें (Select Issue)</option>
-                    <option value="missing_attendance">अनुपस्थित उपस्थिति (Missing Attendance)</option>
-                    <option value="missing_overtime">अनुपस्थित ओवरटाइम (Missing Overtime)</option>
-                    <option value="incorrect_hours">गलत घंटे (Incorrect Hours)</option>
-                    <option value="other">अन्य (Other)</option>
-                </select>
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text" id="employeeName" class="search-input" placeholder="Enter your full name (e.g., AMAN KUMAR)" autocomplete="off">
+                <button onclick="searchEmployee()" class="search-btn">Search Attendance</button>
+            </div>
+            <div class="loading" id="loading">
+                <p>Loading attendance data...</p>
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <div class="summary-section" id="summarySection">
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <h3 id="totalDays">0</h3>
+                    <p>Total Present Days</p>
+                </div>
+                <div class="summary-card">
+                    <h3 id="totalOT">0</h3>
+                    <p>Total Overtime Hours</p>
+                </div>
+                <div class="summary-card">
+                    <h3 id="totalShiftHours">0</h3>
+                    <p>Total Shift Hours</p>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">दिनांक (Date):</label>
-                <input type="date" id="issueDate" class="form-input" required>
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <h2>August 2025 Attendance Calendar</h2>
+                    <div class="employee-name" id="employeeNameDisplay"></div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid">
+                    <!-- Calendar will be generated here -->
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">विस्तृत विवरण (Detailed Description):</label>
-                <textarea id="issueDescription" class="form-textarea" 
-                         placeholder="कृपया अपनी समस्या का विस्तृत विवरण दें... / Please provide detailed description of your issue..."
-                         required></textarea>
+            <div class="action-buttons">
+                <button onclick="downloadReport()" class="download-btn">📥 Download JPEG Report</button>
+                <button onclick="fileGrievance()" class="grievance-btn">📝 File Grievance</button>
             </div>
 
-            <div class="modal-buttons">
-                <button type="submit" class="modal-btn submit-btn">WhatsApp पर भेजें (Send via WhatsApp)</button>
-                <button type="button" id="cancelBtn" class="modal-btn cancel-btn">रद्द करें (Cancel)</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Hidden Report Container -->
-<div id="reportContainer" class="report-container">
-    <div class="report-header">
-        <div class="report-title">Employee Attendance Summary</div>
-        <div class="report-date" id="reportDate"></div>
-    </div>
-
-    <div class="employee-info">
-        <div class="employee-name" id="reportEmpName"></div>
-        <div class="supervisor-info">Supervisor: <span id="reportSupervisor"></span></div>
-    </div>
-
-    <div class="stats-grid">
-        <div class="stat-card present-days">
-            <div class="stat-value" id="presentDays">0</div>
-            <div class="stat-label">Present Days</div>
-        </div>
-        <div class="stat-card overtime-hours">
-            <div class="stat-value" id="overtimeHours">0</div>
-            <div class="stat-label">Overtime Hours</div>
-        </div>
-        <div class="stat-card total-hours">
-            <div class="stat-value" id="totalHours">0</div>
-            <div class="stat-label">Total Hours</div>
-        </div>
-    </div>
-
-    <div class="attendance-calendar">
-        <div class="calendar-title">Daily Attendance Calendar</div>
-        <div id="attendanceCalendar"></div>
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-color legend-present"></div>
-                <span>उपस्थित दिन (Present Day)</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color legend-overtime"></div>
-                <span>केवल ओवरटाइम (Overtime Only)</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color legend-both"></div>
-                <span>उपस्थित + ओवरटाइम (Present + Overtime)</span>
+            <div class="instructions">
+                <p>यदि आपको कोई अनुपस्थित या ओवरटाइम छूट गया है, तो कृपया अपने पर्यवेक्षक को सूचित करें।</p>
             </div>
         </div>
-    </div>
 
-    <div class="instructions-section">
-        <div class="instructions-title">महत्वपूर्ण निर्देश (Important Instructions)</div>
-        <div class="instructions-text">
-            यदि आपकी उपस्थिति या ओवरटाइम में कोई कमी या त्रुटि दिखाई दे रही है, तो कृपया तुरंत अपने सुपरवाइजर को सूचित करें।<br>
-            <strong>If you find any missing attendance or overtime, please inform your supervisor immediately.</strong>
+        <div class="report-container" id="reportContainer">
+            <!-- Report content for download will be generated here -->
         </div>
-    </div>
 
-    <div class="summary-section">
-        <div class="summary-title">Performance Summary</div>
-        <div class="summary-text" id="summaryText"></div>
-    </div>
-
-    <div class="report-footer">
-        <p>Generated on <span id="generatedDate"></span> | This is an automated report</p>
-    </div>
-</div>
-
-<script>
-    let csvData = [];
-    const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1727336003&single=true&output=csv';
-
-    // Function to parse CSV data
-    function parseCSV(csvText) {
-        const lines = csvText.trim().split('\n');
-        const headers = lines[0].split(',').map(h => h.trim());
-        const data = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(',').map(v => v.trim());
-            const row = {};
-            headers.forEach((header, index) => {
-                row[header] = values[index] || '';
-            });
-            data.push(row);
-        }
-        
-        return data;
-    }
-
-    // Function to fetch CSV data
-    async function fetchCSVData() {
-        try {
-            const response = await fetch(csvUrl);
-            if (!response.ok) {
-                throw new Error('Failed to fetch data');
-            }
-            const csvText = await response.text();
-            csvData = parseCSV(csvText);
-            console.log('CSV data loaded:', csvData.length, 'records');
-        } catch (error) {
-            console.error('Error fetching CSV:', error);
-            throw error;
-        }
-    }
-
-    // Function to search employee data
-    function searchEmployee(name) {
-        const searchName = name.trim().toLowerCase();
-        return csvData.filter(row => 
-            row['EMP NAME'] && row['EMP NAME'].toLowerCase().includes(searchName)
-        );
-    }
-
-    // Function to calculate attendance statistics
-    function calculateStats(employeeData) {
-        const presentDays = employeeData.length;
-        let totalShiftHours = 0;
-        let totalOvertimeHours = 0;
-        let supervisor = '';
-
-        employeeData.forEach(record => {
-            const shiftHours = parseFloat(record['Shift Hours']) || 0;
-            const otHours = parseFloat(record['OT HOURS']) || 0;
-            
-            totalShiftHours += shiftHours;
-            totalOvertimeHours += otHours;
-            
-            if (!supervisor && record['Supervisor']) {
-                supervisor = record['Supervisor'];
-            }
-        });
-
-        const totalHours = totalShiftHours + totalOvertimeHours;
-
-        return {
-            presentDays,
-            totalShiftHours,
-            totalOvertimeHours,
-            totalHours,
-            supervisor
-        };
-    }
-
-    // Function to generate calendar view
-    function generateCalendar(employeeData) {
-        const calendar = document.getElementById('attendanceCalendar');
-        
-        // Get date range
-        const dates = employeeData.map(record => new Date(record['Date']));
-        dates.sort((a, b) => a - b);
-        
-        if (dates.length === 0) return;
-
-        const startDate = new Date(dates[0]);
-        const endDate = new Date(dates[dates.length - 1]);
-        
-        // Get first day of the month and last day of the month
-        const firstDay = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-        const lastDay = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
-        
-        // Create attendance lookup
-        const attendanceMap = {};
-        employeeData.forEach(record => {
-            const dateKey = new Date(record['Date']).toDateString();
-            attendanceMap[dateKey] = {
-                shiftHours: parseFloat(record['Shift Hours']) || 0,
-                otHours: parseFloat(record['OT HOURS']) || 0
-            };
-        });
-
-        // Generate calendar grid
-        let calendarHTML = '<div class="calendar-grid">';
-        
-        // Add headers
-        const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        weekDays.forEach(day => {
-            calendarHTML += `<div class="calendar-header">${day}</div>`;
-        });
-
-        // Add empty cells for days before the first day of the month
-        const firstDayOfWeek = firstDay.getDay();
-        for (let i = 0; i < firstDayOfWeek; i++) {
-            calendarHTML += '<div class="calendar-day"></div>';
-        }
-
-        // Add days of the month
-        const currentDate = new Date(firstDay);
-        while (currentDate <= lastDay) {
-            const dateKey = currentDate.toDateString();
-            const attendance = attendanceMap[dateKey];
-            const dayNumber = currentDate.getDate();
-            
-            let dayClass = 'calendar-day';
-            let dayContent = `<div class="day-number">${dayNumber}</div>`;
-            
-            if (attendance) {
-                const hasShift = attendance.shiftHours > 0;
-                const hasOT = attendance.otHours > 0;
+        <!-- Grievance Modal -->
+        <div class="grievance-modal" id="grievanceModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>File Grievance</h3>
+                    <p id="selectedDateText">Selected Date: August 1, 2025</p>
+                </div>
                 
-                if (hasShift && hasOT) {
-                    dayClass += ' present overtime';
-                    dayContent += `<div class="day-hours">${attendance.shiftHours}h<br><span class="ot-hours">+${attendance.otHours}h OT</span></div>`;
-                } else if (hasShift) {
-                    dayClass += ' present';
-                    dayContent += `<div class="day-hours">${attendance.shiftHours}h</div>`;
-                } else if (hasOT) {
-                    dayClass += ' overtime';
-                    dayContent += `<div class="day-hours"><span class="ot-hours">${attendance.otHours}h OT</span></div>`;
+                <div class="grievance-options">
+                    <div class="grievance-option" onclick="selectGrievanceType('absent')">
+                        <h4>🚫 Mark as Present</h4>
+                        <p>I was present on this date but it's showing as absent</p>
+                    </div>
+                    
+                    <div class="grievance-option" onclick="selectGrievanceType('overtime')">
+                        <h4>⏰ Add Missing Overtime</h4>
+                        <p>I worked overtime hours that are not recorded</p>
+                    </div>
+                    
+                    <div class="grievance-option" onclick="selectGrievanceType('shift')">
+                        <h4>🕐 Correct Shift Hours</h4>
+                        <p>My shift hours are incorrectly recorded</p>
+                    </div>
+                    
+                    <div class="grievance-option" onclick="selectGrievanceType('other')">
+                        <h4>📝 Other Issue</h4>
+                        <p>Different attendance related concern</p>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="modal-btn secondary" onclick="closeGrievanceModal()">Cancel</button>
+                    <button class="modal-btn primary" onclick="submitGrievance()" id="submitGrievanceBtn" disabled>Submit Grievance</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let attendanceData = [];
+        let currentEmployeeData = [];
+
+        // Fetch CSV data
+        async function fetchAttendanceData() {
+            try {
+                const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1727336003&single=true&output=csv');
+                const csvText = await response.text();
+                
+                const lines = csvText.split('\n');
+                const headers = lines[0].split(',').map(h => h.trim());
+                
+                attendanceData = [];
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        const values = lines[i].split(',').map(v => v.trim());
+                        const record = {};
+                        headers.forEach((header, index) => {
+                            record[header] = values[index] || '';
+                        });
+                        attendanceData.push(record);
+                    }
                 }
+                return true;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                return false;
             }
-            
-            calendarHTML += `<div class="${dayClass}">${dayContent}</div>`;
-            currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        calendarHTML += '</div>';
-        calendar.innerHTML = calendarHTML;
-    }
-
-    // Function to show summary
-    function showSummary(employeeName, stats, employeeData) {
-        const summarySection = document.getElementById('summarySection');
-        
-        // Update summary data
-        document.getElementById('employeeNameDisplay').textContent = employeeName.toUpperCase();
-        document.getElementById('summaryPresentDays').textContent = stats.presentDays;
-        document.getElementById('summaryOvertimeHours').textContent = stats.totalOvertimeHours;
-        document.getElementById('summaryTotalHours').textContent = stats.totalHours;
-        
-        // Store data for later use
-        window.currentEmployeeData = {
-            name: employeeName,
-            stats: stats,
-            data: employeeData
-        };
-        
-        // Show summary section
-        summarySection.style.display = 'block';
-        summarySection.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // Function to generate and download report
-    function downloadReport() {
-        if (!window.currentEmployeeData) return;
-        
-        const { name, stats, data } = window.currentEmployeeData;
-        generateReport(name, stats, data);
-    }
-
-    // Function to show grievance modal
-    function showGrievanceModal() {
-        document.getElementById('grievanceModal').style.display = 'flex';
-    }
-
-    // Function to hide grievance modal
-    function hideGrievanceModal() {
-        document.getElementById('grievanceModal').style.display = 'none';
-        document.getElementById('grievanceForm').reset();
-    }
-
-    // Function to submit grievance via WhatsApp
-    function submitGrievance(event) {
-        event.preventDefault();
-        
-        if (!window.currentEmployeeData) return;
-        
-        const employeeName = window.currentEmployeeData.name;
-        const supervisor = window.currentEmployeeData.stats.supervisor || 'सुपरवाइजर';
-        const issueType = document.getElementById('issueType').value;
-        const issueDate = document.getElementById('issueDate').value;
-        const issueDescription = document.getElementById('issueDescription').value;
-        
-        if (!issueType || !issueDate || !issueDescription.trim()) {
-            alert('कृपया सभी फ़ील्ड भरें (Please fill all fields)');
-            return;
-        }
-        
-        // Format issue type for display
-        const issueTypeMap = {
-            'missing_attendance': 'अनुपस्थित उपस्थिति (Missing Attendance)',
-            'missing_overtime': 'अनुपस्थित ओवरटाइम (Missing Overtime)',
-            'incorrect_hours': 'गलत घंटे (Incorrect Hours)',
-            'other': 'अन्य (Other)'
-        };
-        
-        // Create WhatsApp message
-        const message = `🚨 *उपस्थिति शिकायत (Attendance Grievance)* 🚨
-```
-
-👤 *कर्मचारी नाम (Employee):* ${employeeName}
-👨‍💼 *सुपरवाइजर (Supervisor):* ${supervisor}
-
-📋 *समस्या का प्रकार (Issue Type):*
-${issueTypeMap[issueType] || issueType}
-
-📅 *दिनांक (Date):* ${new Date(issueDate).toLocaleDateString(‘hi-IN’)}
-
-📝 *विस्तृत विवरण (Description):*
-${issueDescription}
-
-⏰ *शिकायत का समय (Complaint Time):* ${new Date().toLocaleString(‘hi-IN’)}
-
-कृपया इस मामले को प्राथमिकता दें।
-Please prioritize this matter.`;
-
-```
-        // Encode message for WhatsApp URL
-        const encodedMessage = encodeURIComponent(message);
-        const whatsappURL = `https://wa.me/?text=${encodedMessage}`;
-        
-        // Open WhatsApp
-        window.open(whatsappURL, '_blank');
-        
-        // Hide modal and show success message
-        hideGrievanceModal();
-        showMessage('शिकायत WhatsApp के लिए तैयार की गई है! (Grievance prepared for WhatsApp!)', 'success');
-    }
-
-    // Function to generate report
-    function generateReport(employeeName, stats, employeeData) {
-        const reportContainer = document.getElementById('reportContainer');
-        const now = new Date();
-        
-        // Update report content
-        document.getElementById('reportDate').textContent = now.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        document.getElementById('reportEmpName').textContent = employeeName.toUpperCase();
-        document.getElementById('reportSupervisor').textContent = stats.supervisor || 'N/A';
-        document.getElementById('presentDays').textContent = stats.presentDays;
-        document.getElementById('overtimeHours').textContent = stats.totalOvertimeHours;
-        document.getElementById('totalHours').textContent = stats.totalHours;
-        document.getElementById('summaryText').textContent = generateSummary(stats);
-        document.getElementById('generatedDate').textContent = now.toLocaleString();
-
-        // Generate calendar
-        generateCalendar(employeeData);
-
-        // Show report container temporarily for screenshot
-        reportContainer.style.display = 'block';
-        reportContainer.style.position = 'absolute';
-        reportContainer.style.top = '0';
-        reportContainer.style.left = '0';
-        reportContainer.style.zIndex = '-1';
-
-        // Generate screenshot
-        html2canvas(reportContainer, {
-            width: 800,
-            height: 1500,
-            backgroundColor: '#ffffff',
-            scale: 2
-        }).then(canvas => {
-            // Hide report container again
-            reportContainer.style.display = 'none';
-            reportContainer.style.position = 'fixed';
-            reportContainer.style.top = '-9999px';
-            reportContainer.style.left = '-9999px';
-
-            // Download the image
-            const link = document.createElement('a');
-            link.download = `${employeeName.replace(/\s+/g, '_')}_Attendance_Report.jpeg`;
-            link.href = canvas.toDataURL('image/jpeg', 0.8);
-            link.click();
-
-            showMessage('Report downloaded successfully!', 'success');
-        }).catch(error => {
-            console.error('Error generating report:', error);
-            reportContainer.style.display = 'none';
-            showMessage('Error generating report. Please try again.', 'error');
-        });
-    }
-
-    // Function to show messages
-    function showMessage(message, type) {
-        const messageEl = document.getElementById('message');
-        messageEl.innerHTML = `<div class="${type}">${message}</div>`;
-        setTimeout(() => {
-            messageEl.innerHTML = '';
-        }, 5000);
-    }
-
-    // Function to show loading
-    function showLoading(show) {
-        const loading = document.getElementById('loading');
-        const searchBtn = document.getElementById('searchBtn');
-        
-        loading.style.display = show ? 'block' : 'none';
-        searchBtn.disabled = show;
-    }
-
-    // Search button event listener
-    document.getElementById('searchBtn').addEventListener('click', async function() {
-        const employeeName = document.getElementById('employeeName').value.trim();
-        
-        if (!employeeName) {
-            showMessage('Please enter your name', 'error');
-            return;
-        }
-
-        showLoading(true);
-
-        try {
-            // Fetch fresh data
-            await fetchCSVData();
+        async function searchEmployee() {
+            const employeeName = document.getElementById('employeeName').value.trim().toUpperCase();
             
-            // Search for employee
-            const employeeData = searchEmployee(employeeName);
-            
-            if (employeeData.length === 0) {
-                showMessage('Employee not found. Please check the spelling and try again.', 'error');
-                showLoading(false);
+            if (!employeeName) {
+                showError('Please enter your name');
                 return;
             }
 
-            // Calculate statistics
-            const stats = calculateStats(employeeData);
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('summarySection').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+
+            const dataLoaded = await fetchAttendanceData();
             
-            // Show summary on web app
-            showSummary(employeeData[0]['EMP NAME'], stats, employeeData);
+            if (!dataLoaded) {
+                document.getElementById('loading').style.display = 'none';
+                showError('Unable to load attendance data. Please try again.');
+                return;
+            }
+
+            // Filter data for the employee
+            currentEmployeeData = attendanceData.filter(record => 
+                record['EMP NAME'] && record['EMP NAME'].toUpperCase() === employeeName
+            );
+
+            document.getElementById('loading').style.display = 'none';
+
+            if (currentEmployeeData.length === 0) {
+                showError('No attendance records found for this employee name. Please check the spelling and try again.');
+                return;
+            }
+
+            displaySummary(employeeName);
+            generateCalendar();
+            document.getElementById('summarySection').style.display = 'block';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function displaySummary(employeeName) {
+            document.getElementById('employeeNameDisplay').textContent = employeeName;
             
-        } catch (error) {
-            console.error('Error:', error);
-            showMessage('Error fetching data. Please check your internet connection and try again.', 'error');
+            const totalDays = currentEmployeeData.length;
+            const totalOT = currentEmployeeData.reduce((sum, record) => {
+                const ot = parseFloat(record['OT HOURS']) || 0;
+                return sum + ot;
+            }, 0);
+            const totalShiftHours = currentEmployeeData.reduce((sum, record) => {
+                const shift = parseFloat(record['Shift Hours']) || 0;
+                return sum + shift;
+            }, 0);
+
+            document.getElementById('totalDays').textContent = totalDays;
+            document.getElementById('totalOT').textContent = totalOT;
+            document.getElementById('totalShiftHours').textContent = totalShiftHours;
         }
-        
-        showLoading(false);
-    });
 
-    // Enter key support
-    document.getElementById('employeeName').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            document.getElementById('searchBtn').click();
+        function generateCalendar() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+
+            // Day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'calendar-day-header';
+                dayHeader.textContent = day;
+                calendarGrid.appendChild(dayHeader);
+            });
+
+            // Generate calendar for August 2025
+            const daysInMonth = 31;
+            const firstDay = new Date(2025, 7, 1).getDay(); // August 1, 2025
+
+            // Empty cells for days before the 1st
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day';
+                calendarGrid.appendChild(emptyDay);
+            }
+
+            // Days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                dayElement.appendChild(dayNumber);
+
+                // Check if employee was present on this day
+                const dayRecord = currentEmployeeData.find(record => {
+                    const recordDate = record['Date'];
+                    if (!recordDate) return false;
+                    
+                    // Parse the date more carefully
+                    // Expected format: "1 August 2025", "2 August 2025", etc.
+                    const datePattern = new RegExp(`^${day}\\s+August\\s+2025$`, 'i');
+                    return datePattern.test(recordDate.trim());
+                });
+
+                if (dayRecord) {
+                    dayElement.classList.add('present');
+                    
+                    const dayInfo = document.createElement('div');
+                    dayInfo.className = 'day-info';
+                    dayInfo.innerHTML = `Shift: ${dayRecord['Shift Hours']}h`;
+                    
+                    if (dayRecord['OT HOURS'] && parseFloat(dayRecord['OT HOURS']) > 0) {
+                        const otBadge = document.createElement('div');
+                        otBadge.className = 'overtime-badge';
+                        otBadge.textContent = `OT: ${dayRecord['OT HOURS']}h`;
+                        dayInfo.appendChild(otBadge);
+                    }
+                    
+                    dayElement.appendChild(dayInfo);
+                } else {
+                    dayElement.classList.add('absent');
+                }
+
+                // Add click functionality for grievance
+                dayElement.classList.add('clickable');
+                dayElement.addEventListener('click', () => openGrievanceModal(day));
+
+                calendarGrid.appendChild(dayElement);
+            }
         }
-    });
 
-    // Event listeners for summary section buttons
-    document.getElementById('downloadBtn').addEventListener('click', downloadReport);
-    document.getElementById('grievanceBtn').addEventListener('click', showGrievanceModal);
-    document.getElementById('cancelBtn').addEventListener('click', hideGrievanceModal);
-    document.getElementById('grievanceForm').addEventListener('submit', submitGrievance);
-
-    // Close modal when clicking outside
-    document.getElementById('grievanceModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            hideGrievanceModal();
+        async function downloadReport() {
+            const employeeName = document.getElementById('employeeNameDisplay').textContent;
+            
+            // Create report container
+            const reportContainer = document.getElementById('reportContainer');
+            reportContainer.innerHTML = `
+                <div style="background: white; padding: 40px; font-family: Arial, sans-serif;">
+                    <div style="text-align: center; margin-bottom: 30px; border-bottom: 3px solid #2c3e50; padding-bottom: 20px;">
+                        <h1 style="color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px;">Attendance Report</h1>
+                        <h2 style="color: #667eea; font-size: 1.8rem; margin-bottom: 5px;">${employeeName}</h2>
+                        <p style="color: #666; font-size: 1.2rem;">August 2025</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                            <h3 style="font-size: 2rem; margin-bottom: 5px;">${document.getElementById('totalDays').textContent}</h3>
+                            <p>Total Present Days</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                            <h3 style="font-size: 2rem; margin-bottom: 5px;">${document.getElementById('totalOT').textContent}</h3>
+                            <p>Total Overtime Hours</p>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; border-radius: 10px; text-align: center;">
+                            <h3 style="font-size: 2rem; margin-bottom: 5px;">${document.getElementById('totalShiftHours').textContent}</h3>
+                            <p>Total Shift Hours</p>
+                        </div>
+                    </div>
+                    
+                    ${document.querySelector('.calendar-container').outerHTML}
+                    
+                    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 10px; text-align: center;">
+                        <p style="color: #856404; font-size: 1.1rem; font-weight: 500;">यदि आपको कोई अनुपस्थित या ओवरटाइम छूट गया है, तो कृपया अपने पर्यवेक्षक को सूचित करें।</p>
+                    </div>
+                </div>
+            `;
+            
+            reportContainer.style.display = 'block';
+            
+            // Generate and download image
+            try {
+                const canvas = await html2canvas(reportContainer.firstElementChild, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                });
+                
+                const link = document.createElement('a');
+                link.download = `${employeeName}_Attendance_Report_August_2025.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+                
+                reportContainer.style.display = 'none';
+            } catch (error) {
+                console.error('Error generating report:', error);
+                alert('Error generating report. Please try again.');
+            }
         }
-    });
 
-    // Load initial data
-    fetchCSVData().catch(error => {
-        console.error('Initial data load failed:', error);
-    });
-</script>
-```
+        function fileGrievance() {
+            const employeeName = document.getElementById('employeeNameDisplay').textContent;
+            const message = `Hello, I am ${employeeName}. I would like to file a grievance regarding my attendance record for August 2025. Please review my attendance data as there may be missing present days or overtime hours that need to be corrected.`;
+            
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
 
-</body>
+        let selectedDate = null;
+        let selectedGrievanceType = null;
+
+        function openGrievanceModal(day) {
+            selectedDate = day;
+            const modal = document.getElementById('grievanceModal');
+            const dateText = document.getElementById('selectedDateText');
+            
+            dateText.textContent = `Selected Date: August ${day}, 2025`;
+            modal.classList.add('show');
+            
+            // Reset selections
+            selectedGrievanceType = null;
+            document.querySelectorAll('.grievance-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.getElementById('submitGrievanceBtn').disabled = true;
+        }
+
+        function closeGrievanceModal() {
+            const modal = document.getElementById('grievanceModal');
+            modal.classList.remove('show');
+        }
+
+        function selectGrievanceType(type) {
+            selectedGrievanceType = type;
+            
+            // Remove previous selections
+            document.querySelectorAll('.grievance-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selection to clicked option
+            event.target.closest('.grievance-option').classList.add('selected');
+            
+            // Enable submit button
+            document.getElementById('submitGrievanceBtn').disabled = false;
+        }
+
+        function submitGrievance() {
+            if (!selectedDate || !selectedGrievanceType) return;
+            
+            const employeeName = document.getElementById('employeeNameDisplay').textContent;
+            const dateStr = `August ${selectedDate}, 2025`;
+            
+            let message = `🚨 ATTENDANCE GRIEVANCE REPORT 🚨\n\n`;
+            message += `Employee Name: ${employeeName}\n`;
+            message += `Date: ${dateStr}\n`;
+            message += `Issue Type: `;
+            
+            switch(selectedGrievanceType) {
+                case 'absent':
+                    message += `Mark as Present\n`;
+                    message += `Details: I was present on ${dateStr} but the system shows me as absent. Please review and correct my attendance record.\n\n`;
+                    message += `Request: Please mark me as PRESENT for this date and update my attendance accordingly.`;
+                    break;
+                    
+                case 'overtime':
+                    message += `Missing Overtime Hours\n`;
+                    message += `Details: I worked overtime hours on ${dateStr} that are not recorded in the system.\n\n`;
+                    message += `Request: Please review and add my missing overtime hours for this date.`;
+                    break;
+                    
+                case 'shift':
+                    message += `Incorrect Shift Hours\n`;
+                    message += `Details: My shift hours for ${dateStr} are incorrectly recorded in the system.\n\n`;
+                    message += `Request: Please review and correct my shift hours for this date.`;
+                    break;
+                    
+                case 'other':
+                    message += `Other Attendance Issue\n`;
+                    message += `Details: I have an attendance-related concern for ${dateStr} that needs review.\n\n`;
+                    message += `Request: Please review my attendance record for this date and contact me for clarification.`;
+                    break;
+            }
+            
+            message += `\n\n📋 Current Record Status:\n`;
+            
+            // Check current status of the date
+            const dayRecord = currentEmployeeData.find(record => {
+                const recordDate = record['Date'];
+                if (!recordDate) return false;
+                const datePattern = new RegExp(`^${selectedDate}\\s+August\\s+2025$`, 'i');
+                return datePattern.test(recordDate.trim());
+            });
+            
+            if (dayRecord) {
+                message += `Status: PRESENT\n`;
+                message += `Shift Hours: ${dayRecord['Shift Hours']}h\n`;
+                message += `Overtime Hours: ${dayRecord['OT HOURS'] || '0'}h`;
+            } else {
+                message += `Status: ABSENT\n`;
+                message += `Shift Hours: 0h\n`;
+                message += `Overtime Hours: 0h`;
+            }
+            
+            message += `\n\n⚠️ Please review this grievance urgently and update my attendance record accordingly.\n\nThank you.`;
+            
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+            
+            closeGrievanceModal();
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('grievanceModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGrievanceModal();
+            }
+        });
+
+        // Allow Enter key to search
+        document.getElementById('employeeName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchEmployee();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9747b87c963b936e',t:'MTc1NjA4OTU4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

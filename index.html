@@ -16,7 +16,13 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
         }
 
         .container {
@@ -46,6 +52,21 @@
             opacity: 0.9;
         }
 
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 8px;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+        }
+
         .search-section {
             padding: 40px;
             background: #f8f9fa;
@@ -56,6 +77,12 @@
             max-width: 500px;
             margin: 0 auto;
             text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .search-section {
+                padding: 20px 15px;
+            }
         }
 
         .search-input {
@@ -110,6 +137,18 @@
             margin-bottom: 30px;
         }
 
+        @media (max-width: 768px) {
+            .summary-section {
+                padding: 20px 15px;
+            }
+            
+            .summary-cards {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+        }
+
         .summary-card {
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
@@ -160,6 +199,27 @@
             letter-spacing: 0.05em;
         }
 
+        @media (max-width: 768px) {
+            .calendar-container {
+                padding: 20px 15px;
+                margin-bottom: 20px;
+            }
+            
+            .calendar-header {
+                margin-bottom: 25px;
+                padding-bottom: 20px;
+            }
+            
+            .calendar-header h2 {
+                font-size: 1.5rem;
+                margin-bottom: 6px;
+            }
+            
+            .employee-name {
+                font-size: 1.1rem;
+            }
+        }
+
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -192,6 +252,20 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-day {
+                min-height: 80px;
+                padding: 8px 4px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .calendar-day {
+                min-height: 70px;
+                padding: 6px 2px;
+            }
         }
 
         .calendar-day.present {
@@ -255,6 +329,30 @@
             display: inline-block;
             text-align: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .day-info {
+                font-size: 0.65rem;
+                line-height: 1.2;
+            }
+            
+            .overtime-badge {
+                padding: 2px 6px;
+                font-size: 0.6rem;
+                margin-top: 2px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .day-info {
+                font-size: 0.6rem;
+            }
+            
+            .overtime-badge {
+                padding: 1px 4px;
+                font-size: 0.55rem;
+            }
         }
 
         .action-buttons {
@@ -358,6 +456,16 @@
             text-align: center;
         }
 
+        @media (max-width: 768px) {
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+                max-width: none;
+                margin: 20px;
+                border-radius: 10px;
+            }
+        }
+
         .modal-header {
             margin-bottom: 20px;
         }
@@ -447,23 +555,75 @@
         }
 
         @media (max-width: 768px) {
-            .calendar-grid {
-                font-size: 0.8rem;
-            }
-            
-            .calendar-day {
-                min-height: 60px;
-                padding: 5px;
-            }
-            
             .action-buttons {
                 flex-direction: column;
                 align-items: center;
+                gap: 12px;
             }
             
             .search-btn, .download-btn, .grievance-btn {
                 width: 100%;
                 max-width: 300px;
+                padding: 12px 25px;
+                font-size: 1rem;
+            }
+            
+            .modal-header h3 {
+                font-size: 1.3rem;
+            }
+            
+            .modal-header p {
+                font-size: 0.9rem;
+            }
+            
+            .grievance-option {
+                padding: 12px;
+            }
+            
+            .grievance-option h4 {
+                font-size: 1rem;
+            }
+            
+            .grievance-option p {
+                font-size: 0.85rem;
+            }
+            
+            .modal-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .modal-btn {
+                width: 100%;
+                padding: 14px 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .search-input {
+                padding: 12px 16px;
+                font-size: 1rem;
+            }
+            
+            .search-btn, .download-btn, .grievance-btn {
+                padding: 12px 20px;
+                font-size: 0.95rem;
+            }
+            
+            .summary-card {
+                padding: 20px;
+            }
+            
+            .summary-card h3 {
+                font-size: 1.8rem;
+            }
+            
+            .instructions {
+                padding: 15px;
+            }
+            
+            .instructions p {
+                font-size: 1rem;
             }
         }
     </style>
@@ -838,60 +998,27 @@
             if (!selectedDate || !selectedGrievanceType) return;
             
             const employeeName = document.getElementById('employeeNameDisplay').textContent;
-            const dateStr = `August ${selectedDate}, 2025`;
+            const dateStr = `${selectedDate} August`;
             
-            let message = `🚨 ATTENDANCE GRIEVANCE REPORT 🚨\n\n`;
-            message += `Employee Name: ${employeeName}\n`;
-            message += `Date: ${dateStr}\n`;
-            message += `Issue Type: `;
+            let message = '';
             
             switch(selectedGrievanceType) {
                 case 'absent':
-                    message += `Mark as Present\n`;
-                    message += `Details: I was present on ${dateStr} but the system shows me as absent. Please review and correct my attendance record.\n\n`;
-                    message += `Request: Please mark me as PRESENT for this date and update my attendance accordingly.`;
+                    message = `My name is ${employeeName}. I was present on ${dateStr}.`;
                     break;
                     
                 case 'overtime':
-                    message += `Missing Overtime Hours\n`;
-                    message += `Details: I worked overtime hours on ${dateStr} that are not recorded in the system.\n\n`;
-                    message += `Request: Please review and add my missing overtime hours for this date.`;
+                    message = `My name is ${employeeName}. I did OT 5 hours on ${dateStr}.`;
                     break;
                     
                 case 'shift':
-                    message += `Incorrect Shift Hours\n`;
-                    message += `Details: My shift hours for ${dateStr} are incorrectly recorded in the system.\n\n`;
-                    message += `Request: Please review and correct my shift hours for this date.`;
+                    message = `My name is ${employeeName}. My shift hours are wrong on ${dateStr}.`;
                     break;
                     
                 case 'other':
-                    message += `Other Attendance Issue\n`;
-                    message += `Details: I have an attendance-related concern for ${dateStr} that needs review.\n\n`;
-                    message += `Request: Please review my attendance record for this date and contact me for clarification.`;
+                    message = `My name is ${employeeName}. Please check my attendance on ${dateStr}.`;
                     break;
             }
-            
-            message += `\n\n📋 Current Record Status:\n`;
-            
-            // Check current status of the date
-            const dayRecord = currentEmployeeData.find(record => {
-                const recordDate = record['Date'];
-                if (!recordDate) return false;
-                const datePattern = new RegExp(`^${selectedDate}\\s+August\\s+2025$`, 'i');
-                return datePattern.test(recordDate.trim());
-            });
-            
-            if (dayRecord) {
-                message += `Status: PRESENT\n`;
-                message += `Shift Hours: ${dayRecord['Shift Hours']}h\n`;
-                message += `Overtime Hours: ${dayRecord['OT HOURS'] || '0'}h`;
-            } else {
-                message += `Status: ABSENT\n`;
-                message += `Shift Hours: 0h\n`;
-                message += `Overtime Hours: 0h`;
-            }
-            
-            message += `\n\n⚠️ Please review this grievance urgently and update my attendance record accordingly.\n\nThank you.`;
             
             const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
             window.open(whatsappUrl, '_blank');
@@ -913,5 +1040,5 @@
             }
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9747b87c963b936e',t:'MTc1NjA4OTU4NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9747c1f655deff6d',t:'MTc1NjA4OTk3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

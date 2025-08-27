@@ -3,525 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Work Dashboard</title>
+    <title>Payroll Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .loading {
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @media print {
+            .no-print { display: none !important; }
+            body { font-size: 12px; }
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-blue-900 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
-                <h1 class="text-xl font-bold">Work Dashboard</h1>
-                <div class="flex space-x-1">
-                    <button id="workEntriesTab" class="px-4 py-2 rounded-lg bg-blue-700 text-white font-medium">
-                        Work Entries
-                    </button>
-                    <button id="attendanceTab" class="px-4 py-2 rounded-lg bg-transparent hover:bg-blue-800 text-white font-medium">
-                        Attendance
-                    </button>
-                </div>
-            </div>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-6 max-w-md">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 text-center mb-2">💼 Payroll Calculator</h1>
+            <p class="text-gray-600 text-center text-sm">Enter your details to calculate salary</p>
         </div>
-    </nav>
 
-    <!-- Work Entries Page -->
-    <div id="workEntriesPage" class="page-content">
-        <div class="max-w-7xl mx-auto px-4 py-6">
-            <!-- Header with Stats -->
+        <!-- Input Form -->
+        <div id="inputForm" class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <form id="payrollForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">👤 Employee Name</label>
+                    <input type="text" id="empName" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your name">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">🏢 Designation</label>
+                    <select id="designation" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Designation</option>
+                        <option value="Foreman">Foreman</option>
+                        <option value="Scaffolder">Scaffolder</option>
+                        <option value="Helper">Helper</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">📅 Worked Days</label>
+                    <input type="number" id="workedDays" min="1" max="31" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter worked days (1-31)">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">⏰ OT Hours</label>
+                    <input type="number" id="otHours" min="0" max="200" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter overtime hours">
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-md transition duration-200 transform hover:scale-105">
+                    📊 Calculate Salary
+                </button>
+            </form>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="hidden bg-white rounded-lg shadow-lg p-6">
+            <div class="text-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">📋 Salary Summary</h2>
+                <div id="employeeInfo" class="text-sm text-gray-600 mt-2"></div>
+            </div>
+
+            <!-- Earnings Section -->
             <div class="mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold text-gray-800">Work Entries</h2>
-                    <button id="refreshWork" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-                        <span id="workRefreshIcon">🔄</span>
-                        <span>Refresh</span>
-                    </button>
-                </div>
-                
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                        <h3 class="text-sm font-medium text-gray-500">Total Entries</h3>
-                        <p id="totalEntries" class="text-2xl font-bold text-gray-900">-</p>
+                <h3 class="text-lg font-semibold text-green-700 mb-3 border-b border-green-200 pb-2">💰 Earnings</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>Basic Salary:</span>
+                        <span id="basicSalary" class="font-medium">₹0</span>
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
-                        <h3 class="text-sm font-medium text-gray-500">Total Volume</h3>
-                        <p id="totalVolume" class="text-2xl font-bold text-gray-900">-</p>
+                    <div class="flex justify-between">
+                        <span>HRA:</span>
+                        <span id="hra" class="font-medium">₹0</span>
                     </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-                        <h3 class="text-sm font-medium text-gray-500">Active Supervisors</h3>
-                        <p id="activeSupervisors" class="text-2xl font-bold text-gray-900">-</p>
+                    <div class="flex justify-between">
+                        <span>OT Amount:</span>
+                        <span id="otAmount" class="font-medium">₹0</span>
                     </div>
-                </div>
-
-                <!-- Filters -->
-                <div class="bg-white p-4 rounded-lg shadow mb-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Supervisor</label>
-                            <select id="supervisorFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-                                <option value="">All Supervisors</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Work Type</label>
-                            <select id="workTypeFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-                                <option value="">All Work Types</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
-                            <input type="date" id="dateFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-                        </div>
+                    <div class="flex justify-between border-t border-gray-200 pt-2 font-semibold text-green-700">
+                        <span>Gross Salary:</span>
+                        <span id="grossSalary">₹0</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Work Entries Table -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supervisor</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Work Type</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dimensions</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
-                            </tr>
-                        </thead>
-                        <tbody id="workEntriesTable" class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-gray-500">
-                                    <div class="loading w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                                    Loading work entries...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <!-- Deductions Section -->
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-red-700 mb-3 border-b border-red-200 pb-2">📉 Deductions</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>PF:</span>
+                        <span id="pf" class="font-medium">₹0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>ESI:</span>
+                        <span id="esi" class="font-medium">₹0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>PT:</span>
+                        <span id="pt" class="font-medium">₹0</span>
+                    </div>
+                    <div class="flex justify-between border-t border-gray-200 pt-2 font-semibold text-red-700">
+                        <span>Total Deductions:</span>
+                        <span id="totalDeductions">₹0</span>
+                    </div>
                 </div>
+            </div>
+
+            <!-- Net Payable -->
+            <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-lg mb-6">
+                <div class="text-center">
+                    <div class="text-sm opacity-90">Net Payable Amount</div>
+                    <div id="netPayable" class="text-2xl font-bold">₹0</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="space-y-3 no-print">
+                <button onclick="downloadSummary()" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-md transition duration-200">
+                    📥 Download Summary
+                </button>
+                <button onclick="resetForm()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-md transition duration-200">
+                    🔄 Calculate Another
+                </button>
             </div>
         </div>
     </div>
-
-    <!-- Attendance Page -->
-    <div id="attendancePage" class="page-content hidden">
-        <div class="max-w-7xl mx-auto px-4 py-6">
-            <!-- Header with Stats -->
-            <div class="mb-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold text-gray-800">Attendance Tracking</h2>
-                    <button id="refreshAttendance" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-                        <span id="attendanceRefreshIcon">🔄</span>
-                        <span>Refresh</span>
-                    </button>
-                </div>
-                
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                        <h3 class="text-sm font-medium text-gray-500">Total Records</h3>
-                        <p id="totalAttendance" class="text-2xl font-bold text-gray-900">-</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
-                        <h3 class="text-sm font-medium text-gray-500">Total Shift Hours</h3>
-                        <p id="totalShiftHours" class="text-2xl font-bold text-gray-900">-</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
-                        <h3 class="text-sm font-medium text-gray-500">Total OT Hours</h3>
-                        <p id="totalOTHours" class="text-2xl font-bold text-gray-900">-</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
-                        <h3 class="text-sm font-medium text-gray-500">Active Employees</h3>
-                        <p id="activeEmployees" class="text-2xl font-bold text-gray-900">-</p>
-                    </div>
-                </div>
-
-                <!-- Filters -->
-                <div class="bg-white p-4 rounded-lg shadow mb-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Supervisor</label>
-                            <select id="attendanceSupervisorFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-                                <option value="">All Supervisors</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Employee</label>
-                            <select id="employeeFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-                                <option value="">All Employees</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
-                            <input type="date" id="attendanceDateFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Attendance Table -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supervisor</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Name</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shift Hours</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OT Hours</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Hours</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendanceTable" class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-gray-500">
-                                    <div class="loading w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                                    Loading attendance data...
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-4 mt-8">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-sm">Last updated: <span id="lastUpdated">-</span> | Auto-refresh every 5 minutes</p>
-        </div>
-    </footer>
 
     <script>
-        // Global variables
-        let workEntriesData = [];
-        let attendanceData = [];
-        let filteredWorkEntries = [];
-        let filteredAttendance = [];
-
-        // CSV URLs
-        const WORK_ENTRIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1765901480&single=true&output=csv';
-        const ATTENDANCE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1727336003&single=true&output=csv';
-
-        // Tab switching
-        document.getElementById('workEntriesTab').addEventListener('click', () => switchTab('workEntries'));
-        document.getElementById('attendanceTab').addEventListener('click', () => switchTab('attendance'));
-
-        function switchTab(tab) {
-            // Update tab buttons
-            document.getElementById('workEntriesTab').className = tab === 'workEntries' 
-                ? 'px-4 py-2 rounded-lg bg-blue-700 text-white font-medium'
-                : 'px-4 py-2 rounded-lg bg-transparent hover:bg-blue-800 text-white font-medium';
-            
-            document.getElementById('attendanceTab').className = tab === 'attendance' 
-                ? 'px-4 py-2 rounded-lg bg-blue-700 text-white font-medium'
-                : 'px-4 py-2 rounded-lg bg-transparent hover:bg-blue-800 text-white font-medium';
-
-            // Show/hide pages
-            document.getElementById('workEntriesPage').className = tab === 'workEntries' ? 'page-content fade-in' : 'page-content hidden';
-            document.getElementById('attendancePage').className = tab === 'attendance' ? 'page-content fade-in' : 'page-content hidden';
-        }
-
-        // CSV parsing function
-        function parseCSV(csv) {
-            const lines = csv.split('\n');
-            const headers = lines[0].split(',').map(h => h.trim());
-            const data = [];
-            
-            for (let i = 1; i < lines.length; i++) {
-                if (lines[i].trim()) {
-                    const values = lines[i].split(',').map(v => v.trim());
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index] || '';
-                    });
-                    data.push(row);
-                }
+        // Employee data based on your provided information
+        const employeeData = {
+            'Foreman': {
+                basic: 18453,
+                hra: 4280,
+                otRate: 168.56,
+                pfRate: 0.12,
+                esiRate: 0,
+                pt: 200
+            },
+            'Scaffolder': {
+                basic: 15042,
+                hra: 4352,
+                otRate: 137.40,
+                pfRate: 0.12,
+                esiRate: 0.0325,
+                pt: 200
+            },
+            'Helper': {
+                basic: 14664,
+                hra: 2352,
+                otRate: 133.95,
+                pfRate: 0.12,
+                esiRate: 0.0075,
+                pt: 200
             }
-            return data;
-        }
+        };
 
-        // Load work entries data
-        async function loadWorkEntries() {
-            try {
-                document.getElementById('workRefreshIcon').className = 'loading';
-                const response = await fetch(WORK_ENTRIES_CSV);
-                const csv = await response.text();
-                workEntriesData = parseCSV(csv);
-                filteredWorkEntries = [...workEntriesData];
-                
-                updateWorkEntriesStats();
-                updateWorkEntriesFilters();
-                renderWorkEntriesTable();
-                updateLastUpdated();
-            } catch (error) {
-                console.error('Error loading work entries:', error);
-                document.getElementById('workEntriesTable').innerHTML = 
-                    '<tr><td colspan="7" class="px-4 py-8 text-center text-red-500">Error loading data. Please try again.</td></tr>';
-            } finally {
-                document.getElementById('workRefreshIcon').className = '';
-            }
-        }
+        let currentCalculation = null;
 
-        // Load attendance data
-        async function loadAttendance() {
-            try {
-                document.getElementById('attendanceRefreshIcon').className = 'loading';
-                const response = await fetch(ATTENDANCE_CSV);
-                const csv = await response.text();
-                attendanceData = parseCSV(csv);
-                filteredAttendance = [...attendanceData];
-                
-                updateAttendanceStats();
-                updateAttendanceFilters();
-                renderAttendanceTable();
-                updateLastUpdated();
-            } catch (error) {
-                console.error('Error loading attendance:', error);
-                document.getElementById('attendanceTable').innerHTML = 
-                    '<tr><td colspan="7" class="px-4 py-8 text-center text-red-500">Error loading data. Please try again.</td></tr>';
-            } finally {
-                document.getElementById('attendanceRefreshIcon').className = '';
-            }
-        }
+        document.getElementById('payrollForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            calculateSalary();
+        });
 
-        // Update work entries stats
-        function updateWorkEntriesStats() {
-            const totalEntries = filteredWorkEntries.length;
-            const totalVolume = filteredWorkEntries.reduce((sum, entry) => sum + (parseFloat(entry.Volume) || 0), 0);
-            const supervisors = new Set(filteredWorkEntries.map(entry => entry.Supervisor).filter(s => s));
-            
-            document.getElementById('totalEntries').textContent = totalEntries.toLocaleString();
-            document.getElementById('totalVolume').textContent = totalVolume.toFixed(2) + ' m³';
-            document.getElementById('activeSupervisors').textContent = supervisors.size;
-        }
+        function calculateSalary() {
+            const name = document.getElementById('empName').value;
+            const designation = document.getElementById('designation').value;
+            const workedDays = parseInt(document.getElementById('workedDays').value);
+            const otHours = parseFloat(document.getElementById('otHours').value) || 0;
 
-        // Update attendance stats
-        function updateAttendanceStats() {
-            const totalRecords = filteredAttendance.length;
-            const totalShiftHours = filteredAttendance.reduce((sum, entry) => sum + (parseFloat(entry['Shift Hours']) || 0), 0);
-            const totalOTHours = filteredAttendance.reduce((sum, entry) => sum + (parseFloat(entry['OT HOURS']) || 0), 0);
-            const employees = new Set(filteredAttendance.map(entry => entry['EMP NAME']).filter(e => e));
-            
-            document.getElementById('totalAttendance').textContent = totalRecords.toLocaleString();
-            document.getElementById('totalShiftHours').textContent = totalShiftHours.toFixed(1) + 'h';
-            document.getElementById('totalOTHours').textContent = totalOTHours.toFixed(1) + 'h';
-            document.getElementById('activeEmployees').textContent = employees.size;
-        }
-
-        // Update work entries filters
-        function updateWorkEntriesFilters() {
-            // Get unique supervisors and work types, handling case-insensitive duplicates
-            const supervisorSet = new Set();
-            const workTypeSet = new Set();
-            
-            workEntriesData.forEach(entry => {
-                if (entry.Supervisor && entry.Supervisor.trim()) {
-                    supervisorSet.add(entry.Supervisor.trim());
-                }
-                if (entry['Work Type'] && entry['Work Type'].trim()) {
-                    workTypeSet.add(entry['Work Type'].trim());
-                }
-            });
-            
-            const supervisors = [...supervisorSet].sort();
-            const workTypes = [...workTypeSet].sort();
-            
-            const supervisorFilter = document.getElementById('supervisorFilter');
-            const workTypeFilter = document.getElementById('workTypeFilter');
-            
-            supervisorFilter.innerHTML = '<option value="">All Supervisors</option>';
-            workTypeFilter.innerHTML = '<option value="">All Work Types</option>';
-            
-            supervisors.forEach(supervisor => {
-                supervisorFilter.innerHTML += `<option value="${supervisor}">${supervisor}</option>`;
-            });
-            
-            workTypes.forEach(workType => {
-                workTypeFilter.innerHTML += `<option value="${workType}">${workType}</option>`;
-            });
-        }
-
-        // Update attendance filters
-        function updateAttendanceFilters() {
-            // Get unique supervisors and employees, handling case-insensitive duplicates
-            const supervisorSet = new Set();
-            const employeeSet = new Set();
-            
-            attendanceData.forEach(entry => {
-                if (entry.Supervisor && entry.Supervisor.trim()) {
-                    supervisorSet.add(entry.Supervisor.trim());
-                }
-                if (entry['EMP NAME'] && entry['EMP NAME'].trim()) {
-                    employeeSet.add(entry['EMP NAME'].trim());
-                }
-            });
-            
-            const supervisors = [...supervisorSet].sort();
-            const employees = [...employeeSet].sort();
-            
-            const supervisorFilter = document.getElementById('attendanceSupervisorFilter');
-            const employeeFilter = document.getElementById('employeeFilter');
-            
-            supervisorFilter.innerHTML = '<option value="">All Supervisors</option>';
-            employeeFilter.innerHTML = '<option value="">All Employees</option>';
-            
-            supervisors.forEach(supervisor => {
-                supervisorFilter.innerHTML += `<option value="${supervisor}">${supervisor}</option>`;
-            });
-            
-            employees.forEach(employee => {
-                employeeFilter.innerHTML += `<option value="${employee}">${employee}</option>`;
-            });
-        }
-
-        // Apply work entries filters
-        function applyWorkEntriesFilters() {
-            const supervisorFilter = document.getElementById('supervisorFilter').value;
-            const workTypeFilter = document.getElementById('workTypeFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
-            
-            filteredWorkEntries = workEntriesData.filter(entry => {
-                return (!supervisorFilter || entry.Supervisor === supervisorFilter) &&
-                       (!workTypeFilter || entry['Work Type'] === workTypeFilter) &&
-                       (!dateFilter || entry.Date === dateFilter);
-            });
-            
-            updateWorkEntriesStats();
-            renderWorkEntriesTable();
-        }
-
-        // Apply attendance filters
-        function applyAttendanceFilters() {
-            const supervisorFilter = document.getElementById('attendanceSupervisorFilter').value;
-            const employeeFilter = document.getElementById('employeeFilter').value;
-            const dateFilter = document.getElementById('attendanceDateFilter').value;
-            
-            filteredAttendance = attendanceData.filter(entry => {
-                return (!supervisorFilter || entry.Supervisor === supervisorFilter) &&
-                       (!employeeFilter || entry['EMP NAME'] === employeeFilter) &&
-                       (!dateFilter || entry.Date === dateFilter);
-            });
-            
-            updateAttendanceStats();
-            renderAttendanceTable();
-        }
-
-        // Render work entries table
-        function renderWorkEntriesTable() {
-            const tbody = document.getElementById('workEntriesTable');
-            
-            if (filteredWorkEntries.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No work entries found</td></tr>';
+            if (!name || !designation || !workedDays) {
+                alert('Please fill in all required fields');
                 return;
             }
+
+            const empData = employeeData[designation];
             
-            tbody.innerHTML = filteredWorkEntries.map(entry => {
-                const dimensions = `${entry.Length || 0} × ${entry.Width || 0} × ${entry.Height || 0}`;
-                
-                return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Date || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Supervisor || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${entry['Work Type'] || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" title="${entry.Description || '-'}">${entry.Description || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${dimensions}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Quantity || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Volume || '-'}</td>
-                    </tr>
-                `;
-            }).join('');
+            // Calculate earnings based on worked days (assuming 26 working days per month)
+            const dailyBasic = empData.basic / 26;
+            const dailyHra = empData.hra / 26;
+            
+            const basicSalary = Math.round(dailyBasic * workedDays);
+            const hra = Math.round(dailyHra * workedDays);
+            const otAmount = otHours * empData.otRate;
+            const grossSalary = basicSalary + hra + otAmount;
+
+            // Calculate deductions
+            const pf = Math.round(basicSalary * empData.pfRate);
+            const esi = Math.round(grossSalary * empData.esiRate);
+            const pt = Math.round((empData.pt / 26) * workedDays);
+            const totalDeductions = pf + esi + pt;
+
+            // Calculate net payable
+            const netPayable = grossSalary - totalDeductions;
+
+            // Store calculation for download
+            currentCalculation = {
+                name, designation, workedDays, otHours,
+                basicSalary, hra, otAmount, grossSalary,
+                pf, esi, pt, totalDeductions, netPayable
+            };
+
+            // Display results
+            displayResults();
         }
 
-        // Render attendance table
-        function renderAttendanceTable() {
-            const tbody = document.getElementById('attendanceTable');
+        function displayResults() {
+            const calc = currentCalculation;
             
-            if (filteredAttendance.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No attendance records found</td></tr>';
-                return;
-            }
+            document.getElementById('employeeInfo').innerHTML = `
+                <strong>${calc.name}</strong> - ${calc.designation}<br>
+                Worked Days: ${calc.workedDays} | OT Hours: ${calc.otHours}
+            `;
             
-            tbody.innerHTML = filteredAttendance.map(entry => {
-                const shiftHours = parseFloat(entry['Shift Hours']) || 0;
-                const otHours = parseFloat(entry['OT HOURS']) || 0;
-                const totalHours = shiftHours + otHours;
-                
-                let status = 'Present';
-                let statusClass = 'bg-green-100 text-green-800';
-                
-                if (totalHours === 0) {
-                    status = 'Absent';
-                    statusClass = 'bg-red-100 text-red-800';
-                } else if (otHours > 0) {
-                    status = 'Overtime';
-                    statusClass = 'bg-blue-100 text-blue-800';
-                }
-                
-                return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Date || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Supervisor || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${entry['EMP NAME'] || '-'}</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${shiftHours.toFixed(1)}h</td>
-                        <td class="px-4 py-3 text-sm text-gray-900">${otHours.toFixed(1)}h</td>
-                        <td class="px-4 py-3 text-sm font-medium text-gray-900">${totalHours.toFixed(1)}h</td>
-                        <td class="px-4 py-3 text-sm">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full ${statusClass}">${status}</span>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            document.getElementById('basicSalary').textContent = `₹${calc.basicSalary.toLocaleString()}`;
+            document.getElementById('hra').textContent = `₹${calc.hra.toLocaleString()}`;
+            document.getElementById('otAmount').textContent = `₹${Math.round(calc.otAmount).toLocaleString()}`;
+            document.getElementById('grossSalary').textContent = `₹${Math.round(calc.grossSalary).toLocaleString()}`;
+            
+            document.getElementById('pf').textContent = `₹${calc.pf.toLocaleString()}`;
+            document.getElementById('esi').textContent = `₹${calc.esi.toLocaleString()}`;
+            document.getElementById('pt').textContent = `₹${calc.pt.toLocaleString()}`;
+            document.getElementById('totalDeductions').textContent = `₹${calc.totalDeductions.toLocaleString()}`;
+            
+            document.getElementById('netPayable').textContent = `₹${Math.round(calc.netPayable).toLocaleString()}`;
+            
+            document.getElementById('inputForm').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
         }
 
-        // Update last updated timestamp
-        function updateLastUpdated() {
-            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        function downloadSummary() {
+            const calc = currentCalculation;
+            const date = new Date().toLocaleDateString();
+            
+            const summaryContent = `
+PAYROLL SUMMARY
+===============
+
+Employee Details:
+Name: ${calc.name}
+Designation: ${calc.designation}
+Date: ${date}
+Worked Days: ${calc.workedDays}
+OT Hours: ${calc.otHours}
+
+EARNINGS:
+---------
+Basic Salary: ₹${calc.basicSalary.toLocaleString()}
+HRA: ₹${calc.hra.toLocaleString()}
+OT Amount: ₹${Math.round(calc.otAmount).toLocaleString()}
+Gross Salary: ₹${Math.round(calc.grossSalary).toLocaleString()}
+
+DEDUCTIONS:
+-----------
+PF: ₹${calc.pf.toLocaleString()}
+ESI: ₹${calc.esi.toLocaleString()}
+PT: ₹${calc.pt.toLocaleString()}
+Total Deductions: ₹${calc.totalDeductions.toLocaleString()}
+
+NET PAYABLE: ₹${Math.round(calc.netPayable).toLocaleString()}
+
+Generated on: ${new Date().toLocaleString()}
+            `;
+
+            const blob = new Blob([summaryContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${calc.name}_Payroll_Summary_${date.replace(/\//g, '-')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
         }
 
-        // Event listeners for filters
-        document.getElementById('supervisorFilter').addEventListener('change', applyWorkEntriesFilters);
-        document.getElementById('workTypeFilter').addEventListener('change', applyWorkEntriesFilters);
-        document.getElementById('dateFilter').addEventListener('change', applyWorkEntriesFilters);
-
-        document.getElementById('attendanceSupervisorFilter').addEventListener('change', applyAttendanceFilters);
-        document.getElementById('employeeFilter').addEventListener('change', applyAttendanceFilters);
-        document.getElementById('attendanceDateFilter').addEventListener('change', applyAttendanceFilters);
-
-        // Refresh buttons
-        document.getElementById('refreshWork').addEventListener('click', loadWorkEntries);
-        document.getElementById('refreshAttendance').addEventListener('click', loadAttendance);
-
-        // Initial load
-        loadWorkEntries();
-        loadAttendance();
-
-        // Auto-refresh every 5 minutes
-        setInterval(() => {
-            loadWorkEntries();
-            loadAttendance();
-        }, 300000);
+        function resetForm() {
+            document.getElementById('payrollForm').reset();
+            document.getElementById('inputForm').classList.remove('hidden');
+            document.getElementById('results').classList.add('hidden');
+            currentCalculation = null;
+        }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97596ea4a1349aa1',t:'MTc1NjI3NTMwMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'975b2b9210208571',t:'MTc1NjI5MzUyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

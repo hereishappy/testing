@@ -233,45 +233,102 @@
             const calc = currentCalculation;
             const date = new Date().toLocaleDateString();
             
-            const summaryContent = `
-PAYROLL SUMMARY
-===============
-
-Employee Details:
-Name: ${calc.name}
-Designation: ${calc.designation}
-Date: ${date}
-Worked Days: ${calc.workedDays}
-OT Hours: ${calc.otHours}
-
-EARNINGS:
----------
-Basic Salary: ₹${calc.basicSalary.toLocaleString()}
-HRA: ₹${calc.hra.toLocaleString()}
-OT Amount: ₹${Math.round(calc.otAmount).toLocaleString()}
-Gross Salary: ₹${Math.round(calc.grossSalary).toLocaleString()}
-
-DEDUCTIONS:
------------
-PF: ₹${calc.pf.toLocaleString()}
-ESI: ₹${calc.esi.toLocaleString()}
-PT: ₹${calc.pt.toLocaleString()}
-Total Deductions: ₹${calc.totalDeductions.toLocaleString()}
-
-NET PAYABLE: ₹${Math.round(calc.netPayable).toLocaleString()}
-
-Generated on: ${new Date().toLocaleString()}
-            `;
-
-            const blob = new Blob([summaryContent], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${calc.name}_Payroll_Summary_${date.replace(/\//g, '-')}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            // Create canvas for HD 16:9 image (1920x1080)
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 1920;
+            canvas.height = 1080;
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#1e3a8a');
+            gradient.addColorStop(1, '#7c3aed');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // White content area
+            ctx.fillStyle = '#ffffff';
+            ctx.roundRect(100, 80, canvas.width - 200, canvas.height - 160, 20);
+            ctx.fill();
+            
+            // Header
+            ctx.fillStyle = '#1f2937';
+            ctx.font = 'bold 64px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('💼 PAYROLL SUMMARY', canvas.width / 2, 200);
+            
+            // Employee info
+            ctx.font = 'bold 48px Arial';
+            ctx.fillStyle = '#374151';
+            ctx.fillText(`${calc.name} - ${calc.designation}`, canvas.width / 2, 280);
+            
+            ctx.font = '36px Arial';
+            ctx.fillStyle = '#6b7280';
+            ctx.fillText(`Worked Days: ${calc.workedDays} | OT Hours: ${calc.otHours} | Date: ${date}`, canvas.width / 2, 330);
+            
+            // Earnings section
+            let yPos = 420;
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 42px Arial';
+            ctx.fillStyle = '#059669';
+            ctx.fillText('💰 EARNINGS', 200, yPos);
+            
+            yPos += 60;
+            ctx.font = '36px Arial';
+            ctx.fillStyle = '#374151';
+            ctx.fillText(`Basic Salary: ₹${calc.basicSalary.toLocaleString()}`, 200, yPos);
+            yPos += 50;
+            ctx.fillText(`HRA: ₹${calc.hra.toLocaleString()}`, 200, yPos);
+            yPos += 50;
+            ctx.fillText(`OT Amount: ₹${Math.round(calc.otAmount).toLocaleString()}`, 200, yPos);
+            yPos += 60;
+            ctx.font = 'bold 40px Arial';
+            ctx.fillStyle = '#059669';
+            ctx.fillText(`Gross Salary: ₹${Math.round(calc.grossSalary).toLocaleString()}`, 200, yPos);
+            
+            // Deductions section
+            yPos = 420;
+            ctx.font = 'bold 42px Arial';
+            ctx.fillStyle = '#dc2626';
+            ctx.fillText('📉 DEDUCTIONS', 1000, yPos);
+            
+            yPos += 60;
+            ctx.font = '36px Arial';
+            ctx.fillStyle = '#374151';
+            ctx.fillText(`PF: ₹${calc.pf.toLocaleString()}`, 1000, yPos);
+            yPos += 50;
+            ctx.fillText(`ESI: ₹${calc.esi.toLocaleString()}`, 1000, yPos);
+            yPos += 50;
+            ctx.fillText(`PT: ₹${calc.pt.toLocaleString()}`, 1000, yPos);
+            yPos += 60;
+            ctx.font = 'bold 40px Arial';
+            ctx.fillStyle = '#dc2626';
+            ctx.fillText(`Total: ₹${calc.totalDeductions.toLocaleString()}`, 1000, yPos);
+            
+            // Net payable (centered at bottom)
+            ctx.fillStyle = '#1e40af';
+            ctx.fillRect(300, 800, canvas.width - 600, 120, 15);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 56px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`NET PAYABLE: ₹${Math.round(calc.netPayable).toLocaleString()}`, canvas.width / 2, 875);
+            
+            // Footer
+            ctx.fillStyle = '#9ca3af';
+            ctx.font = '28px Arial';
+            ctx.fillText(`Generated on ${new Date().toLocaleString()}`, canvas.width / 2, 980);
+            
+            // Convert to JPEG and download
+            canvas.toBlob(function(blob) {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${calc.name}_Payroll_Summary_${date.replace(/\//g, '-')}.jpg`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 'image/jpeg', 0.95);
         }
 
         function resetForm() {
@@ -281,5 +338,5 @@ Generated on: ${new Date().toLocaleString()}
             currentCalculation = null;
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'975b2b9210208571',t:'MTc1NjI5MzUyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'975b31b4e402076e',t:'MTc1NjI5Mzc3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

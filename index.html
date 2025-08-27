@@ -1,472 +1,527 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Download, RefreshCw, BarChart3, Calendar, User, Package, Users, ClipboardList, CheckCircle, XCircle } from 'lucide-react';
-
-const SupervisorDashboard = () => {
-  const [activeTab, setActiveTab] = useState('workdata');
-  const [workData, setWorkData] = useState([]);
-  const [attendanceData, setAttendanceData] = useState([]);
-  const [workLoading, setWorkLoading] = useState(true);
-  const [attendanceLoading, setAttendanceLoading] = useState(true);
-  const [workError, setWorkError] = useState(null);
-  const [attendanceError, setAttendanceError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterSupervisor, setFilterSupervisor] = useState('');
-  const [filterWorkType, setFilterWorkType] = useState('');
-  const [sortField, setSortField] = useState('Date');
-  const [sortDirection, setSortDirection] = useState('desc');
-  const [lastWorkUpdated, setLastWorkUpdated] = useState(null);
-  const [lastAttendanceUpdated, setLastAttendanceUpdated] = useState(null);
-
-  const workCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1765901480&single=true&output=csv';
-  const attendanceCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1727336003&single=true&output=csv';
-
-  const fetchData = async (url, setData, setLoading, setError, setLastUpdated) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to fetch data');
-      
-      const csvText = await response.text();
-      const lines = csvText.trim().split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      
-      const parsedData = lines.slice(1).map(line => {
-        const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-        const row = {};
-        headers.forEach((header, index) => {
-          row[header] = values[index] || '';
-        });
-        return row;
-      }).filter(row => Object.values(row).some(val => val !== ''));
-
-      setData(parsedData);
-      setLastUpdated(new Date());
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchWorkData = () => fetchData(workCsvUrl, setWorkData, setWorkLoading, setWorkError, setLastWorkUpdated);
-  const fetchAttendanceData = () => fetchData(attendanceCsvUrl, setAttendanceData, setAttendanceLoading, setAttendanceError, setLastAttendanceUpdated);
-
-  useEffect(() => {
-    fetchWorkData();
-    fetchAttendanceData();
-    
-    // Auto-refresh every 5 minutes
-    const interval = setInterval(() => {
-      fetchWorkData();
-      fetchAttendanceData();
-    }, 300000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  // Work Data Processing
-  const filteredAndSortedWorkData = useMemo(() => {
-    let filtered = workData.filter(row => {
-      const matchesSearch = Object.values(row).some(val => 
-        val.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      const matchesSupervisor = !filterSupervisor || row.Supervisor === filterSupervisor;
-      const matchesWorkType = !filterWorkType || row['Work Type'] === filterWorkType;
-      
-      return matchesSearch && matchesSupervisor && matchesWorkType;
-    });
-
-    return filtered.sort((a, b) => {
-      const aVal = a[sortField] || '';
-      const bVal = b[sortField] || '';
-      
-      if (sortDirection === 'asc') {
-        return aVal.toString().localeCompare(bVal.toString());
-      } else {
-        return bVal.toString().localeCompare(aVal.toString());
-      }
-    });
-  }, [workData, searchTerm, filterSupervisor, filterWorkType, sortField, sortDirection]);
-
-  // Attendance Data Processing
-  const filteredAndSortedAttendanceData = useMemo(() => {
-    let filtered = attendanceData.filter(row => {
-      const matchesSearch = Object.values(row).some(val => 
-        val.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      const matchesSupervisor = !filterSupervisor || row.Supervisor === filterSupervisor;
-      
-      return matchesSearch && matchesSupervisor;
-    });
-
-    return filtered.sort((a, b) => {
-      const aVal = a[sortField] || '';
-      const bVal = b[sortField] || '';
-      
-      if (sortDirection === 'asc') {
-        return aVal.toString().localeCompare(bVal.toString());
-      } else {
-        return bVal.toString().localeCompare(aVal.toString());
-      }
-    });
-  }, [attendanceData, searchTerm, filterSupervisor, sortField, sortDirection]);
-
-  const workSupervisors = useMemo(() => 
-    [...new Set(workData.map(row => row.Supervisor).filter(Boolean))], [workData]
-  );
-
-  const attendanceSupervisors = useMemo(() => 
-    [...new Set(attendanceData.map(row => row.Supervisor).filter(Boolean))], [attendanceData]
-  );
-
-  const workTypes = useMemo(() => 
-    [...new Set(workData.map(row => row['Work Type']).filter(Boolean))], [workData]
-  );
-
-  const workStatistics = useMemo(() => {
-    const totalRecords = filteredAndSortedWorkData.length;
-    const totalVolume = filteredAndSortedWorkData.reduce((sum, row) => {
-      const volume = parseFloat(row.Volume) || 0;
-      return sum + volume;
-    }, 0);
-    const totalQuantity = filteredAndSortedWorkData.reduce((sum, row) => {
-      const quantity = parseInt(row.Quantity) || 0;
-      return sum + quantity;
-    }, 0);
-    
-    return { totalRecords, totalVolume, totalQuantity };
-  }, [filteredAndSortedWorkData]);
-
-  const attendanceStatistics = useMemo(() => {
-    const totalRecords = filteredAndSortedAttendanceData.length;
-    const presentCount = filteredAndSortedAttendanceData.filter(row => 
-      row.Present && (row.Present.toLowerCase() === 'yes' || row.Present.toLowerCase() === 'present' || row.Present === '1')
-    ).length;
-    const absentCount = totalRecords - presentCount;
-    const attendanceRate = totalRecords > 0 ? ((presentCount / totalRecords) * 100).toFixed(1) : 0;
-    
-    return { totalRecords, presentCount, absentCount, attendanceRate };
-  }, [filteredAndSortedAttendanceData]);
-
-  const handleSort = (field) => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
-  const exportToCSV = (data, filename) => {
-    if (data.length === 0) return;
-    
-    const headers = Object.keys(data[0]);
-    const csvContent = [
-      headers.join(','),
-      ...data.map(row => 
-        headers.map(header => `"${row[header] || ''}"`).join(',')
-      )
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${filename}_${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-  };
-
-  const currentData = activeTab === 'workdata' ? filteredAndSortedWorkData : filteredAndSortedAttendanceData;
-  const currentLoading = activeTab === 'workdata' ? workLoading : attendanceLoading;
-  const currentError = activeTab === 'workdata' ? workError : attendanceError;
-  const currentSupervisors = activeTab === 'workdata' ? workSupervisors : attendanceSupervisors;
-  const currentRefresh = activeTab === 'workdata' ? fetchWorkData : fetchAttendanceData;
-  const currentLastUpdated = activeTab === 'workdata' ? lastWorkUpdated : lastAttendanceUpdated;
-
-  if (currentLoading && currentData.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading dashboard data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (currentError && currentData.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md text-center">
-          <div className="text-red-500 mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Data</h2>
-          <p className="text-gray-600 mb-4">{currentError}</p>
-          <button 
-            onClick={currentRefresh}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Supervisor Dashboard</h1>
-              <p className="text-sm text-gray-500">
-                Last updated: {currentLastUpdated?.toLocaleString() || 'Never'}
-              </p>
-            </div>
-            <button 
-              onClick={currentRefresh}
-              disabled={currentLoading}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${currentLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Navigation Tabs */}
-        <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
-          <button
-            onClick={() => setActiveTab('workdata')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'workdata'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <ClipboardList className="w-4 h-4" />
-            Work Data
-          </button>
-          <button
-            onClick={() => setActiveTab('attendance')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'attendance'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            Worker Attendance
-          </button>
-        </div>
-
-        {/* Statistics Cards */}
-        {activeTab === 'workdata' ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Records</p>
-                  <p className="text-2xl font-bold text-gray-900">{workStatistics.totalRecords}</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-blue-900 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <h1 class="text-xl font-bold">Work Dashboard</h1>
+                <div class="flex space-x-1">
+                    <button id="workEntriesTab" class="px-4 py-2 rounded-lg bg-blue-700 text-white font-medium">
+                        Work Entries
+                    </button>
+                    <button id="attendanceTab" class="px-4 py-2 rounded-lg bg-transparent hover:bg-blue-800 text-white font-medium">
+                        Attendance
+                    </button>
                 </div>
-                <BarChart3 className="w-8 h-8 text-blue-600" />
-              </div>
             </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Volume</p>
-                  <p className="text-2xl font-bold text-gray-900">{workStatistics.totalVolume.toFixed(2)}</p>
-                </div>
-                <Package className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Quantity</p>
-                  <p className="text-2xl font-bold text-gray-900">{workStatistics.totalQuantity}</p>
-                </div>
-                <Calendar className="w-8 h-8 text-purple-600" />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Workers</p>
-                  <p className="text-2xl font-bold text-gray-900">{attendanceStatistics.totalRecords}</p>
-                </div>
-                <Users className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-            
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Present</p>
-                  <p className="text-2xl font-bold text-green-600">{attendanceStatistics.presentCount}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Absent</p>
-                  <p className="text-2xl font-bold text-red-600">{attendanceStatistics.absentCount}</p>
-                </div>
-                <XCircle className="w-8 h-8 text-red-600" />
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm border">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Attendance Rate</p>
-                  <p className="text-2xl font-bold text-blue-600">{attendanceStatistics.attendanceRate}%</p>
-                </div>
-                <BarChart3 className="w-8 h-8 text-blue-600" />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Filters and Search */}
-        <div className="bg-white p-4 rounded-lg shadow-sm border mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search all fields..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <select
-              value={filterSupervisor}
-              onChange={(e) => setFilterSupervisor(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">All Supervisors</option>
-              {currentSupervisors.map(supervisor => (
-                <option key={supervisor} value={supervisor}>{supervisor}</option>
-              ))}
-            </select>
-
-            {activeTab === 'workdata' && (
-              <select
-                value={filterWorkType}
-                onChange={(e) => setFilterWorkType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">All Work Types</option>
-                {workTypes.map(type => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            )}
-
-            <button
-              onClick={() => exportToCSV(currentData, activeTab === 'workdata' ? 'work_data' : 'attendance_data')}
-              disabled={currentData.length === 0}
-              className="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-            >
-              <Download className="w-4 h-4" />
-              Export CSV
-            </button>
-          </div>
         </div>
+    </nav>
 
-        {/* Data Table */}
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  {currentData.length > 0 && Object.keys(currentData[0]).map(header => (
-                    <th 
-                      key={header}
-                      onClick={() => handleSort(header)}
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
-                      <div className="flex items-center gap-1">
-                        {header}
-                        {sortField === header && (
-                          <span className="text-blue-600">
-                            {sortDirection === 'asc' ? '↑' : '↓'}
-                          </span>
-                        )}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {currentData.length === 0 ? (
-                  <tr>
-                    <td 
-                      colSpan={currentData.length > 0 ? Object.keys(currentData[0]).length : 1}
-                      className="px-4 py-8 text-center text-gray-500"
-                    >
-                      No data matches your current filters
-                    </td>
-                  </tr>
-                ) : (
-                  currentData.map((row, index) => (
-                    <tr key={index} className="hover:bg-gray-50 transition-colors">
-                      {Object.entries(row).map(([key, value], cellIndex) => (
-                        <td key={cellIndex} className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
-                          {key.toLowerCase().includes('present') || key.toLowerCase().includes('attendance') ? (
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                              value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'present' || value === '1')
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {value && (value.toLowerCase() === 'yes' || value.toLowerCase() === 'present' || value === '1') ? (
-                                <>
-                                  <CheckCircle className="w-3 h-3" />
-                                  Present
-                                </>
-                              ) : (
-                                <>
-                                  <XCircle className="w-3 h-3" />
-                                  Absent
-                                </>
-                              )}
-                            </span>
-                          ) : (
-                            value || '-'
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <!-- Work Entries Page -->
+    <div id="workEntriesPage" class="page-content">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <!-- Header with Stats -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Work Entries</h2>
+                    <button id="refreshWork" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                        <span id="workRefreshIcon">🔄</span>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+                        <h3 class="text-sm font-medium text-gray-500">Total Entries</h3>
+                        <p id="totalEntries" class="text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
+                        <h3 class="text-sm font-medium text-gray-500">Total Volume</h3>
+                        <p id="totalVolume" class="text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
+                        <h3 class="text-sm font-medium text-gray-500">Active Supervisors</h3>
+                        <p id="activeSupervisors" class="text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                </div>
 
-        {/* Results count */}
-        <div className="mt-4 text-sm text-gray-600 text-center">
-          Showing {currentData.length} of {activeTab === 'workdata' ? workData.length : attendanceData.length} records
+                <!-- Filters -->
+                <div class="bg-white p-4 rounded-lg shadow mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Supervisor</label>
+                            <select id="supervisorFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="">All Supervisors</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Work Type</label>
+                            <select id="workTypeFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="">All Work Types</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
+                            <input type="date" id="dateFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Work Entries Table -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supervisor</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Work Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dimensions</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
+                            </tr>
+                        </thead>
+                        <tbody id="workEntriesTable" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                                    <div class="loading w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                                    Loading work entries...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  );
-};
 
-export default SupervisorDashboard;
+    <!-- Attendance Page -->
+    <div id="attendancePage" class="page-content hidden">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <!-- Header with Stats -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Attendance Tracking</h2>
+                    <button id="refreshAttendance" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                        <span id="attendanceRefreshIcon">🔄</span>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
+                        <h3 class="text-sm font-medium text-gray-500">Total Records</h3>
+                        <p id="totalAttendance" class="text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
+                        <h3 class="text-sm font-medium text-gray-500">Total Shift Hours</h3>
+                        <p id="totalShiftHours" class="text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
+                        <h3 class="text-sm font-medium text-gray-500">Total OT Hours</h3>
+                        <p id="totalOTHours" class="text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow border-l-4 border-purple-500">
+                        <h3 class="text-sm font-medium text-gray-500">Active Employees</h3>
+                        <p id="activeEmployees" class="text-2xl font-bold text-gray-900">-</p>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="bg-white p-4 rounded-lg shadow mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Supervisor</label>
+                            <select id="attendanceSupervisorFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="">All Supervisors</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Employee</label>
+                            <select id="employeeFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                                <option value="">All Employees</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Date</label>
+                            <input type="date" id="attendanceDateFilter" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Table -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supervisor</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shift Hours</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">OT Hours</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Hours</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTable" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                                    <div class="loading w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                                    Loading attendance data...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm">Last updated: <span id="lastUpdated">-</span> | Auto-refresh every 5 minutes</p>
+        </div>
+    </footer>
+
+    <script>
+        // Global variables
+        let workEntriesData = [];
+        let attendanceData = [];
+        let filteredWorkEntries = [];
+        let filteredAttendance = [];
+
+        // CSV URLs
+        const WORK_ENTRIES_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1765901480&single=true&output=csv';
+        const ATTENDANCE_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxODcmDFDJLfScffQaei0ejYlolvQKi32KiWBBAp97WO7lLuD1TZHgK-ibCMn5kmW_0CsQHZMzcrHp/pub?gid=1727336003&single=true&output=csv';
+
+        // Tab switching
+        document.getElementById('workEntriesTab').addEventListener('click', () => switchTab('workEntries'));
+        document.getElementById('attendanceTab').addEventListener('click', () => switchTab('attendance'));
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.getElementById('workEntriesTab').className = tab === 'workEntries' 
+                ? 'px-4 py-2 rounded-lg bg-blue-700 text-white font-medium'
+                : 'px-4 py-2 rounded-lg bg-transparent hover:bg-blue-800 text-white font-medium';
+            
+            document.getElementById('attendanceTab').className = tab === 'attendance' 
+                ? 'px-4 py-2 rounded-lg bg-blue-700 text-white font-medium'
+                : 'px-4 py-2 rounded-lg bg-transparent hover:bg-blue-800 text-white font-medium';
+
+            // Show/hide pages
+            document.getElementById('workEntriesPage').className = tab === 'workEntries' ? 'page-content fade-in' : 'page-content hidden';
+            document.getElementById('attendancePage').className = tab === 'attendance' ? 'page-content fade-in' : 'page-content hidden';
+        }
+
+        // CSV parsing function
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = lines[i].split(',').map(v => v.trim());
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index] || '';
+                    });
+                    data.push(row);
+                }
+            }
+            return data;
+        }
+
+        // Load work entries data
+        async function loadWorkEntries() {
+            try {
+                document.getElementById('workRefreshIcon').className = 'loading';
+                const response = await fetch(WORK_ENTRIES_CSV);
+                const csv = await response.text();
+                workEntriesData = parseCSV(csv);
+                filteredWorkEntries = [...workEntriesData];
+                
+                updateWorkEntriesStats();
+                updateWorkEntriesFilters();
+                renderWorkEntriesTable();
+                updateLastUpdated();
+            } catch (error) {
+                console.error('Error loading work entries:', error);
+                document.getElementById('workEntriesTable').innerHTML = 
+                    '<tr><td colspan="7" class="px-4 py-8 text-center text-red-500">Error loading data. Please try again.</td></tr>';
+            } finally {
+                document.getElementById('workRefreshIcon').className = '';
+            }
+        }
+
+        // Load attendance data
+        async function loadAttendance() {
+            try {
+                document.getElementById('attendanceRefreshIcon').className = 'loading';
+                const response = await fetch(ATTENDANCE_CSV);
+                const csv = await response.text();
+                attendanceData = parseCSV(csv);
+                filteredAttendance = [...attendanceData];
+                
+                updateAttendanceStats();
+                updateAttendanceFilters();
+                renderAttendanceTable();
+                updateLastUpdated();
+            } catch (error) {
+                console.error('Error loading attendance:', error);
+                document.getElementById('attendanceTable').innerHTML = 
+                    '<tr><td colspan="7" class="px-4 py-8 text-center text-red-500">Error loading data. Please try again.</td></tr>';
+            } finally {
+                document.getElementById('attendanceRefreshIcon').className = '';
+            }
+        }
+
+        // Update work entries stats
+        function updateWorkEntriesStats() {
+            const totalEntries = filteredWorkEntries.length;
+            const totalVolume = filteredWorkEntries.reduce((sum, entry) => sum + (parseFloat(entry.Volume) || 0), 0);
+            const supervisors = new Set(filteredWorkEntries.map(entry => entry.Supervisor).filter(s => s));
+            
+            document.getElementById('totalEntries').textContent = totalEntries.toLocaleString();
+            document.getElementById('totalVolume').textContent = totalVolume.toFixed(2) + ' m³';
+            document.getElementById('activeSupervisors').textContent = supervisors.size;
+        }
+
+        // Update attendance stats
+        function updateAttendanceStats() {
+            const totalRecords = filteredAttendance.length;
+            const totalShiftHours = filteredAttendance.reduce((sum, entry) => sum + (parseFloat(entry['Shift Hours']) || 0), 0);
+            const totalOTHours = filteredAttendance.reduce((sum, entry) => sum + (parseFloat(entry['OT HOURS']) || 0), 0);
+            const employees = new Set(filteredAttendance.map(entry => entry['EMP NAME']).filter(e => e));
+            
+            document.getElementById('totalAttendance').textContent = totalRecords.toLocaleString();
+            document.getElementById('totalShiftHours').textContent = totalShiftHours.toFixed(1) + 'h';
+            document.getElementById('totalOTHours').textContent = totalOTHours.toFixed(1) + 'h';
+            document.getElementById('activeEmployees').textContent = employees.size;
+        }
+
+        // Update work entries filters
+        function updateWorkEntriesFilters() {
+            // Get unique supervisors and work types, handling case-insensitive duplicates
+            const supervisorSet = new Set();
+            const workTypeSet = new Set();
+            
+            workEntriesData.forEach(entry => {
+                if (entry.Supervisor && entry.Supervisor.trim()) {
+                    supervisorSet.add(entry.Supervisor.trim());
+                }
+                if (entry['Work Type'] && entry['Work Type'].trim()) {
+                    workTypeSet.add(entry['Work Type'].trim());
+                }
+            });
+            
+            const supervisors = [...supervisorSet].sort();
+            const workTypes = [...workTypeSet].sort();
+            
+            const supervisorFilter = document.getElementById('supervisorFilter');
+            const workTypeFilter = document.getElementById('workTypeFilter');
+            
+            supervisorFilter.innerHTML = '<option value="">All Supervisors</option>';
+            workTypeFilter.innerHTML = '<option value="">All Work Types</option>';
+            
+            supervisors.forEach(supervisor => {
+                supervisorFilter.innerHTML += `<option value="${supervisor}">${supervisor}</option>`;
+            });
+            
+            workTypes.forEach(workType => {
+                workTypeFilter.innerHTML += `<option value="${workType}">${workType}</option>`;
+            });
+        }
+
+        // Update attendance filters
+        function updateAttendanceFilters() {
+            // Get unique supervisors and employees, handling case-insensitive duplicates
+            const supervisorSet = new Set();
+            const employeeSet = new Set();
+            
+            attendanceData.forEach(entry => {
+                if (entry.Supervisor && entry.Supervisor.trim()) {
+                    supervisorSet.add(entry.Supervisor.trim());
+                }
+                if (entry['EMP NAME'] && entry['EMP NAME'].trim()) {
+                    employeeSet.add(entry['EMP NAME'].trim());
+                }
+            });
+            
+            const supervisors = [...supervisorSet].sort();
+            const employees = [...employeeSet].sort();
+            
+            const supervisorFilter = document.getElementById('attendanceSupervisorFilter');
+            const employeeFilter = document.getElementById('employeeFilter');
+            
+            supervisorFilter.innerHTML = '<option value="">All Supervisors</option>';
+            employeeFilter.innerHTML = '<option value="">All Employees</option>';
+            
+            supervisors.forEach(supervisor => {
+                supervisorFilter.innerHTML += `<option value="${supervisor}">${supervisor}</option>`;
+            });
+            
+            employees.forEach(employee => {
+                employeeFilter.innerHTML += `<option value="${employee}">${employee}</option>`;
+            });
+        }
+
+        // Apply work entries filters
+        function applyWorkEntriesFilters() {
+            const supervisorFilter = document.getElementById('supervisorFilter').value;
+            const workTypeFilter = document.getElementById('workTypeFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            filteredWorkEntries = workEntriesData.filter(entry => {
+                return (!supervisorFilter || entry.Supervisor === supervisorFilter) &&
+                       (!workTypeFilter || entry['Work Type'] === workTypeFilter) &&
+                       (!dateFilter || entry.Date === dateFilter);
+            });
+            
+            updateWorkEntriesStats();
+            renderWorkEntriesTable();
+        }
+
+        // Apply attendance filters
+        function applyAttendanceFilters() {
+            const supervisorFilter = document.getElementById('attendanceSupervisorFilter').value;
+            const employeeFilter = document.getElementById('employeeFilter').value;
+            const dateFilter = document.getElementById('attendanceDateFilter').value;
+            
+            filteredAttendance = attendanceData.filter(entry => {
+                return (!supervisorFilter || entry.Supervisor === supervisorFilter) &&
+                       (!employeeFilter || entry['EMP NAME'] === employeeFilter) &&
+                       (!dateFilter || entry.Date === dateFilter);
+            });
+            
+            updateAttendanceStats();
+            renderAttendanceTable();
+        }
+
+        // Render work entries table
+        function renderWorkEntriesTable() {
+            const tbody = document.getElementById('workEntriesTable');
+            
+            if (filteredWorkEntries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No work entries found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filteredWorkEntries.map(entry => {
+                const dimensions = `${entry.Length || 0} × ${entry.Width || 0} × ${entry.Height || 0}`;
+                
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Date || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Supervisor || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${entry['Work Type'] || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900 max-w-xs truncate" title="${entry.Description || '-'}">${entry.Description || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${dimensions}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Quantity || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Volume || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Render attendance table
+        function renderAttendanceTable() {
+            const tbody = document.getElementById('attendanceTable');
+            
+            if (filteredAttendance.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="px-4 py-8 text-center text-gray-500">No attendance records found</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = filteredAttendance.map(entry => {
+                const shiftHours = parseFloat(entry['Shift Hours']) || 0;
+                const otHours = parseFloat(entry['OT HOURS']) || 0;
+                const totalHours = shiftHours + otHours;
+                
+                let status = 'Present';
+                let statusClass = 'bg-green-100 text-green-800';
+                
+                if (totalHours === 0) {
+                    status = 'Absent';
+                    statusClass = 'bg-red-100 text-red-800';
+                } else if (otHours > 0) {
+                    status = 'Overtime';
+                    statusClass = 'bg-blue-100 text-blue-800';
+                }
+                
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Date || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${entry.Supervisor || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${entry['EMP NAME'] || '-'}</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${shiftHours.toFixed(1)}h</td>
+                        <td class="px-4 py-3 text-sm text-gray-900">${otHours.toFixed(1)}h</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">${totalHours.toFixed(1)}h</td>
+                        <td class="px-4 py-3 text-sm">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${statusClass}">${status}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update last updated timestamp
+        function updateLastUpdated() {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        }
+
+        // Event listeners for filters
+        document.getElementById('supervisorFilter').addEventListener('change', applyWorkEntriesFilters);
+        document.getElementById('workTypeFilter').addEventListener('change', applyWorkEntriesFilters);
+        document.getElementById('dateFilter').addEventListener('change', applyWorkEntriesFilters);
+
+        document.getElementById('attendanceSupervisorFilter').addEventListener('change', applyAttendanceFilters);
+        document.getElementById('employeeFilter').addEventListener('change', applyAttendanceFilters);
+        document.getElementById('attendanceDateFilter').addEventListener('change', applyAttendanceFilters);
+
+        // Refresh buttons
+        document.getElementById('refreshWork').addEventListener('click', loadWorkEntries);
+        document.getElementById('refreshAttendance').addEventListener('click', loadAttendance);
+
+        // Initial load
+        loadWorkEntries();
+        loadAttendance();
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            loadWorkEntries();
+            loadAttendance();
+        }, 300000);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97596ea4a1349aa1',t:'MTc1NjI3NTMwMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

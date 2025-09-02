@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field In-Charge - Scaffolding Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .ticker {
+            white-space: nowrap;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .ticker-content {
+            display: inline-block;
+        }
+        
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        .ticker-content {
+            animation: scroll 90s linear infinite;
+        }
+        
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+            transform: translateY(-1px);
+        }
+        
+        .input-field {
+            transition: all 0.3s ease;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Field In-Charge</h1>
+                        <p class="text-sm text-gray-600">Scaffolding Management System</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-500" id="currentDateTime"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Login Cards Container -->
+        <div id="loginContainer" class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            <!-- Start Shift Card -->
+            <div class="bg-white rounded-xl card-shadow p-8 border border-gray-100">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">Start Shift</h2>
+                    <p class="text-gray-600 text-sm">Begin daily operations</p>
+                </div>
+                
+                <form id="startShiftLogin" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supervisor</label>
+                        <select id="startSupervisorSelect" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
+                            <option value="">Loading supervisors...</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">4-Digit Passcode</label>
+                        <input type="password" maxlength="4" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none text-center text-lg tracking-widest" placeholder="••••" required>
+                    </div>
+                    
+                    <button type="submit" class="w-full btn-primary text-white py-3 px-6 rounded-lg font-medium">
+                        Login to Start Shift
+                    </button>
+                </form>
+            </div>
+
+            <!-- End Shift Card -->
+            <div class="bg-white rounded-xl card-shadow p-8 border border-gray-100">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">End Shift</h2>
+                    <p class="text-gray-600 text-sm">Complete daily operations</p>
+                </div>
+                
+                <form id="endShiftLogin" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supervisor</label>
+                        <select id="endSupervisorSelect" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
+                            <option value="">Loading supervisors...</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">4-Digit Passcode</label>
+                        <input type="password" maxlength="4" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none text-center text-lg tracking-widest" placeholder="••••" required>
+                    </div>
+                    
+                    <button type="submit" class="w-full btn-primary text-white py-3 px-6 rounded-lg font-medium">
+                        Login to End Shift
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Start Shift Interface (Hidden Initially) -->
+        <div id="startShiftInterface" class="hidden max-w-4xl mx-auto">
+            <div class="bg-white rounded-xl card-shadow p-8 border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Start Shift</h2>
+                    <button id="logoutStart" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Supervisor (Locked)</label>
+                        <input type="text" id="lockedSupervisor" class="w-full input-field rounded-lg px-4 py-3 bg-gray-50" readonly>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                        <input type="date" id="shiftDate" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none">
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Select Employees for Site</h3>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3" id="employeeList">
+                        <!-- Employee checkboxes will be populated here -->
+                    </div>
+                </div>
+                
+                <button id="submitStartShift" class="w-full btn-primary text-white py-3 px-6 rounded-lg font-medium">
+                    Submit & Generate Report
+                </button>
+            </div>
+        </div>
+
+        <!-- End Shift Interface (Hidden Initially) -->
+        <div id="endShiftInterface" class="hidden max-w-6xl mx-auto space-y-6">
+            <!-- Work Details -->
+            <div class="bg-white rounded-xl card-shadow p-8 border border-gray-100">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">End Shift - Work Details</h2>
+                    <button id="logoutEnd" class="text-gray-500 hover:text-gray-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Work Type</label>
+                        <select id="workType" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
+                            <option value="">Select Work Type</option>
+                            <option value="Erection">Erection</option>
+                            <option value="Dismantling">Dismantling</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Elevation</label>
+                        <select id="workElevation" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
+                            <option value="">Select Elevation</option>
+                            <option value="0TO6">0TO6</option>
+                            <option value="6TO10">6TO10</option>
+                            <option value="10TO20">10TO20</option>
+                            <option value="20TO30">20TO30</option>
+                            <option value="30TO40">30TO40</option>
+                            <option value="ABOVE 40">ABOVE 40</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <input type="text" id="workDescription" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" placeholder="Work description">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Length (m)</label>
+                        <input type="number" id="workLength" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" step="0.1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Width (m)</label>
+                        <input type="number" id="workWidth" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" step="0.1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Height (m)</label>
+                        <input type="number" id="workHeight" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" step="0.1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                        <input type="number" id="workQuantity" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none">
+                    </div>
+                    <div class="flex items-end">
+                        <button id="addWorkEntry" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium">
+                            Add Entry
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Work Entries Summary -->
+                <div id="workEntriesContainer" class="mb-6">
+                    <h4 class="text-lg font-semibold text-gray-900 mb-3">Work Entries</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border border-gray-200 rounded-lg">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Type</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Elevation</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Description</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">L×W×H</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Qty</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Volume</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workEntriesTable">
+                                <!-- Entries will be added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <button id="proceedToOvertime" class="w-full btn-primary text-white py-3 px-6 rounded-lg font-medium">
+                    Proceed to Overtime Entry
+                </button>
+            </div>
+
+            <!-- Overtime Entry (Hidden Initially) -->
+            <div id="overtimeSection" class="hidden bg-white rounded-xl card-shadow p-8 border border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-900 mb-6">Overtime Entry</h3>
+                
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Start Shift Workers Quantity</label>
+                        <input type="number" id="startShiftWorkers" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" min="1" placeholder="Enter start shift workers quantity">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Number of Workers for Overtime</label>
+                        <input type="number" id="workerCount" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" min="0" placeholder="Enter number of workers for overtime">
+                    </div>
+                </div>
+                
+                <div id="overtimeEntries" class="space-y-4 mb-6">
+                    <!-- Overtime entries will be populated here -->
+                </div>
+                
+                <button id="submitEndShift" class="w-full btn-primary text-white py-3 px-6 rounded-lg font-medium">
+                    Submit & Generate Report
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer with Ticker -->
+    <footer class="bg-gray-900 text-white py-4 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="ticker">
+                <div class="ticker-content text-sm" id="tickerText">
+                    🏗️ Safety First: Always wear hard hats and safety harnesses • 
+                    📋 Daily inspections required before scaffold use • 
+                    ⚠️ Maximum load capacity: 25 lbs per square foot • 
+                    🔧 Check all connections and joints regularly • 
+                    👥 Minimum 2-person team for scaffold assembly • 
+                    📏 Maintain 3:1 height to base ratio for stability • 
+                    🌧️ Do not use scaffolds during adverse weather conditions • 
+                    🔒 Secure all materials and tools when working at height
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Google Apps Script Web App URL
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-f42gTZWoFZ_7WH7Z1imlARnvad_uX5ArpmC6-Rx8lYU45z6_aT7_Ui95r1l6BYaw/exec';
+        
+        let employees = [];
+        let supervisors = [];
+        let currentSupervisor = '';
+        let workEntries = [];
+        let overtimeData = [];
+
+        // API Helper function
+        async function callAPI(action, data = {}) {
+            try {
+                const formData = new FormData();
+                formData.append('action', action);
+                
+                Object.keys(data).forEach(key => {
+                    formData.append(key, data[key]);
+                });
+                
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return { success: false, message: error.toString() };
+            }
+        }
+
+        // Load supervisors from Google Sheets
+        async function loadSupervisors() {
+            console.log('Loading supervisors from Google Sheets...');
+            
+            try {
+                const result = await callAPI('getSupervisors');
+                console.log('Supervisors API Response:', result);
+                
+                if (result.success && result.supervisors && result.supervisors.length > 0) {
+                    supervisors = result.supervisors;
+                    console.log('Loaded supervisors:', supervisors);
+                    populateSupervisorDropdowns();
+                } else {
+                    console.error('No supervisors returned from API');
+                    showError('Could not load supervisors from Google Sheets. Please check your connection.');
+                }
+            } catch (error) {
+                console.error('Error loading supervisors:', error);
+                showError('Could not connect to Google Sheets to load supervisors.');
+            }
+        }
+
+        // Load employees from Google Sheets
+        async function loadEmployees() {
+            console.log('Loading employees from Google Sheets...');
+            
+            try {
+                const result = await callAPI('getEmployees');
+                console.log('Employees API Response:', result);
+                
+                if (result.success && result.employees && result.employees.length > 0) {
+                    employees = result.employees;
+                    console.log('Loaded employees:', employees);
+                    populateEmployeeList();
+                } else {
+                    console.error('No employees returned from API');
+                    showError('Could not load employees from Google Sheets. Please check your connection.');
+                }
+            } catch (error) {
+                console.error('Error loading employees:', error);
+                showError('Could not connect to Google Sheets to load employees.');
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
+            errorDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-red-500 hover:text-red-700">×</button>
+                </div>
+            `;
+            document.body.appendChild(errorDiv);
+            
+            setTimeout(() => {
+                if (errorDiv.parentElement) {
+                    errorDiv.remove();
+                }
+            }, 10000);
+        }
+
+        // Update current date/time
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+        }
+
+        // Format date as "22 Aug 2025"
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // Set today's date
+        document.getElementById('shiftDate').valueAsDate = new Date();
+
+        // Initialize page - load supervisors on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSupervisors();
+        });
+
+        // Populate supervisor dropdowns
+        function populateSupervisorDropdowns() {
+            console.log('Populating supervisor dropdowns with:', supervisors);
+            
+            const startSelect = document.getElementById('startSupervisorSelect');
+            const endSelect = document.getElementById('endSupervisorSelect');
+            
+            if (!startSelect || !endSelect) {
+                console.error('Supervisor dropdown elements not found!');
+                return;
+            }
+            
+            // Clear existing options
+            startSelect.innerHTML = '<option value="">Select Supervisor</option>';
+            endSelect.innerHTML = '<option value="">Select Supervisor</option>';
+            
+            if (!supervisors || supervisors.length === 0) {
+                startSelect.innerHTML = '<option value="">No supervisors found</option>';
+                endSelect.innerHTML = '<option value="">No supervisors found</option>';
+                return;
+            }
+            
+            supervisors.forEach(supervisor => {
+                const startOption = document.createElement('option');
+                startOption.value = supervisor;
+                startOption.textContent = supervisor;
+                startSelect.appendChild(startOption);
+                
+                const endOption = document.createElement('option');
+                endOption.value = supervisor;
+                endOption.textContent = supervisor;
+                endSelect.appendChild(endOption);
+            });
+            
+            console.log('Supervisor dropdowns populated successfully');
+        }
+
+        // Populate employee list
+        function populateEmployeeList() {
+            console.log('Populating employee list with:', employees);
+            const container = document.getElementById('employeeList');
+            
+            if (!container) {
+                console.error('Employee list container not found!');
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            if (!employees || employees.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 text-center py-4">No employees found</div>';
+                return;
+            }
+            
+            employees.forEach((emp, index) => {
+                console.log(`Adding employee ${index + 1}:`, emp);
+                const div = document.createElement('div');
+                div.className = 'flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50';
+                div.innerHTML = `
+                    <input type="checkbox" id="emp_${emp.replace(/\s+/g, '_')}" value="${emp}" 
+                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="emp_${emp.replace(/\s+/g, '_')}" class="text-sm text-gray-700 cursor-pointer flex-1">${emp}</label>
+                `;
+                container.appendChild(div);
+            });
+            
+            console.log('Employee list populated successfully');
+        }
+
+        // Show report options modal
+        function showReportOptions(title, report, type) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-xl p-8 max-w-md mx-4 shadow-2xl">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">${title}</h3>
+                        <p class="text-gray-600 text-sm">Choose how to share your report</p>
+                    </div>
+                    
+                    <div class="space-y-3 mb-6">
+                        <button onclick="shareToWhatsApp(\`${report.replace(/`/g, '\\`')}\`)" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.097"/>
+                            </svg>
+                            <span>Share to WhatsApp</span>
+                        </button>
+                        
+                        <button onclick="copyReportToClipboard(\`${report.replace(/`/g, '\\`')}\`)" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                            </svg>
+                            <span>Copy Report</span>
+                        </button>
+                    </div>
+                    
+                    <button onclick="closeReportModal('${type}')" class="w-full bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-6 rounded-lg font-medium">
+                        Close & Logout
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        function shareToWhatsApp(report) {
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(report)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        function copyReportToClipboard(report) {
+            navigator.clipboard.writeText(report).then(() => {
+                // Show success message
+                const button = event.target.closest('button');
+                const originalText = button.innerHTML;
+                button.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>Copied!</span>
+                `;
+                button.className = 'w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2';
+                }, 2000);
+            }).catch(() => {
+                alert('Failed to copy report. Please try again.');
+            });
+        }
+
+        function closeReportModal(type) {
+            const modal = document.querySelector('.fixed.inset-0');
+            if (modal) {
+                modal.remove();
+            }
+            
+            // Logout after closing modal
+            if (type === 'start') {
+                document.getElementById('logoutStart').click();
+            } else {
+                document.getElementById('logoutEnd').click();
+            }
+        }
+
+        // Login handlers
+        document.getElementById('startShiftLogin').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const supervisor = document.getElementById('startSupervisorSelect').value;
+            const passcode = this.querySelector('input[type="password"]').value;
+            
+            if (!supervisor) {
+                alert('Please select a supervisor');
+                return;
+            }
+            
+            // Prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn.disabled) return;
+            
+            // Show loading message
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+            
+            const result = await callAPI('validateLogin', { supervisor, passcode });
+            
+            if (result.success) {
+                currentSupervisor = supervisor;
+                document.getElementById('lockedSupervisor').value = supervisor;
+                
+                // Load employees before showing interface
+                submitBtn.textContent = 'Loading employees...';
+                await loadEmployees();
+                
+                document.getElementById('loginContainer').classList.add('hidden');
+                document.getElementById('startShiftInterface').classList.remove('hidden');
+            } else {
+                alert('Invalid credentials: ' + (result.message || 'Please check your supervisor name and passcode'));
+            }
+            
+            // Reset button
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+
+        document.getElementById('endShiftLogin').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const supervisor = document.getElementById('endSupervisorSelect').value;
+            const passcode = this.querySelector('input[type="password"]').value;
+            
+            if (!supervisor) {
+                alert('Please select a supervisor');
+                return;
+            }
+            
+            // Prevent double submission
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn.disabled) return;
+            
+            // Show loading message
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Logging in...';
+            submitBtn.disabled = true;
+            
+            const result = await callAPI('validateLogin', { supervisor, passcode });
+            
+            if (result.success) {
+                currentSupervisor = supervisor;
+                
+                // Load employees for overtime section
+                submitBtn.textContent = 'Loading employees...';
+                await loadEmployees();
+                
+                document.getElementById('loginContainer').classList.add('hidden');
+                document.getElementById('endShiftInterface').classList.remove('hidden');
+            } else {
+                alert('Invalid credentials: ' + (result.message || 'Please check your supervisor name and passcode'));
+            }
+            
+            // Reset button
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
+
+        // Logout handlers
+        document.getElementById('logoutStart').addEventListener('click', function() {
+            document.getElementById('startShiftInterface').classList.add('hidden');
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('startShiftLogin').reset();
+        });
+
+        document.getElementById('logoutEnd').addEventListener('click', function() {
+            document.getElementById('endShiftInterface').classList.add('hidden');
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('endShiftLogin').reset();
+            workEntries = [];
+            overtimeData = [];
+        });
+
+        // Start shift submission
+        document.getElementById('submitStartShift').addEventListener('click', async function() {
+            // Prevent double submission
+            if (this.disabled) return;
+            
+            const selectedEmployees = Array.from(document.querySelectorAll('#employeeList input:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedEmployees.length === 0) {
+                alert('Please select at least one employee');
+                return;
+            }
+            
+            // Disable button immediately
+            const originalText = this.textContent;
+            this.textContent = 'Submitting...';
+            this.disabled = true;
+            
+            const date = document.getElementById('shiftDate').value;
+            const formattedDate = formatDate(date);
+            
+            // Save to Google Sheets first
+            const result = await callAPI('saveStartShift', {
+                date: formattedDate,
+                supervisor: currentSupervisor,
+                employees: JSON.stringify(selectedEmployees)
+            });
+            
+            if (result.success) {
+                const report = `SHIFT START REPORT
+            
+Date: ${formattedDate}
+Supervisor: ${currentSupervisor}
+Workers Present (${selectedEmployees.length}):
+
+${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
+                
+                // Show success message with copy option
+                showReportOptions('Start Shift Report Submitted Successfully!', report, 'start');
+            } else {
+                alert('Error saving data: ' + result.message);
+                // Re-enable button on error
+                this.textContent = originalText;
+                this.disabled = false;
+            }
+        });
+
+        // Add work entry
+        document.getElementById('addWorkEntry').addEventListener('click', function() {
+            const workType = document.getElementById('workType').value;
+            const elevation = document.getElementById('workElevation').value;
+            const description = document.getElementById('workDescription').value;
+            const length = parseFloat(document.getElementById('workLength').value) || 0;
+            const width = parseFloat(document.getElementById('workWidth').value) || 0;
+            const height = parseFloat(document.getElementById('workHeight').value) || 0;
+            const quantity = parseInt(document.getElementById('workQuantity').value) || 0;
+            
+            if (!workType || !elevation || !description || length <= 0 || width <= 0 || height <= 0 || quantity <= 0) {
+                alert('Please fill all fields with valid values');
+                return;
+            }
+            
+            const volume = length * width * height * quantity;
+            const entry = { workType, elevation, description, length, width, height, quantity, volume };
+            workEntries.push(entry);
+            
+            updateWorkEntriesTable();
+            
+            // Clear form
+            document.getElementById('workDescription').value = '';
+            document.getElementById('workLength').value = '';
+            document.getElementById('workWidth').value = '';
+            document.getElementById('workHeight').value = '';
+            document.getElementById('workQuantity').value = '';
+        });
+
+        function updateWorkEntriesTable() {
+            const tbody = document.getElementById('workEntriesTable');
+            tbody.innerHTML = '';
+            
+            workEntries.forEach((entry, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-t border-gray-200';
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-sm text-gray-900">${entry.workType}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${entry.elevation}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${entry.description}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${entry.length}×${entry.width}×${entry.height}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${entry.quantity}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${entry.volume.toFixed(2)} m³</td>
+                    <td class="px-4 py-3 text-sm">
+                        <button onclick="removeWorkEntry(${index})" class="text-red-600 hover:text-red-800">Remove</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function removeWorkEntry(index) {
+            workEntries.splice(index, 1);
+            updateWorkEntriesTable();
+        }
+
+        // Proceed to overtime
+        document.getElementById('proceedToOvertime').addEventListener('click', function() {
+            if (workEntries.length === 0) {
+                alert('Please add at least one work entry');
+                return;
+            }
+            document.getElementById('overtimeSection').classList.remove('hidden');
+        });
+
+        // Generate overtime entries
+        document.getElementById('workerCount').addEventListener('input', function() {
+            const count = parseInt(this.value) || 0;
+            const container = document.getElementById('overtimeEntries');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const div = document.createElement('div');
+                div.className = 'grid grid-cols-2 gap-4';
+                div.innerHTML = `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Employee ${i + 1}</label>
+                        <select class="w-full input-field rounded-lg px-4 py-3 focus:outline-none employee-select" required>
+                            <option value="">Select Employee</option>
+                            ${employees.map(emp => `<option value="${emp}">${emp}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Overtime Hours</label>
+                        <input type="number" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none overtime-hours" 
+                               min="0" step="0.5" placeholder="0">
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        });
+
+        // Submit end shift
+        document.getElementById('submitEndShift').addEventListener('click', async function() {
+            // Prevent double submission
+            if (this.disabled) return;
+            
+            const startShiftWorkers = parseInt(document.getElementById('startShiftWorkers').value) || 0;
+            const workerCount = parseInt(document.getElementById('workerCount').value) || 0;
+            const employeeSelects = document.querySelectorAll('.employee-select');
+            const overtimeInputs = document.querySelectorAll('.overtime-hours');
+            
+            if (startShiftWorkers === 0) {
+                alert('Please enter start shift workers quantity');
+                return;
+            }
+            
+            // Disable button immediately
+            const originalText = this.textContent;
+            this.textContent = 'Submitting...';
+            this.disabled = true;
+            
+            let totalOvertime = 0;
+            let overtimeEntries = [];
+            
+            for (let i = 0; i < workerCount; i++) {
+                const employee = employeeSelects[i].value;
+                const overtime = parseFloat(overtimeInputs[i].value) || 0;
+                totalOvertime += overtime;
+                
+                if (employee) {
+                    overtimeEntries.push({
+                        employee: employee,
+                        overtime: overtime,
+                        shiftManhours: 8 + overtime
+                    });
+                }
+            }
+            
+            // Calculation: Start Shift Workers * 8 hours + Total Overtime Hours
+            const baseManhours = startShiftWorkers * 8;
+            const totalManhours = baseManhours + totalOvertime;
+            
+            let totalErection = 0;
+            let totalDismantling = 0;
+            
+            workEntries.forEach(entry => {
+                if (entry.workType === 'Erection') {
+                    totalErection += entry.volume;
+                } else if (entry.workType === 'Dismantling') {
+                    totalDismantling += entry.volume;
+                }
+            });
+            
+            // Divide dismantling by 2 for report display
+            const reportDismantling = totalDismantling / 2;
+            
+            // New productivity calculation: (Total Erection + Report Dismantling) / Total Manhours
+            const productivity = totalManhours > 0 ? (totalErection + reportDismantling) / totalManhours : 0;
+            
+            // Save to Google Sheets first
+            const currentDate = new Date().toISOString().split('T')[0];
+            const formattedDate = formatDate(currentDate);
+            const result = await callAPI('saveEndShift', {
+                date: formattedDate,
+                supervisor: currentSupervisor,
+                startShiftWorkers: startShiftWorkers,
+                workEntries: JSON.stringify(workEntries),
+                overtimeEntries: JSON.stringify(overtimeEntries),
+                totalErection: totalErection,
+                totalDismantling: totalDismantling,
+                totalManhours: totalManhours,
+                productivity: productivity
+            });
+            
+            if (result.success) {
+                // Report format with date and dismantling divided by 2
+                const report = `Date: ${formattedDate}\nSupervisor: ${currentSupervisor}\nTotal Erection: ${totalErection.toFixed(2)} m³\nTotal Dismantling: ${reportDismantling.toFixed(2)} m³\nOvertime: ${totalOvertime}\nManhours: ${baseManhours}\nTotal Manhours: ${totalManhours}\nProductivity: ${productivity.toFixed(2)} m³/hr`;
+                
+                // Show success message with copy option
+                showReportOptions('End Shift Report Submitted Successfully!', report, 'end');
+            } else {
+                alert('Error saving data: ' + result.message);
+                // Re-enable button on error
+                this.textContent = originalText;
+                this.disabled = false;
+            }
+        });
+
+        // Auto-generate ticker content
+        const safetyTips = [
+            '🏗️ Safety First: Always wear hard hats and safety harnesses',
+            '📋 Daily inspections required before scaffold use',
+            '⚠️ Maximum load capacity: 25 lbs per square foot',
+            '🔧 Check all connections and joints regularly',
+            '👥 Minimum 2-person team for scaffold assembly',
+            '📏 Maintain 3:1 height to base ratio for stability',
+            '🌧️ Do not use scaffolds during adverse weather conditions',
+            '🔒 Secure all materials and tools when working at height',
+            '📞 Report any damaged equipment immediately',
+            '🎯 Follow proper climbing procedures at all times',
+            '⛑️ Ensure guardrails are installed on all open sides',
+            '🔍 Inspect planks for cracks or damage before use'
+        ];
+
+        function updateTicker() {
+            const ticker = document.getElementById('tickerText');
+            const shuffled = [...safetyTips].sort(() => 0.5 - Math.random());
+            ticker.textContent = shuffled.join(' • ') + ' • ';
+        }
+
+        updateTicker();
+        setInterval(updateTicker, 30000); // Update every 30 seconds
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978dc03b30714478',t:'MTc1NjgyMzkwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

@@ -195,25 +195,13 @@
                     </button>
                 </div>
                 
-                <div class="grid md:grid-cols-3 gap-6 mb-6">
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Work Type</label>
                         <select id="workType" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
                             <option value="">Select Work Type</option>
                             <option value="Erection">Erection</option>
                             <option value="Dismantling">Dismantling</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Elevation</label>
-                        <select id="workElevation" class="w-full input-field rounded-lg px-4 py-3 focus:outline-none" required>
-                            <option value="">Select Elevation</option>
-                            <option value="0TO6">0TO6</option>
-                            <option value="6TO10">6TO10</option>
-                            <option value="10TO20">10TO20</option>
-                            <option value="20TO30">20TO30</option>
-                            <option value="30TO40">30TO40</option>
-                            <option value="ABOVE 40">ABOVE 40</option>
                         </select>
                     </div>
                     <div>
@@ -254,7 +242,6 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Type</th>
-                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Elevation</th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Description</th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">L×W×H</th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Qty</th>
@@ -556,25 +543,67 @@
         }
 
         function copyReportToClipboard(report) {
-            navigator.clipboard.writeText(report).then(() => {
-                // Show success message
-                const button = event.target.closest('button');
-                const originalText = button.innerHTML;
-                button.innerHTML = `
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span>Copied!</span>
-                `;
-                button.className = 'w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2';
+            // Create a temporary textarea element
+            const textarea = document.createElement('textarea');
+            textarea.value = report;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            
+            try {
+                // Select and copy the text
+                textarea.select();
+                textarea.setSelectionRange(0, 99999); // For mobile devices
+                const successful = document.execCommand('copy');
                 
-                setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2';
-                }, 2000);
-            }).catch(() => {
-                alert('Failed to copy report. Please try again.');
-            });
+                if (successful) {
+                    // Show success message
+                    const button = event.target.closest('button');
+                    const originalText = button.innerHTML;
+                    button.innerHTML = `
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span>Copied!</span>
+                    `;
+                    button.className = 'w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2';
+                    }, 2000);
+                } else {
+                    throw new Error('Copy command failed');
+                }
+            } catch (err) {
+                // Fallback: Try modern clipboard API
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(report).then(() => {
+                        // Show success message
+                        const button = event.target.closest('button');
+                        const originalText = button.innerHTML;
+                        button.innerHTML = `
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Copied!</span>
+                        `;
+                        button.className = 'w-full bg-green-600 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2';
+                        
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                            button.className = 'w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-medium flex items-center justify-center space-x-2';
+                        }, 2000);
+                    }).catch(() => {
+                        alert('Failed to copy report. Please try selecting and copying manually.');
+                    });
+                } else {
+                    alert('Copy not supported. Please select and copy the text manually.');
+                }
+            } finally {
+                // Clean up
+                document.body.removeChild(textarea);
+            }
         }
 
         function closeReportModal(type) {
@@ -736,20 +765,19 @@ ${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
         // Add work entry
         document.getElementById('addWorkEntry').addEventListener('click', function() {
             const workType = document.getElementById('workType').value;
-            const elevation = document.getElementById('workElevation').value;
             const description = document.getElementById('workDescription').value;
             const length = parseFloat(document.getElementById('workLength').value) || 0;
             const width = parseFloat(document.getElementById('workWidth').value) || 0;
             const height = parseFloat(document.getElementById('workHeight').value) || 0;
             const quantity = parseInt(document.getElementById('workQuantity').value) || 0;
             
-            if (!workType || !elevation || !description || length <= 0 || width <= 0 || height <= 0 || quantity <= 0) {
+            if (!workType || !description || length <= 0 || width <= 0 || height <= 0 || quantity <= 0) {
                 alert('Please fill all fields with valid values');
                 return;
             }
             
             const volume = length * width * height * quantity;
-            const entry = { workType, elevation, description, length, width, height, quantity, volume };
+            const entry = { workType, description, length, width, height, quantity, volume };
             workEntries.push(entry);
             
             updateWorkEntriesTable();
@@ -771,7 +799,6 @@ ${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
                 row.className = 'border-t border-gray-200';
                 row.innerHTML = `
                     <td class="px-4 py-3 text-sm text-gray-900">${entry.workType}</td>
-                    <td class="px-4 py-3 text-sm text-gray-900">${entry.elevation}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${entry.description}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${entry.length}×${entry.width}×${entry.height}</td>
                     <td class="px-4 py-3 text-sm text-gray-900">${entry.quantity}</td>
@@ -937,5 +964,5 @@ ${selectedEmployees.map(emp => `• ${emp}`).join('\n')}`;
         updateTicker();
         setInterval(updateTicker, 30000); // Update every 30 seconds
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978dc03b30714478',t:'MTc1NjgyMzkwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'978decaa24574478',t:'MTc1NjgyNTcyNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
